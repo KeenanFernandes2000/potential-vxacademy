@@ -1,11 +1,17 @@
-
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Notification } from "@shared/schema";
-import { GraduationCap, Menu, Bell, ChevronDown, User, LogOut } from "lucide-react";
+import {
+  GraduationCap,
+  Menu,
+  Bell,
+  ChevronDown,
+  User,
+  LogOut,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,10 +31,11 @@ export function Header({ toggleSidebar }: HeaderProps) {
   const queryClient = useQueryClient();
 
   // Fetch notifications
-  const { data: notifications = [], isLoading: notificationsLoading } = useQuery<Notification[]>({
-    queryKey: ["/api/notifications"],
-    enabled: !!user,
-  });
+  const { data: notifications = [], isLoading: notificationsLoading } =
+    useQuery<Notification[]>({
+      queryKey: ["/api/notifications"],
+      enabled: !!user,
+    });
 
   // Fetch notification count
   const { data: notificationCount } = useQuery<{ count: number }>({
@@ -39,12 +46,15 @@ export function Header({ toggleSidebar }: HeaderProps) {
   // Mark notification as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: number) => {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      });
-      if (!response.ok) throw new Error('Failed to mark notification as read');
+      const response = await fetch(
+        `/api/notifications/${notificationId}/read`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        },
+      );
+      if (!response.ok) throw new Error("Failed to mark notification as read");
       return response.json();
     },
     onSuccess: () => {
@@ -59,9 +69,10 @@ export function Header({ toggleSidebar }: HeaderProps) {
       const response = await fetch("/api/notifications/mark-all-read", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
-      if (!response.ok) throw new Error('Failed to mark all notifications as read');
+      if (!response.ok)
+        throw new Error("Failed to mark all notifications as read");
       return response.json();
     },
     onSuccess: () => {
@@ -103,11 +114,14 @@ export function Header({ toggleSidebar }: HeaderProps) {
   const formatTimeAgo = (date: string | Date) => {
     const now = new Date();
     const notificationDate = new Date(date);
-    const diffInMinutes = Math.floor((now.getTime() - notificationDate.getTime()) / (1000 * 60));
-    
+    const diffInMinutes = Math.floor(
+      (now.getTime() - notificationDate.getTime()) / (1000 * 60),
+    );
+
     if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
+    if (diffInMinutes < 1440)
+      return `${Math.floor(diffInMinutes / 60)} hours ago`;
     return `${Math.floor(diffInMinutes / 1440)} days ago`;
   };
 
@@ -115,20 +129,21 @@ export function Header({ toggleSidebar }: HeaderProps) {
     <header className="bg-slate-900/95 backdrop-blur-xl shadow-lg z-10 border-b border-white/10">
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center md:hidden">
-          <button 
-            className="text-slate-300 hover:text-white focus:outline-none p-2 rounded-lg hover:bg-white/10 transition-colors" 
+          <button
+            className="text-slate-300 hover:text-white focus:outline-none p-2 rounded-lg hover:bg-white/10 transition-colors"
             onClick={toggleSidebar}
           >
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center ml-3">
             <GraduationCap className="h-6 w-6 text-teal-400 mr-2" />
-            <span className="font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</span>
+            <span className="font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+              VX Academy
+            </span>
           </div>
         </div>
-        
+
         <div className="flex ml-auto items-center space-x-4">
-          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="relative flex items-center text-slate-300 hover:text-white focus:outline-none p-2 rounded-lg hover:bg-white/10 transition-all duration-200">
@@ -140,10 +155,15 @@ export function Header({ toggleSidebar }: HeaderProps) {
                 )}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-xl border border-slate-200/50">
+            <DropdownMenuContent
+              align="end"
+              className="w-80 bg-white/95 backdrop-blur-xl border border-slate-200/50"
+            >
               <DropdownMenuLabel className="flex items-center justify-between">
-                <span className="font-semibold text-slate-800">Notifications</span>
-                {notifications.some(n => !n.read) && (
+                <span className="font-semibold text-slate-800">
+                  Notifications
+                </span>
+                {notifications.some((n) => !n.read) && (
                   <button
                     onClick={() => markAllAsReadMutation.mutate()}
                     className="text-xs text-teal-600 hover:text-teal-700 font-medium hover:underline transition-colors"
@@ -154,7 +174,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
                 )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              
+
               {notificationsLoading ? (
                 <div className="p-4 text-center text-sm text-slate-500">
                   Loading notifications...
@@ -165,18 +185,24 @@ export function Header({ toggleSidebar }: HeaderProps) {
                 </div>
               ) : (
                 notifications.slice(0, 5).map((notification) => (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     key={notification.id}
                     className="cursor-pointer hover:bg-slate-50 p-3"
                     onClick={() => handleNotificationClick(notification)}
                   >
-                    <div className={`flex items-start gap-3 w-full ${!notification.read ? 'bg-teal-50 rounded-lg p-2' : ''}`}>
+                    <div
+                      className={`flex items-start gap-3 w-full ${!notification.read ? "bg-teal-50 rounded-lg p-2" : ""}`}
+                    >
                       <span className="text-lg">
                         {getNotificationIcon(notification.type)}
                       </span>
                       <div className="flex-1">
-                        <p className="font-medium text-slate-800">{notification.title}</p>
-                        <p className="text-sm text-slate-600 mt-1">{notification.message}</p>
+                        <p className="font-medium text-slate-800">
+                          {notification.title}
+                        </p>
+                        <p className="text-sm text-slate-600 mt-1">
+                          {notification.message}
+                        </p>
                         <p className="text-xs text-slate-400 mt-1">
                           {formatTimeAgo(notification.createdAt!)}
                         </p>
@@ -188,7 +214,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
                   </DropdownMenuItem>
                 ))
               )}
-              
+
               {notifications.length > 5 && (
                 <>
                   <DropdownMenuSeparator />
@@ -199,25 +225,36 @@ export function Header({ toggleSidebar }: HeaderProps) {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg hover:bg-slate-100 transition-all duration-200">
+              <button className="flex items-center text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg hover:bg-white/10 transition-all duration-200">
                 <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 text-white flex items-center justify-center text-sm font-bold mr-2 shadow-lg">
                   {user?.name?.charAt(0) || "U"}
                 </div>
                 <ChevronDown className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white/95 backdrop-blur-xl border border-slate-200/50">
-              <DropdownMenuLabel className="text-slate-800">My Account</DropdownMenuLabel>
+            <DropdownMenuContent
+              align="end"
+              className="bg-white/95 backdrop-blur-xl border border-slate-200/50"
+            >
+              <DropdownMenuLabel className="text-slate-800">
+                My Account
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer hover:bg-slate-50" onClick={handleProfileClick}>
+              <DropdownMenuItem
+                className="cursor-pointer hover:bg-slate-50"
+                onClick={handleProfileClick}
+              >
                 <User className="h-4 w-4 mr-2 text-slate-600" />
                 <span>Profile</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer hover:bg-slate-50" onClick={handleLogout}>
+              <DropdownMenuItem
+                className="cursor-pointer hover:bg-slate-50"
+                onClick={handleLogout}
+              >
                 <LogOut className="h-4 w-4 mr-2 text-slate-600" />
                 <span>Logout</span>
               </DropdownMenuItem>
