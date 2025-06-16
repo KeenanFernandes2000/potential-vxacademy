@@ -114,14 +114,14 @@ export default function AuthPage() {
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-2 mb-6 lg:mb-8 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-2 shadow-2xl">
-              <TabsTrigger 
-                value="login" 
+              <TabsTrigger
+                value="login"
                 className="rounded-xl text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all duration-300 py-3 font-medium"
               >
                 Login
               </TabsTrigger>
-              <TabsTrigger 
-                value="register" 
+              <TabsTrigger
+                value="register"
                 className="rounded-xl text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all duration-300 py-3 font-medium"
               >
                 Register
@@ -357,9 +357,9 @@ export default function AuthPage() {
               </span>
             </h1>
             <p className="text-lg xl:text-xl opacity-90 mb-8 xl:mb-10 leading-relaxed">
-              VX Academy equips learners with the skills, knowledge, and practical
-              expertise needed to thrive in dynamic industries and drive
-              meaningful impact across their communities.
+              VX Academy equips learners with the skills, knowledge, and
+              practical expertise needed to thrive in dynamic industries and
+              drive meaningful impact across their communities.
             </p>
             <div className="space-y-6">
               <div className="flex items-start group">
@@ -368,7 +368,9 @@ export default function AuthPage() {
                     check_circle
                   </span>
                 </div>
-                <p className="text-base xl:text-lg leading-relaxed">Master clinical excellence and patient-centered care</p>
+                <p className="text-base xl:text-lg leading-relaxed">
+                  Master clinical excellence and patient-centered care
+                </p>
               </div>
               <div className="flex items-start group">
                 <div className="bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full p-2 mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
