@@ -116,13 +116,13 @@ export default function AuthPage() {
             <TabsList className="grid w-full grid-cols-2 mb-6 lg:mb-8 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-2 shadow-2xl">
               <TabsTrigger 
                 value="login" 
-                className="rounded-xl text-white/70 bg-transparent hover:text-white hover:bg-white/5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 py-3 font-medium"
+                className="rounded-xl text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all duration-300 py-3 font-medium"
               >
                 Login
               </TabsTrigger>
               <TabsTrigger 
                 value="register" 
-                className="rounded-xl text-white/70 bg-transparent hover:text-white hover:bg-white/5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 py-3 font-medium"
+                className="rounded-xl text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all duration-300 py-3 font-medium"
               >
                 Register
               </TabsTrigger>
