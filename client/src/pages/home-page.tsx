@@ -17,7 +17,7 @@ export default function HomePage() {
               <img
                 src="/images/vx-academy-logo.svg"
                 alt="VX Academy Logo"
-                className="h-full filter brightness-125"
+                className="h-full"
               />
             </div>
           </div>
