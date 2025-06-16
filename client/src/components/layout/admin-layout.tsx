@@ -103,51 +103,53 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50">
       {/* Sidebar */}
-      <aside className="hidden md:flex md:flex-col w-64 bg-abu-charcoal text-white">
-        <div className="p-4 border-b border-abu-gold/20">
-          <div className="flex items-center gap-2">
-            <GraduationCap className="h-6 w-6 text-abu-gold" />
-            <h1 className="text-lg font-bold text-abu-gold">VX Academy</h1>
+      <aside className="hidden md:flex md:flex-col w-64 bg-white/80 backdrop-blur-xl border-r border-white/20 shadow-2xl text-slate-700">
+        <div className="p-6 border-b border-slate-200/50">
+          <div className="flex items-center gap-3">
+            <GraduationCap className="h-7 w-7 text-teal-600" />
+            <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">VX Academy</h1>
           </div>
-          <p className="text-sm opacity-70 mt-1">Administration Portal</p>
+          <p className="text-sm text-slate-500 mt-2 font-medium">Administration Portal</p>
         </div>
-        <nav className="flex-1 overflow-y-auto py-4">
-          <ul className="space-y-1 px-2">
+        <nav className="flex-1 overflow-y-auto py-6 px-4">
+          <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.path}>
                 <Link href={item.path}>
                   <a
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
                       location === item.path
-                        ? "bg-abu-primary text-white"
-                        : "text-gray-300 hover:text-white hover:bg-abu-primary/20"
+                        ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25"
+                        : "text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
                     }`}
                   >
-                    {item.icon}
-                    <span>{item.name}</span>
+                    <span className={`transition-transform group-hover:scale-110 ${location === item.path ? 'text-white' : 'text-slate-500'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="font-medium">{item.name}</span>
                   </a>
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
-        <div className="p-4 border-t border-abu-gold/20">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-abu-gold text-abu-charcoal font-bold flex items-center justify-center uppercase">
+        <div className="p-6 border-t border-slate-200/50 bg-white/40 backdrop-blur-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold flex items-center justify-center text-lg shadow-lg">
               {user.name.charAt(0)}
             </div>
             <div>
-              <p className="font-medium text-sm">{user.name}</p>
-              <p className="text-xs text-gray-400">{user.role}</p>
+              <p className="font-semibold text-slate-800 text-sm">{user.name}</p>
+              <p className="text-xs text-slate-500">{user.role}</p>
             </div>
           </div>
           <div className="flex gap-2">
             <Button
               asChild
               variant="ghost"
-              className="flex-1 text-gray-300 hover:text-white hover:bg-abu-primary/20"
+              className="flex-1 text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200"
             >
               <Link href="/">
                 <div className="flex items-center gap-2">
@@ -158,7 +160,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Button>
             <Button
               variant="ghost"
-              className="text-gray-300 hover:text-white hover:bg-abu-primary/20"
+              className="text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200"
               onClick={() => logoutMutation.mutate()}
             >
               <LogOut className="h-4 w-4" />
@@ -169,17 +171,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Mobile header */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <header className="md:hidden bg-abu-charcoal text-white p-4 shadow">
+        <header className="md:hidden bg-white/90 backdrop-blur-xl border-b border-white/20 shadow-lg text-slate-700 p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-6 w-6 text-abu-gold" />
-              <h1 className="text-lg font-bold text-abu-gold">VX Admin</h1>
+            <div className="flex items-center gap-3">
+              <GraduationCap className="h-6 w-6 text-teal-600" />
+              <h1 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">VX Admin</h1>
             </div>
             <div className="flex items-center gap-2">
               <Button
                 asChild
                 variant="ghost"
-                className="text-gray-300 hover:text-white"
+                className="text-slate-600 hover:text-slate-800 hover:bg-slate-100/80"
               >
                 <Link href="/">
                   <ChevronLeft className="h-5 w-5" />
@@ -187,27 +189,27 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </Button>
               <Button
                 variant="ghost"
-                className="text-gray-300 hover:text-white"
+                className="text-slate-600 hover:text-slate-800 hover:bg-slate-100/80"
                 onClick={() => logoutMutation.mutate()}
               >
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>
-          <nav className="overflow-x-auto py-2 mt-2">
+          <nav className="overflow-x-auto py-3 mt-3">
             <ul className="flex space-x-2">
               {navItems.map((item) => (
                 <li key={item.path}>
                   <Link href={item.path}>
                     <a
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm whitespace-nowrap transition-all duration-300 ${
                         location === item.path
-                          ? "bg-abu-primary text-white"
-                          : "bg-gray-700 text-gray-300"
+                          ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
+                          : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/80"
                       }`}
                     >
                       {item.icon}
-                      <span>{item.name}</span>
+                      <span className="font-medium">{item.name}</span>
                     </a>
                   </Link>
                 </li>
@@ -217,7 +219,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50/50 via-blue-50/30 to-teal-50/50 p-6">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
