@@ -24,7 +24,7 @@ export function Sidebar() {
       </div>
       
       <div className="overflow-y-auto flex-grow scroll-smooth">
-        <nav className="mt-6"></nav>
+        <nav className="mt-6">
           <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">Main</div>
           
           <Link href="/dashboard">
