@@ -136,6 +136,16 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Prevent sidebar auto-scroll on navigation */
+.overflow-y-auto {
+  scroll-behavior: auto;
+}
+
+/* Maintain scroll position on sidebar navigation */
+.sidebar-nav {
+  scroll-behavior: auto;
+}
+
 .material-icons.text-sm {
   font-size: 18px;
 }

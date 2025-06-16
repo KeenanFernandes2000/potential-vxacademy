@@ -112,18 +112,18 @@ export function Header({ toggleSidebar }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-xl shadow-sm z-10 border-b border-slate-200/50">
+    <header className="bg-slate-900/95 backdrop-blur-xl shadow-lg z-10 border-b border-white/10">
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center md:hidden">
           <button 
-            className="text-slate-700 hover:text-slate-900 focus:outline-none p-2 rounded-lg hover:bg-slate-100 transition-colors" 
+            className="text-slate-300 hover:text-white focus:outline-none p-2 rounded-lg hover:bg-white/10 transition-colors" 
             onClick={toggleSidebar}
           >
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center ml-3">
-            <GraduationCap className="h-6 w-6 text-teal-500 mr-2" />
-            <span className="font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">VX Academy</span>
+            <GraduationCap className="h-6 w-6 text-teal-400 mr-2" />
+            <span className="font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</span>
           </div>
         </div>
         
@@ -131,7 +131,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="relative flex items-center text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg hover:bg-slate-100 transition-all duration-200">
+              <button className="relative flex items-center text-slate-300 hover:text-white focus:outline-none p-2 rounded-lg hover:bg-white/10 transition-all duration-200">
                 <Bell className="h-5 w-5" />
                 {notificationCount && notificationCount.count > 0 && (
                   <span className="absolute top-0 right-0 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold">

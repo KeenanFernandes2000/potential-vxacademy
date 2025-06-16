@@ -90,7 +90,7 @@ export function Sidebar() {
               <Link href="/admin/dashboard">
                 <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/dashboard") 
-                    ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 text-white border border-orange-500/30 shadow-lg" 
+                    ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
                 }`}>
                   <BarChart3 className="h-5 w-5 mr-3" />
@@ -101,7 +101,7 @@ export function Sidebar() {
               <Link href="/admin/users">
                 <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/users") 
-                    ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 text-white border border-orange-500/30 shadow-lg" 
+                    ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
                 }`}>
                   <Users className="h-5 w-5 mr-3" />
@@ -112,7 +112,7 @@ export function Sidebar() {
               <Link href="/admin/roles">
                 <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/roles") 
-                    ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 text-white border border-orange-500/30 shadow-lg" 
+                    ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
                 }`}>
                   <UserCheck className="h-5 w-5 mr-3" />
@@ -123,7 +123,7 @@ export function Sidebar() {
               <Link href="/admin/course-management">
                 <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/course-management") 
-                    ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 text-white border border-orange-500/30 shadow-lg" 
+                    ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
                 }`}>
                   <Settings className="h-5 w-5 mr-3" />
@@ -134,7 +134,7 @@ export function Sidebar() {
               <Link href="/admin/analytics">
                 <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/analytics") 
-                    ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 text-white border border-orange-500/30 shadow-lg" 
+                    ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
                 }`}>
                   <BarChart3 className="h-5 w-5 mr-3" />
