@@ -146,15 +146,6 @@
   scroll-behavior: auto;
 }
 
-/* Prevent auto-scroll to top when navigating in sidebar */
-.sidebar-container {
-  scroll-behavior: auto !important;
-}
-
-.sidebar-container:focus-within {
-  scroll-behavior: auto !important;
-}
-
 .material-icons.text-sm {
   font-size: 18px;
 }
