@@ -16,11 +16,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50">
+    <div className="h-screen flex flex-col md:flex-row">
       {/* Mobile sidebar (shown when toggled) */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden" onClick={toggleSidebar}>
-          <div className="absolute top-0 left-0 bottom-0 w-64 bg-white/90 backdrop-blur-xl border-r border-white/20 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={toggleSidebar}>
+          <div className="absolute top-0 left-0 bottom-0 w-64 bg-primary" onClick={(e) => e.stopPropagation()}>
             <Sidebar />
           </div>
         </div>
@@ -33,18 +33,16 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={toggleSidebar} />
 
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50/50 via-blue-50/30 to-teal-50/50 p-6 pb-20 md:pb-6">
-          <div className="max-w-7xl mx-auto space-y-8">
-            <WelcomeCard />
-            <ProgressSection />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <AchievementsSection />
-              <LeaderboardSection />
-            </div>
-            
-            <RecommendedCourses />
+        <main className="flex-1 overflow-y-auto bg-neutrals-100 p-4 pb-16 md:pb-4">
+          <WelcomeCard />
+          <ProgressSection />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <AchievementsSection />
+            <LeaderboardSection />
           </div>
+          
+          <RecommendedCourses />
         </main>
 
         <MobileNav />
