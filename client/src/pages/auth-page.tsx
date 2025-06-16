@@ -113,16 +113,16 @@ export default function AuthPage() {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-2 mb-6 lg:mb-8 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-1">
+            <TabsList className="grid w-full grid-cols-2 mb-6 lg:mb-8 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-2">
               <TabsTrigger
                 value="login"
-                className="rounded-xl text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all duration-300 py-3 font-medium"
+                className="rounded-xl text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all duration-300 py-3 font-medium mx-1"
               >
                 Login
               </TabsTrigger>
               <TabsTrigger
                 value="register"
-                className="rounded-xl text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all duration-300 py-3 font-medium"
+                className="rounded-xl text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all duration-300 py-3 font-medium mx-1"
               >
                 Register
               </TabsTrigger>
