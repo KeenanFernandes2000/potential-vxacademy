@@ -23,7 +23,7 @@ export function Sidebar() {
         <span className="font-bold text-xl bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</span>
       </div>
       
-      <div className="overflow-y-auto flex-grow">
+      <div className="overflow-y-auto flex-grow sidebar-container">
         <nav className="mt-6">
           <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">Main</div>
           
@@ -32,7 +32,7 @@ export function Sidebar() {
               isActive("/dashboard") 
                 ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                 : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
-            }`}>
+            }`} onClick={(e) => e.preventDefault()}>
               <Home className="h-5 w-5 mr-3" />
               <span className="font-medium">Dashboard</span>
             </div>

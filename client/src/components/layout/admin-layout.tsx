@@ -1,4 +1,3 @@
-
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -124,10 +123,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="overflow-y-auto flex-grow">
+            <div className="overflow-y-auto flex-grow sidebar-container">
               <nav className="mt-6">
                 <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">Admin</div>
-                
+
                 {navItems.map((item) => (
                   <Link key={item.path} href={item.path}>
                     <div 
@@ -155,10 +154,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <GraduationCap className="h-8 w-8 text-teal-400 mr-3" />
           <span className="font-bold text-xl bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</span>
         </div>
-        <div className="overflow-y-auto flex-grow">
+        <div className="overflow-y-auto flex-grow sidebar-container">
           <nav className="mt-6">
             <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">Admin</div>
-            
+
             {navItems.map((item) => (
               <Link key={item.path} href={item.path}>
                 <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
@@ -215,7 +214,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Mobile header */}
-        <header className="md:hidden bg-slate-900/95 backdrop-blur-xl text-white p-4 shadow-lg border-b border-white/10">
+        <header className="md:hidden bg-white backdrop-blur-xl text-white p-4 shadow-lg border-b border-white/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-6 w-6 text-teal-400" />
