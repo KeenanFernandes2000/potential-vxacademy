@@ -147,7 +147,7 @@ export default function HomePage() {
 
         <div className="container mx-auto px-4 lg:px-6 py-16 relative z-10">
           <div className="max-w-4xl text-white">
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 leading-tight bg-gradient-to-r from-white via-cyan-100 to-teal-100 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight bg-gradient-to-r from-white via-cyan-100 to-teal-100 bg-clip-text text-transparent">
               Elevate Abu Dhabi's Visitor Experience
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl mb-10 text-white/80 leading-relaxed max-w-3xl">
@@ -174,10 +174,7 @@ export default function HomePage() {
       </section>
 
       {/* About Section with Glassmorphism Cards */}
-      <section
-        id="about"
-        className="py-16 md:py-24 relative overflow-hidden"
-      >
+      <section id="about" className="py-16 md:py-24 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl"></div>
@@ -187,8 +184,10 @@ export default function HomePage() {
             <div className="lg:w-1/2 space-y-8">
               <div className="space-y-6">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
-                  <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</span> -
-                  Excellence in Visitor Experiences
+                  <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                    VX Academy
+                  </span>{" "}
+                  - Excellence in Visitor Experiences
                 </h2>
                 <div className="w-24 h-1 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full"></div>
               </div>
@@ -220,9 +219,7 @@ export default function HomePage() {
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium">
-                    Certified Training
-                  </p>
+                  <p className="text-white font-medium">Certified Training</p>
                 </div>
 
                 <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105">
@@ -239,9 +236,7 @@ export default function HomePage() {
                       />
                     </svg>
                   </div>
-                  <p className="text-white font-medium">
-                    Expert Instructors
-                  </p>
+                  <p className="text-white font-medium">Expert Instructors</p>
                 </div>
 
                 <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105">
@@ -254,9 +249,7 @@ export default function HomePage() {
                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium">
-                    Community Support
-                  </p>
+                  <p className="text-white font-medium">Community Support</p>
                 </div>
 
                 <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105">
@@ -270,9 +263,7 @@ export default function HomePage() {
                       <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium">
-                    Progress Tracking
-                  </p>
+                  <p className="text-white font-medium">Progress Tracking</p>
                 </div>
               </div>
             </div>
@@ -282,14 +273,15 @@ export default function HomePage() {
                 {[
                   {
                     title: "Cultural Heritage Training",
-                    description: "Learn about Abu Dhabi's rich cultural traditions",
+                    description:
+                      "Learn about Abu Dhabi's rich cultural traditions",
                     icon: (
                       <path
                         fillRule="evenodd"
                         d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
                         clipRule="evenodd"
                       />
-                    )
+                    ),
                   },
                   {
                     title: "Customer Service Excellence",
@@ -300,14 +292,14 @@ export default function HomePage() {
                         d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
                         clipRule="evenodd"
                       />
-                    )
+                    ),
                   },
                   {
                     title: "Interactive Learning",
                     description: "Engage through immersive experiences",
                     icon: (
                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                    )
+                    ),
                   },
                   {
                     title: "Abu Dhabi Landmarks",
@@ -318,10 +310,13 @@ export default function HomePage() {
                         d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2v4h4V6H4zm6 0v4h4V6h-4zM4 12v4h4v-4H4zm6 0v4h4v-4h-4z"
                         clipRule="evenodd"
                       />
-                    )
-                  }
+                    ),
+                  },
                 ].map((item, index) => (
-                  <div key={index} className={`group ${index % 2 === 1 ? 'mt-8' : ''}`}>
+                  <div
+                    key={index}
+                    className={`group ${index % 2 === 1 ? "mt-8" : ""}`}
+                  >
                     <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full">
                       <div className="w-16 h-16 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                         <svg
@@ -374,55 +369,60 @@ export default function HomePage() {
             {[
               {
                 title: "Abu Dhabi Information",
-                description: "Discover the heart of Abu Dhabi. This training area immerses frontline professionals in the emirate's rich cultural heritage, tourism strategy, and infrastructure.",
+                description:
+                  "Discover the heart of Abu Dhabi. This training area immerses frontline professionals in the emirate's rich cultural heritage, tourism strategy, and infrastructure.",
                 icon: (
                   <path
                     fillRule="evenodd"
                     d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2v4h4V6H4zm6 0v4h4V6h-4zM4 12v4h4v-4H4zm6 0v4h4v-4h-4z"
                     clipRule="evenodd"
                   />
-                )
+                ),
               },
               {
                 title: "General VX Soft Skills",
-                description: "Master the art of human connection. This track builds communication, empathy, and service delivery skills that ensure every guest feels welcomed and valued.",
+                description:
+                  "Master the art of human connection. This track builds communication, empathy, and service delivery skills that ensure every guest feels welcomed and valued.",
                 icon: (
                   <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                )
+                ),
               },
               {
                 title: "General VX Hard Skills",
-                description: "Operational excellence starts here. This training sharpens the technical and procedural capabilities needed to manage visitor flows and uphold safety standards.",
+                description:
+                  "Operational excellence starts here. This training sharpens the technical and procedural capabilities needed to manage visitor flows and uphold safety standards.",
                 icon: (
                   <path
                     fillRule="evenodd"
                     d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
                     clipRule="evenodd"
                   />
-                )
+                ),
               },
               {
                 title: "Managerial Competencies",
-                description: "Lead with purpose. Designed for supervisors and team leaders, this area builds leadership, strategic planning, and performance management skills.",
+                description:
+                  "Lead with purpose. Designed for supervisors and team leaders, this area builds leadership, strategic planning, and performance management skills.",
                 icon: (
                   <path
                     fillRule="evenodd"
                     d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
                     clipRule="evenodd"
                   />
-                )
+                ),
               },
               {
                 title: "Specialized Tracks",
-                description: "Tailored for your role. These advanced, sector-specific programs provide deep expertise for specialized frontline positions across Abu Dhabi's visitor landscape.",
+                description:
+                  "Tailored for your role. These advanced, sector-specific programs provide deep expertise for specialized frontline positions across Abu Dhabi's visitor landscape.",
                 icon: (
                   <path
                     fillRule="evenodd"
                     d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
                     clipRule="evenodd"
                   />
-                )
-              }
+                ),
+              },
             ].map((area, index) => (
               <div key={index} className="group">
                 <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full">
@@ -500,82 +500,88 @@ export default function HomePage() {
             {[
               {
                 title: "Recognized Certification",
-                description: "Earn a prestigious certification recognized by VX Academy and Abu Dhabi's frontline hospitality and tourism sector.",
+                description:
+                  "Earn a prestigious certification recognized by VX Academy and Abu Dhabi's frontline hospitality and tourism sector.",
                 icon: (
                   <path
                     fillRule="evenodd"
                     d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                     clipRule="evenodd"
                   />
-                )
+                ),
               },
               {
                 title: "Career Advancement",
-                description: "Enhance your resume and open doors to new career opportunities in the growing hospitality sector.",
+                description:
+                  "Enhance your resume and open doors to new career opportunities in the growing hospitality sector.",
                 icon: (
                   <path
                     fillRule="evenodd"
                     d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
                     clipRule="evenodd"
                   />
-                )
+                ),
               },
               {
                 title: "Achievement Badges",
-                description: "Earn digital badges to recognize your skills and showcase your hospitality expertise to employers and colleagues.",
+                description:
+                  "Earn digital badges to recognize your skills and showcase your hospitality expertise to employers and colleagues.",
                 icon: (
                   <path
                     fillRule="evenodd"
                     d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                     clipRule="evenodd"
                   />
-                )
+                ),
               },
               {
                 title: "Networking Opportunities",
-                description: "Connect with fellow professionals across Abu Dhabi's hospitality and tourism Cluster's network of facilities.",
+                description:
+                  "Connect with fellow professionals across Abu Dhabi's hospitality and tourism Cluster's network of facilities.",
                 icon: (
                   <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                )
+                ),
               },
               {
                 title: "Mobile Learning",
-                description: "Access courses anytime, anywhere through our mobile-friendly platform with online and offline capabilities.",
+                description:
+                  "Access courses anytime, anywhere through our mobile-friendly platform with online and offline capabilities.",
                 icon: (
                   <path
                     fillRule="evenodd"
                     d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z"
                     clipRule="evenodd"
                   />
-                )
+                ),
               },
               {
                 title: "AI-Powered Assistance",
-                description: "Get personalized help from our AI tutor to enhance your learning experience and address questions.",
+                description:
+                  "Get personalized help from our AI tutor to enhance your learning experience and address questions.",
                 icon: (
                   <path
                     d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
                     clipRule="evenodd"
                   />
-                )
+                ),
               },
               {
                 title: "Progress Tracking",
-                description: "Monitor your learning journey with detailed analytics and personalized progress reports.",
-                icon: (
-                  <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
-                )
+                description:
+                  "Monitor your learning journey with detailed analytics and personalized progress reports.",
+                icon: <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />,
               },
               {
                 title: "Interactive Learning",
-                description: "Engage with immersive content, simulations, and real-world scenarios for a dynamic learning experience.",
+                description:
+                  "Engage with immersive content, simulations, and real-world scenarios for a dynamic learning experience.",
                 icon: (
                   <path
                     d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
                     clipRule="evenodd"
                   />
-                )
-              }
+                ),
+              },
             ].map((benefit, index) => (
               <div key={index} className="group">
                 <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full">
@@ -637,21 +643,24 @@ export default function HomePage() {
               {
                 name: "Ahmed K.",
                 role: "Hotel Concierge",
-                testimonial: "VX Academy transformed how I assist guests at our hotel. The cultural knowledge modules helped me provide authentic recommendations that guests truly appreciate.",
-                avatar: "https://randomuser.me/api/portraits/men/32.jpg"
+                testimonial:
+                  "VX Academy transformed how I assist guests at our hotel. The cultural knowledge modules helped me provide authentic recommendations that guests truly appreciate.",
+                avatar: "https://randomuser.me/api/portraits/men/32.jpg",
               },
               {
                 name: "Fatima S.",
                 role: "Tour Guide",
-                testimonial: "The destination knowledge courses were incredibly detailed. I now confidently share hidden gems and fascinating stories about Abu Dhabi that my tour groups love.",
-                avatar: "https://randomuser.me/api/portraits/women/44.jpg"
+                testimonial:
+                  "The destination knowledge courses were incredibly detailed. I now confidently share hidden gems and fascinating stories about Abu Dhabi that my tour groups love.",
+                avatar: "https://randomuser.me/api/portraits/women/44.jpg",
               },
               {
                 name: "Rahim J.",
                 role: "Retail Assistant",
-                testimonial: "The communication skills modules helped me connect better with international customers. My sales have increased, and I've received recognition from management.",
-                avatar: "https://randomuser.me/api/portraits/men/67.jpg"
-              }
+                testimonial:
+                  "The communication skills modules helped me connect better with international customers. My sales have increased, and I've received recognition from management.",
+                avatar: "https://randomuser.me/api/portraits/men/67.jpg",
+              },
             ].map((testimonial, index) => (
               <div key={index} className="group">
                 <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-8 lg:p-10 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full">
@@ -767,10 +776,18 @@ export default function HomePage() {
               </p>
               <div className="flex space-x-4">
                 {[
-                  { icon: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" },
-                  { icon: "M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" },
-                  { icon: "M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.746-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z" },
-                  { icon: "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" }
+                  {
+                    icon: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z",
+                  },
+                  {
+                    icon: "M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z",
+                  },
+                  {
+                    icon: "M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.746-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z",
+                  },
+                  {
+                    icon: "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z",
+                  },
                 ].map((social, index) => (
                   <a
                     key={index}
@@ -897,7 +914,8 @@ export default function HomePage() {
                         </svg>
                       </div>
                       <span className="text-white/70 text-xs leading-relaxed text-center">
-                        Abu Dhabi Tourism Building, Corniche Road, Abu Dhabi, UAE
+                        Abu Dhabi Tourism Building, Corniche Road, Abu Dhabi,
+                        UAE
                       </span>
                     </div>
                     <div className="flex flex-col items-center space-y-2 group">
@@ -911,7 +929,9 @@ export default function HomePage() {
                           <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                         </svg>
                       </div>
-                      <span className="text-white/70 text-xs">info@vxacademy.ae</span>
+                      <span className="text-white/70 text-xs">
+                        info@vxacademy.ae
+                      </span>
                     </div>
                     <div className="flex flex-col items-center space-y-2 group">
                       <div className="w-5 h-5 bg-gradient-to-br from-cyan-400/20 to-teal-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
@@ -923,7 +943,9 @@ export default function HomePage() {
                           <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                         </svg>
                       </div>
-                      <span className="text-white/70 text-xs">+971 2 123 4567</span>
+                      <span className="text-white/70 text-xs">
+                        +971 2 123 4567
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1047,7 +1069,9 @@ export default function HomePage() {
                       <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                     </svg>
                   </div>
-                  <span className="text-white/70 text-sm">info@vxacademy.ae</span>
+                  <span className="text-white/70 text-sm">
+                    info@vxacademy.ae
+                  </span>
                 </div>
                 <div className="flex items-start space-x-3 group">
                   <div className="w-6 h-6 bg-gradient-to-br from-cyan-400/20 to-teal-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
