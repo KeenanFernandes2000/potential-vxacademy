@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -16,11 +17,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row">
+    <div className="h-screen flex flex-col md:flex-row bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       {/* Mobile sidebar (shown when toggled) */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={toggleSidebar}>
-          <div className="absolute top-0 left-0 bottom-0 w-64 bg-primary" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute top-0 left-0 bottom-0 w-64 bg-slate-900/90 backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
             <Sidebar />
           </div>
         </div>
@@ -33,16 +34,18 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={toggleSidebar} />
 
-        <main className="flex-1 overflow-y-auto bg-neutrals-100 p-4 pb-16 md:pb-4">
-          <WelcomeCard />
-          <ProgressSection />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <AchievementsSection />
-            <LeaderboardSection />
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-4 pb-16 md:pb-4">
+          <div className="space-y-6">
+            <WelcomeCard />
+            <ProgressSection />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <AchievementsSection />
+              <LeaderboardSection />
+            </div>
+            
+            <RecommendedCourses />
           </div>
-          
-          <RecommendedCourses />
         </main>
 
         <MobileNav />
