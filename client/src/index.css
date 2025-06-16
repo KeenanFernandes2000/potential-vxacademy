@@ -146,6 +146,16 @@
   scroll-behavior: auto;
 }
 
+/* Prevent automatic scrolling to top on link clicks */
+.overflow-y-auto a {
+  scroll-behavior: auto;
+}
+
+/* Ensure sidebar maintains scroll position */
+.overflow-y-auto:focus-within {
+  scroll-behavior: auto;
+}
+
 .material-icons.text-sm {
   font-size: 18px;
 }
