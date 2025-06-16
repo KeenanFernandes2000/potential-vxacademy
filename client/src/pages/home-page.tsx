@@ -17,7 +17,7 @@ export default function HomePage() {
               <img
                 src="/images/vx-academy-logo.svg"
                 alt="VX Academy Logo"
-                className="h-full filter brightness-0 invert"
+                className="h-full filter brightness-125"
               />
             </div>
           </div>
@@ -174,7 +174,10 @@ export default function HomePage() {
       </section>
 
       {/* About Section with Glassmorphism Cards */}
-      <section id="about" className="py-16 md:py-24 relative overflow-hidden bg-slate-800/40">
+      <section
+        id="about"
+        className="py-16 md:py-24 relative overflow-hidden bg-slate-800/40"
+      >
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl"></div>
@@ -219,7 +222,9 @@ export default function HomePage() {
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium text-sm text-center">Certified Training</p>
+                  <p className="text-white font-medium text-sm text-center">
+                    Certified Training
+                  </p>
                 </div>
 
                 <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 h-24 flex flex-col items-center justify-center">
@@ -236,7 +241,9 @@ export default function HomePage() {
                       />
                     </svg>
                   </div>
-                  <p className="text-white font-medium text-sm text-center">Expert Instructors</p>
+                  <p className="text-white font-medium text-sm text-center">
+                    Expert Instructors
+                  </p>
                 </div>
 
                 <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 h-24 flex flex-col items-center justify-center">
@@ -249,7 +256,9 @@ export default function HomePage() {
                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium text-sm text-center">Community Support</p>
+                  <p className="text-white font-medium text-sm text-center">
+                    Community Support
+                  </p>
                 </div>
 
                 <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 h-24 flex flex-col items-center justify-center">
@@ -263,7 +272,9 @@ export default function HomePage() {
                       <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium text-sm text-center">Progress Tracking</p>
+                  <p className="text-white font-medium text-sm text-center">
+                    Progress Tracking
+                  </p>
                 </div>
               </div>
             </div>
@@ -314,7 +325,7 @@ export default function HomePage() {
                   },
                 ].map((item, index) => (
                   <div key={index} className="group">
-                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-60 flex flex-col">
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-80 flex flex-col">
                       <div className="w-16 h-16 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
                         <svg
                           className="w-8 h-8 text-teal-400"
