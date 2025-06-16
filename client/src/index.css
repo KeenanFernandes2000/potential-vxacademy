@@ -2,15 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent sidebar scroll on navigation */
-.sidebar-nav {
-  scroll-behavior: auto !important;
-}
-
-.sidebar-nav:focus-within {
-  scroll-behavior: auto !important;
-}
-
 @layer base {
   * {
     @apply border-border;
