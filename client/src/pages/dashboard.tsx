@@ -33,16 +33,26 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={toggleSidebar} />
 
-        <main className="flex-1 overflow-y-auto bg-neutrals-100 p-4 pb-16 md:pb-4">
-          <WelcomeCard />
-          <ProgressSection />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <AchievementsSection />
-            <LeaderboardSection />
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-abu-sand/30 via-abu-soft-gray/50 to-white p-4 pb-16 md:pb-4">
+          <div className="fade-in">
+            <WelcomeCard />
+          </div>
+          <div className="fade-in" style={{ animationDelay: '0.1s' }}>
+            <ProgressSection />
           </div>
           
-          <RecommendedCourses />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="fade-in" style={{ animationDelay: '0.2s' }}>
+              <AchievementsSection />
+            </div>
+            <div className="fade-in" style={{ animationDelay: '0.3s' }}>
+              <LeaderboardSection />
+            </div>
+          </div>
+          
+          <div className="fade-in" style={{ animationDelay: '0.4s' }}>
+            <RecommendedCourses />
+          </div>
         </main>
 
         <MobileNav />
