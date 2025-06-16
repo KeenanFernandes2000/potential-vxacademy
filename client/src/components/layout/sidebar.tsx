@@ -28,7 +28,7 @@ export function Sidebar() {
           <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">Main</div>
           
           <Link href="/dashboard">
-            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
               isActive("/dashboard") 
                 ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                 : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -39,7 +39,7 @@ export function Sidebar() {
           </Link>
           
           <Link href="/courses">
-            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
               isActive("/courses") 
                 ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                 : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -50,7 +50,7 @@ export function Sidebar() {
           </Link>
           
           <Link href="/achievements">
-            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
               isActive("/achievements") 
                 ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                 : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -61,7 +61,7 @@ export function Sidebar() {
           </Link>
           
           <Link href="/leaderboard">
-            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
               isActive("/leaderboard") 
                 ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                 : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -72,7 +72,7 @@ export function Sidebar() {
           </Link>
           
           <Link href="/ai-tutor">
-            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+            <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
               isActive("/ai-tutor") 
                 ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                 : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -88,7 +88,7 @@ export function Sidebar() {
               <div className="px-6 py-2 mt-6 text-slate-400 uppercase text-xs font-semibold tracking-wider">Admin</div>
               
               <Link href="/admin/dashboard">
-                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/dashboard") 
                     ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -99,7 +99,7 @@ export function Sidebar() {
               </Link>
               
               <Link href="/admin/users">
-                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/users") 
                     ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -110,7 +110,7 @@ export function Sidebar() {
               </Link>
               
               <Link href="/admin/roles">
-                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/roles") 
                     ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -121,7 +121,7 @@ export function Sidebar() {
               </Link>
               
               <Link href="/admin/course-management">
-                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/course-management") 
                     ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
@@ -132,7 +132,7 @@ export function Sidebar() {
               </Link>
               
               <Link href="/admin/analytics">
-                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 sidebar-link ${
+                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                   isActive("/admin/analytics") 
                     ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
