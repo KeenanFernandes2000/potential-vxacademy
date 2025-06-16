@@ -23,7 +23,7 @@ export function Sidebar() {
         <span className="font-bold text-xl bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</span>
       </div>
       
-      <div className="overflow-y-auto flex-grow">
+      <div className="overflow-y-auto flex-grow sidebar-nav">
         <nav className="mt-6">
           <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">Main</div>
           
