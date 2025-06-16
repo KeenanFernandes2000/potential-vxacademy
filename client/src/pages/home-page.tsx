@@ -174,7 +174,7 @@ export default function HomePage() {
       </section>
 
       {/* About Section with Glassmorphism Cards */}
-      <section id="about" className="py-16 md:py-24 relative overflow-hidden">
+      <section id="about" className="py-16 md:py-24 relative overflow-hidden bg-slate-800/40">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl"></div>
@@ -208,24 +208,24 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105">
-                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-3">
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 h-24 flex flex-col items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-2">
                     <svg
-                      className="w-5 h-5 text-teal-400"
+                      className="w-4 h-4 text-teal-400"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium">Certified Training</p>
+                  <p className="text-white font-medium text-sm text-center">Certified Training</p>
                 </div>
 
-                <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105">
-                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-3">
+                <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 h-24 flex flex-col items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-2">
                     <svg
-                      className="w-5 h-5 text-teal-400"
+                      className="w-4 h-4 text-teal-400"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -236,26 +236,26 @@ export default function HomePage() {
                       />
                     </svg>
                   </div>
-                  <p className="text-white font-medium">Expert Instructors</p>
+                  <p className="text-white font-medium text-sm text-center">Expert Instructors</p>
                 </div>
 
-                <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105">
-                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-3">
+                <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 h-24 flex flex-col items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-2">
                     <svg
-                      className="w-5 h-5 text-teal-400"
+                      className="w-4 h-4 text-teal-400"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium">Community Support</p>
+                  <p className="text-white font-medium text-sm text-center">Community Support</p>
                 </div>
 
-                <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105">
-                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-3">
+                <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 h-24 flex flex-col items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-2">
                     <svg
-                      className="w-5 h-5 text-teal-400"
+                      className="w-4 h-4 text-teal-400"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -263,7 +263,7 @@ export default function HomePage() {
                       <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
                     </svg>
                   </div>
-                  <p className="text-white font-medium">Progress Tracking</p>
+                  <p className="text-white font-medium text-sm text-center">Progress Tracking</p>
                 </div>
               </div>
             </div>
@@ -313,12 +313,9 @@ export default function HomePage() {
                     ),
                   },
                 ].map((item, index) => (
-                  <div
-                    key={index}
-                    className={`group ${index % 2 === 1 ? "mt-8" : ""}`}
-                  >
-                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full">
-                      <div className="w-16 h-16 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div key={index} className="group">
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-60 flex flex-col">
+                      <div className="w-16 h-16 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
                         <svg
                           className="w-8 h-8 text-teal-400"
                           fill="currentColor"
@@ -327,12 +324,14 @@ export default function HomePage() {
                           {item.icon}
                         </svg>
                       </div>
-                      <h4 className="text-white font-bold text-xl mb-3">
-                        {item.title}
-                      </h4>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        {item.description}
-                      </p>
+                      <div className="flex-grow flex flex-col">
+                        <h4 className="text-white font-bold text-xl mb-3 flex-shrink-0">
+                          {item.title}
+                        </h4>
+                        <p className="text-white/70 text-sm leading-relaxed flex-grow">
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -345,7 +344,7 @@ export default function HomePage() {
       {/* Training Areas Section */}
       <section
         id="training-areas"
-        className="py-16 md:py-24 relative overflow-hidden"
+        className="py-16 md:py-24 relative overflow-hidden bg-slate-700/30"
       >
         {/* Background decoration */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl"></div>
@@ -474,7 +473,7 @@ export default function HomePage() {
       {/* Benefits Section */}
       <section
         id="benefits"
-        className="py-16 md:py-24 relative overflow-hidden"
+        className="py-16 md:py-24 relative overflow-hidden bg-slate-800/60"
       >
         {/* Background decorations */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
@@ -618,7 +617,7 @@ export default function HomePage() {
       {/* Testimonials Section */}
       <section
         id="testimonials"
-        className="py-16 md:py-24 relative overflow-hidden"
+        className="py-16 md:py-24 relative overflow-hidden bg-slate-700/20"
       >
         {/* Background decoration */}
         <div className="absolute top-10 right-10 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
@@ -723,7 +722,7 @@ export default function HomePage() {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-16 md:py-24 relative overflow-hidden">
+      <section className="py-16 md:py-24 relative overflow-hidden bg-slate-800/40">
         {/* Background decoration */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
