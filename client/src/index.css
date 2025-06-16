@@ -146,6 +146,16 @@
   scroll-behavior: auto;
 }
 
+/* Prevent automatic scroll to top when clicking sidebar links */
+.sidebar-link {
+  scroll-behavior: auto;
+}
+
+/* Override default link behavior that causes scroll */
+a[href] {
+  scroll-behavior: auto;
+}
+
 .material-icons.text-sm {
   font-size: 18px;
 }
