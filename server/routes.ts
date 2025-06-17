@@ -621,12 +621,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          // Get user progress for this course
-          const progress = await storage.getUserProgress(userId, unit.courseId);
+          // Get courses for this unit to update progress
+          const unitCourses = await storage.getCoursesForUnit(unit.id);
 
-          if (progress) {
-            // Get all units for this course
-            const courseUnits = await storage.getUnits(unit.courseId);
+          // Update progress for each course this unit belongs to
+          for (const course of unitCourses) {
+            const progress = await storage.getUserProgress(userId, course.id);
+
+            if (progress) {
+              // Get all units for this course
+              const courseUnits = await storage.getUnits(course.id);
 
             // Check if all units have learning blocks and assessments completed
             let allCompleted = true;
@@ -693,7 +697,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 : 0;
 
             // Update progress
-            await storage.updateUserProgress(userId, unit.courseId, {
+            await storage.updateUserProgress(userId, course.id, {
               percentComplete,
               completed: allCompleted,
             });
@@ -739,19 +743,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
+          } // Close the course loop
 
-      res.json({
-        attempt,
-        passed,
-        message: passed
-          ? "Congratulations! You passed the assessment."
-          : "You did not meet the passing score. Try again!",
+          res.json({
+            attempt,
+            passed,
+            message: passed
+              ? "Congratulations! You passed the assessment."
+              : "You did not meet the passing score. Try again!",
+          });
+        } catch (error) {
+          console.error("Error submitting assessment:", error);
+          res.status(500).json({ message: "Error submitting assessment" });
+        }
       });
-    } catch (error) {
-      console.error("Error submitting assessment:", error);
-      res.status(500).json({ message: "Error submitting assessment" });
-    }
-  });
 
   // Badges
   app.get("/api/badges", async (req, res) => {
