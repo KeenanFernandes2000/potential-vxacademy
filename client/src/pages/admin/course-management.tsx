@@ -113,6 +113,17 @@ export default function CourseManagement() {
     },
   });
 
+  // Fetch modules for filtering (filtered by selected training area)
+  const { data: filterModulesList } = useQuery<Module[]>({
+    queryKey: ["/api/modules", "filter", filterTrainingAreaId],
+    queryFn: async () => {
+      if (!filterTrainingAreaId) return [];
+      const res = await apiRequest("GET", `/api/modules?trainingAreaId=${filterTrainingAreaId}`);
+      return await res.json();
+    },
+    enabled: !!filterTrainingAreaId,
+  });
+
   // Filter courses based on search and filters
   const filteredCourses = courses?.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -120,11 +131,6 @@ export default function CourseManagement() {
     const matchesModule = !filterModuleId || course.moduleId === filterModuleId;
     return matchesSearch && matchesTrainingArea && matchesModule;
   });
-
-  // Filter modules for filter dropdown
-  const filterModules = modules?.filter(module => 
-    !filterTrainingAreaId || module.trainingAreaId === filterTrainingAreaId
-  );
 
   // Form setup
   const form = useForm<InsertCourse>({
@@ -162,9 +168,11 @@ export default function CourseManagement() {
         description: "",
         imageUrl: "",
         internalNote: "",
-        courseType: "standard",
+        courseType: "sequential",
         duration: 0,
+        showDuration: true,
         level: "beginner",
+        showLevel: true,
       });
       setSelectedTrainingAreaId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
@@ -197,9 +205,11 @@ export default function CourseManagement() {
         description: "",
         imageUrl: "",
         internalNote: "",
-        courseType: "standard",
+        courseType: "sequential",
         duration: 0,
+        showDuration: true,
         level: "beginner",
+        showLevel: true,
       });
       setSelectedTrainingAreaId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
@@ -667,7 +677,7 @@ export default function CourseManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">All Modules</SelectItem>
-                      {filterModules?.map((module) => (
+                      {filterModulesList?.map((module) => (
                         <SelectItem key={module.id} value={module.id.toString()}>
                           {module.name}
                         </SelectItem>
