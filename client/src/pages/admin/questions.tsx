@@ -318,7 +318,7 @@ export default function QuestionsManagement() {
   if (!assessmentId || assessmentId <= 0) {
     return (
       <AdminLayout>
-        <div className="container mx-auto py-6">
+        <div className="container mx-auto py-8 px-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Invalid Assessment</h1>
             <p className="mb-4">No assessment ID specified.</p>

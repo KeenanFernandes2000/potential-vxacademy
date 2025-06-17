@@ -24,7 +24,7 @@ export default function AdminBadgesPage() {
 
   return (
     <AdminLayout>
-      <div className="p-6">
+      <div className="py-8 px-8">
         <h1 className="text-2xl font-bold mb-6">Badges Management</h1>
         <BadgesManagement />
       </div>

@@ -216,7 +216,7 @@ export default function Analytics() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={toggleSidebar} />
 
-        <main className="flex-1 overflow-y-auto bg-neutrals-100 p-4 pb-16 md:pb-4">
+        <main className="flex-1 overflow-y-auto bg-neutrals-100 py-8 px-8 pb-16 md:pb-4">
           <div className="analytics-dashboard bg-white p-6 rounded-xl shadow-sm mb-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
               <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-4 md:mb-0">Analytics Dashboard</h1>
