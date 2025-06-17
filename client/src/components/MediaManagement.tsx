@@ -21,14 +21,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 // Icons
 import {
@@ -44,7 +36,6 @@ import {
   X,
   Plus,
   RefreshCw,
-  Maximize2,
 } from "lucide-react";
 
 // Helper function to get file type icon
@@ -79,7 +70,6 @@ export default function MediaManagement() {
   const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
   const [dragActive, setDragActive] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
 
   // Fetch media files
   const { data: mediaFiles, isLoading, refetch } = useQuery<MediaFile[]>({
@@ -473,18 +463,6 @@ export default function MediaManagement() {
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
-                    ) : file.mimeType === 'application/pdf' ? (
-                      <div className="w-full h-full relative">
-                        <iframe
-                          src={`${file.url}#view=FitH`}
-                          title={file.originalName}
-                          className="w-full h-full border-0"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-opacity cursor-pointer"
-                             onClick={() => window.open(file.url, '_blank')}
-                        />
-                      </div>
                     ) : (
                       <div className="flex flex-col items-center text-gray-500">
                         {getFileIcon(file.mimeType)}
@@ -518,24 +496,13 @@ export default function MediaManagement() {
                       Copy URL
                     </Button>
                     
-                    {file.mimeType === 'application/pdf' ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setPreviewFile(file)}
-                        title="Preview PDF"
-                      >
-                        <Maximize2 className="h-3 w-3" />
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => window.open(file.url, '_blank')}
-                      >
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => window.open(file.url, '_blank')}
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
                     
                     <Button
                       size="sm"
@@ -589,47 +556,6 @@ export default function MediaManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* PDF Preview Modal */}
-      {previewFile && previewFile.mimeType === 'application/pdf' && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full h-5/6 flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <div>
-                <h3 className="text-lg font-semibold">{previewFile.originalName}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {formatFileSize(previewFile.fileSize)} • PDF Document
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(previewFile.url, '_blank')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPreviewFile(null)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="flex-1 p-4">
-              <iframe
-                src={`${previewFile.url}#view=FitH&toolbar=1&navpanes=1&scrollbar=1`}
-                title={previewFile.originalName}
-                className="w-full h-full border border-gray-200 rounded"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
