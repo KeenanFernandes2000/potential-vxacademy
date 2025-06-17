@@ -62,25 +62,28 @@ export function setupAuth(app: Express) {
     new LocalStrategy(
       { usernameField: 'email' },
       async (email, password, done) => {
-        // Find users with the given email
-        const usersWithRole = await storage.getUsersByRole("frontliner");
-        const usersByEmail = usersWithRole.filter(user => user.email === email);
-        
-        if (usersByEmail.length === 0) {
-          // Also check admins and other roles
-          const allUsers = [
-            ...await storage.getUsersByRole("admin"),
-            ...await storage.getUsersByRole("manager")
-          ];
-          usersByEmail.push(...allUsers.filter(user => user.email === email));
-        }
-        
-        const user = usersByEmail.length > 0 ? usersByEmail[0] : null;
-        
-        if (!user || !(await comparePasswords(password, user.password))) {
+        try {
+          // Check all user roles to find user by email
+          const allRoles = ["admin", "manager", "frontliner"];
+          let user = null;
+          
+          for (const role of allRoles) {
+            const usersWithRole = await storage.getUsersByRole(role);
+            const foundUser = usersWithRole.find(u => u.email === email);
+            if (foundUser) {
+              user = foundUser;
+              break;
+            }
+          }
+          
+          if (!user || !(await comparePasswords(password, user.password))) {
+            return done(null, false);
+          } else {
+            return done(null, user);
+          }
+        } catch (error) {
+          console.error("Authentication error:", error);
           return done(null, false);
-        } else {
-          return done(null, user);
         }
       }
     ),
