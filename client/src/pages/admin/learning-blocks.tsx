@@ -354,7 +354,7 @@ export default function LearningBlocksManagement() {
     <AdminLayout>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-abu-charcoal">Learning Blocks Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Learning Blocks Management</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -698,7 +698,7 @@ export default function LearningBlocksManagement() {
                     <Button
                       type="submit"
                       disabled={createMutation.isPending || updateMutation.isPending}
-                      className="bg-abu-primary text-white hover:bg-abu-primary/90"
+                      className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                     >
                       {(createMutation.isPending || updateMutation.isPending) && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -746,7 +746,7 @@ export default function LearningBlocksManagement() {
             <CardContent>
               {blocksLoading ? (
                 <div className="flex justify-center p-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-abu-primary" />
+                  <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
                 </div>
               ) : blocks && blocks.length > 0 ? (
                 <Table>
@@ -799,7 +799,7 @@ export default function LearningBlocksManagement() {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-center py-8 text-abu-charcoal/60">
+                <div className="text-center py-8 text-slate-600">
                   {selectedUnitId
                     ? "No learning blocks found. Create your first block!"
                     : "Select a unit to view its learning blocks"}

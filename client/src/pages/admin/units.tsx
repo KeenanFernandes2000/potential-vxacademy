@@ -85,7 +85,7 @@ export default function UnitsManagement() {
       setSelectedCourseId(parseInt(courseId));
     }
   }, []);
-  
+
   // Fetch courses for dropdown
   const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
@@ -94,7 +94,7 @@ export default function UnitsManagement() {
       return await res.json();
     },
   });
-  
+
   // Fetch units for the selected course
   const { data: units, isLoading: unitsLoading } = useQuery<Unit[]>({
     queryKey: ["/api/units", selectedCourseId],
@@ -132,7 +132,7 @@ export default function UnitsManagement() {
       });
     }
   }, [editingUnit, form]);
-  
+
   // Update form when selected course changes
   useEffect(() => {
     if (selectedCourseId) {
@@ -251,7 +251,7 @@ export default function UnitsManagement() {
           <h1 className="text-3xl font-bold text-abu-charcoal">Units Management</h1>
           <Button
             onClick={() => setIsAddModalOpen(true)}
-            className="bg-abu-primary text-white hover:bg-abu-primary/90"
+            className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
             disabled={!selectedCourseId}
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -394,7 +394,7 @@ export default function UnitsManagement() {
                   </p>
                   <Button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="bg-abu-primary text-white hover:bg-abu-primary/90"
+                    className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add First Unit
@@ -536,7 +536,7 @@ export default function UnitsManagement() {
                 <Button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="bg-abu-primary text-white hover:bg-abu-primary/90"
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                 >
                   {createMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -683,7 +683,7 @@ export default function UnitsManagement() {
                 <Button
                   type="submit"
                   disabled={updateMutation.isPending}
-                  className="bg-abu-primary text-white hover:bg-abu-primary/90"
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                 >
                   {updateMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

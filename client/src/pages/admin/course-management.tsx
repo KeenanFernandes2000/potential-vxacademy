@@ -200,7 +200,7 @@ export default function CourseManagement() {
     <AdminLayout>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-abu-charcoal">Course Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Course Management</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -361,7 +361,7 @@ export default function CourseManagement() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-abu-primary text-white hover:bg-abu-primary/90"
+                      className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                     >
                       {isSubmitting && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -383,7 +383,7 @@ export default function CourseManagement() {
             <CardContent>
               {isLoading ? (
                 <div className="flex justify-center p-6">
-                  <Loader2 className="h-8 w-8 animate-spin text-abu-primary" />
+                  <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
                 </div>
               ) : courses && courses.length > 0 ? (
                 <div className="overflow-x-auto">
@@ -424,7 +424,7 @@ export default function CourseManagement() {
                                   }
                                 }}
                               >
-                                <Trash className="h-4 w-4 text-abu-primary" />
+                                <Trash className="h-4 w-4 text-teal-600" />
                               </Button>
                             </div>
                           </TableCell>

@@ -144,7 +144,7 @@ export function BadgesManagement() {
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Badges Management</h2>
-        <Button onClick={handleCreateNew}>Create New Badge</Button>
+        <Button className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700" onClick={handleCreateNew}>Create New Badge</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -263,7 +263,7 @@ export function BadgesManagement() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={updateBadgeMutation.isPending}>
+              <Button type="submit" disabled={updateBadgeMutation.isPending} className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700">
                 {updateBadgeMutation.isPending ? "Saving..." : "Save changes"}
               </Button>
             </DialogFooter>
@@ -352,7 +352,7 @@ export function BadgesManagement() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={createBadgeMutation.isPending}>
+              <Button type="submit" disabled={createBadgeMutation.isPending} className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700">
                 {createBadgeMutation.isPending ? "Creating..." : "Create Badge"}
               </Button>
             </DialogFooter>

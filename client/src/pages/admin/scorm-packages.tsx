@@ -49,7 +49,7 @@ export default function ScormPackagesPage() {
   const { toast } = useToast();
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const form = useForm<z.infer<typeof scormUploadSchema>>({
     resolver: zodResolver(scormUploadSchema),
     defaultValues: {
@@ -57,7 +57,7 @@ export default function ScormPackagesPage() {
       description: ""
     },
   });
-  
+
   const { data: scormPackages, isLoading, refetch } = useQuery<ScormPackage[]>({
     queryKey: ["/api/scorm-packages"],
     queryFn: async () => {
@@ -68,7 +68,7 @@ export default function ScormPackagesPage() {
       return response.json();
     },
   });
-  
+
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
       return apiRequest("POST", "/api/scorm-packages/upload", data, null, null, true);
@@ -92,26 +92,26 @@ export default function ScormPackagesPage() {
       });
     },
   });
-  
+
   // Reset form when dialog closes
   useEffect(() => {
     if (!isUploadDialogOpen) {
       form.reset();
     }
   }, [isUploadDialogOpen, form]);
-  
+
   const onSubmit = (values: z.infer<typeof scormUploadSchema>) => {
     const formData = new FormData();
-    
+
     // Add optional title and description
     if (values.title) {
       formData.append("title", values.title);
     }
-    
+
     if (values.description) {
       formData.append("description", values.description);
     }
-    
+
     // Add the file
     if (fileInputRef.current?.files?.[0]) {
       formData.append("scormPackage", fileInputRef.current.files[0]);
@@ -124,7 +124,7 @@ export default function ScormPackagesPage() {
       });
     }
   };
-  
+
   return (
     <AdminLayout>
       <div className="container py-8">
@@ -142,10 +142,10 @@ export default function ScormPackagesPage() {
               <RefreshCcw className="h-4 w-4" />
               Refresh
             </Button>
-            
+
             <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-abu-primary hover:bg-abu-primary/90 text-white">
+                <Button className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700">
                   <Upload className="h-4 w-4 mr-2" />
                   Upload SCORM Package
                 </Button>
@@ -157,7 +157,7 @@ export default function ScormPackagesPage() {
                     Upload a SCORM compliant package (.zip file) to add interactive learning content.
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
@@ -173,7 +173,7 @@ export default function ScormPackagesPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="description"
@@ -187,7 +187,7 @@ export default function ScormPackagesPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormItem>
                       <FormLabel>SCORM Package (ZIP file)</FormLabel>
                       <FormControl>
@@ -203,7 +203,7 @@ export default function ScormPackagesPage() {
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  
+
                     <div className="p-3 bg-amber-50 text-amber-800 rounded text-sm flex items-start gap-2 mt-4">
                       <Info className="h-5 w-5 flex-shrink-0 mt-0.5" />
                       <div>
@@ -215,7 +215,7 @@ export default function ScormPackagesPage() {
                         </ul>
                       </div>
                     </div>
-                    
+
                     <DialogFooter className="mt-6">
                       <Button
                         type="button"
@@ -226,7 +226,7 @@ export default function ScormPackagesPage() {
                       </Button>
                       <Button 
                         type="submit"
-                        className="bg-abu-primary hover:bg-abu-primary/90 text-white"
+                        className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                         disabled={uploadMutation.isPending}
                       >
                         {uploadMutation.isPending ? (
@@ -245,9 +245,9 @@ export default function ScormPackagesPage() {
             </Dialog>
           </div>
         </div>
-        
+
         <Separator className="my-6" />
-        
+
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-abu-primary" />
@@ -300,7 +300,7 @@ export default function ScormPackagesPage() {
             </p>
             <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-abu-primary hover:bg-abu-primary/90 text-white">
+                <Button className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700">
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Your First Package
                 </Button>
@@ -312,7 +312,7 @@ export default function ScormPackagesPage() {
                     Upload a SCORM compliant package (.zip file) to add interactive learning content.
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
@@ -328,7 +328,7 @@ export default function ScormPackagesPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="description"
@@ -342,7 +342,7 @@ export default function ScormPackagesPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormItem>
                       <FormLabel>SCORM Package (ZIP file)</FormLabel>
                       <FormControl>
@@ -354,7 +354,7 @@ export default function ScormPackagesPage() {
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  
+
                     <div className="p-3 bg-amber-50 text-amber-800 rounded text-sm flex items-start gap-2 mt-4">
                       <Info className="h-5 w-5 flex-shrink-0 mt-0.5" />
                       <div>
@@ -366,7 +366,7 @@ export default function ScormPackagesPage() {
                         </ul>
                       </div>
                     </div>
-                    
+
                     <DialogFooter className="mt-6">
                       <Button
                         type="button"
@@ -377,7 +377,7 @@ export default function ScormPackagesPage() {
                       </Button>
                       <Button 
                         type="submit"
-                        className="bg-abu-primary hover:bg-abu-primary/90 text-white"
+                        className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                         disabled={uploadMutation.isPending}
                       >
                         {uploadMutation.isPending ? (
