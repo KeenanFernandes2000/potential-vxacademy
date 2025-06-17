@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function LeaderboardSection() {
   const { user: currentUser } = useAuth();
-  
+
   const { data: leaderboard, isLoading } = useQuery<User[]>({
     queryKey: ["/api/leaderboard"],
   });
@@ -75,7 +75,7 @@ export function LeaderboardSection() {
             <p className="text-neutrals-600">No data available</p>
           </div>
         )}
-        
+
         <div className="pt-2">
           <Link href="/leaderboard">
             <a className="block text-center text-primary font-medium hover:underline">

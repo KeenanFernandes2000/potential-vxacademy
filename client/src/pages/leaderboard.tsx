@@ -27,7 +27,7 @@ export default function Leaderboard() {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
   const { user: currentUser } = useAuth();
-  
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -64,7 +64,7 @@ export default function Leaderboard() {
             <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-4 md:mb-0">Leaderboard</h1>
-                
+
                 <Select value={timeframe} onValueChange={setTimeframe}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select timeframe" />
@@ -76,23 +76,23 @@ export default function Leaderboard() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
                 <TabsList className="mb-6">
                   <TabsTrigger value="global">Global Ranking</TabsTrigger>
                   <TabsTrigger value="department">By Department</TabsTrigger>
                   <TabsTrigger value="location">By Location</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="global">
                   <div className="overflow-hidden rounded-lg border border-neutrals-200">
-                    <div className="bg-primary text-white grid grid-cols-12 gap-4 py-3 px-4">
+                    <div className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white grid grid-cols-12 gap-4 py-3 px-4">
                       <div className="col-span-1 text-center font-medium">Rank</div>
                       <div className="col-span-8 md:col-span-6 font-medium">Name</div>
                       <div className="hidden md:block md:col-span-3 font-medium">Achievement Level</div>
                       <div className="col-span-3 md:col-span-2 text-right font-medium">XP Points</div>
                     </div>
-                    
+
                     {isLoading ? (
                       // Loading skeletons
                       Array(10).fill(0).map((_, index) => (
@@ -114,20 +114,20 @@ export default function Leaderboard() {
                       leaderboard.map((user, index) => {
                         const isCurrentUser = user.id === currentUser?.id;
                         const rankColor = 
-                          index === 0 ? "text-secondary" :
-                          index === 1 ? "text-neutrals-400" :
+                          index === 0 ? "text-teal-600" :
+                          index === 1 ? "text-cyan-500" :
                           index === 2 ? "text-amber-700" : "";
-                        
+
                         const achievementLevel = 
                           user.xpPoints >= 3000 ? "Expert" :
                           user.xpPoints >= 1500 ? "Advanced" :
                           user.xpPoints >= 500 ? "Intermediate" : "Beginner";
-                        
+
                         const achievementIcon = 
                           user.xpPoints >= 3000 ? "workspace_premium" :
                           user.xpPoints >= 1500 ? "emoji_events" :
                           user.xpPoints >= 500 ? "military_tech" : "person";
-                        
+
                         return (
                           <div 
                             key={user.id} 
@@ -151,22 +151,22 @@ export default function Leaderboard() {
                                 {user.avatar ? (
                                   <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
                                 ) : (
-                                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
                                     {user.name.charAt(0)}
                                   </div>
                                 )}
                                 {index < 3 && (
                                   <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white ${
-                                    index === 0 ? "bg-secondary" : index === 1 ? "bg-neutrals-400" : "bg-amber-700"
+                                    index === 0 ? "bg-gradient-to-r from-teal-600 to-cyan-600" : index === 1 ? "bg-gradient-to-r from-cyan-500 to-teal-500" : "bg-amber-700"
                                   }`}>
                                     <span className="material-icons text-[10px]">emoji_events</span>
                                   </div>
                                 )}
                               </div>
                               <div className="ml-3">
-                                <span className={`font-medium ${isCurrentUser ? "text-primary" : ""}`}>
+                                <span className={`font-medium ${isCurrentUser ? "text-teal-600" : ""}`}>
                                   {user.name}
-                                  {isCurrentUser && <span className="text-xs text-primary ml-2">(You)</span>}
+                                  {isCurrentUser && <span className="text-xs text-teal-600 ml-2">(You)</span>}
                                 </span>
                               </div>
                             </div>
@@ -197,7 +197,7 @@ export default function Leaderboard() {
                     )}
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="department">
                   <div className="mb-4">
                     <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
@@ -214,15 +214,15 @@ export default function Leaderboard() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="overflow-hidden rounded-lg border border-neutrals-200">
-                    <div className="bg-primary text-white grid grid-cols-12 gap-4 py-3 px-4">
+                    <div className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white grid grid-cols-12 gap-4 py-3 px-4">
                       <div className="col-span-1 text-center font-medium">Rank</div>
                       <div className="col-span-7 md:col-span-5 font-medium">Name</div>
                       <div className="hidden md:block md:col-span-3 font-medium">Department</div>
                       <div className="col-span-4 md:col-span-3 text-right font-medium">XP Points</div>
                     </div>
-                    
+
                     {isLoading ? (
                       Array(10).fill(0).map((_, index) => (
                         <div key={index} className="grid grid-cols-12 gap-4 py-4 px-4 border-b border-neutrals-200">
@@ -243,14 +243,14 @@ export default function Leaderboard() {
                       leaderboard.map((user, index) => {
                         const isCurrentUser = user.id === currentUser?.id;
                         const rankColor = 
-                          index === 0 ? "text-secondary" :
-                          index === 1 ? "text-neutrals-400" :
+                          index === 0 ? "text-teal-600" :
+                          index === 1 ? "text-cyan-500" :
                           index === 2 ? "text-amber-700" : "";
-                        
+
                         // Mock department assignment based on user role
                         const userDepartment = user.role === "admin" ? "Administration" : 
                                              user.role === "instructor" ? "Training" : "Customer Service";
-                        
+
                         return (
                           <div 
                             key={user.id} 
@@ -274,22 +274,22 @@ export default function Leaderboard() {
                                 {user.avatar ? (
                                   <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
                                 ) : (
-                                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
                                     {user.name.charAt(0)}
                                   </div>
                                 )}
                                 {index < 3 && (
                                   <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white ${
-                                    index === 0 ? "bg-secondary" : index === 1 ? "bg-neutrals-400" : "bg-amber-700"
+                                    index === 0 ? "bg-gradient-to-r from-teal-600 to-cyan-600" : index === 1 ? "bg-gradient-to-r from-cyan-500 to-teal-500" : "bg-amber-700"
                                   }`}>
                                     <span className="material-icons text-[10px]">emoji_events</span>
                                   </div>
                                 )}
                               </div>
                               <div className="ml-3">
-                                <span className={`font-medium ${isCurrentUser ? "text-primary" : ""}`}>
+                                <span className={`font-medium ${isCurrentUser ? "text-teal-600" : ""}`}>
                                   {user.name}
-                                  {isCurrentUser && <span className="text-xs text-primary ml-2">(You)</span>}
+                                  {isCurrentUser && <span className="text-xs text-teal-600 ml-2">(You)</span>}
                                 </span>
                               </div>
                             </div>
@@ -313,7 +313,7 @@ export default function Leaderboard() {
                     )}
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="location">
                   <div className="mb-4">
                     <Select value={locationFilter} onValueChange={setLocationFilter}>
@@ -330,15 +330,15 @@ export default function Leaderboard() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="overflow-hidden rounded-lg border border-neutrals-200">
-                    <div className="bg-primary text-white grid grid-cols-12 gap-4 py-3 px-4">
+                    <div className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white grid grid-cols-12 gap-4 py-3 px-4">
                       <div className="col-span-1 text-center font-medium">Rank</div>
                       <div className="col-span-7 md:col-span-5 font-medium">Name</div>
                       <div className="hidden md:block md:col-span-3 font-medium">Location</div>
                       <div className="col-span-4 md:col-span-3 text-right font-medium">XP Points</div>
                     </div>
-                    
+
                     {isLoading ? (
                       Array(10).fill(0).map((_, index) => (
                         <div key={index} className="grid grid-cols-12 gap-4 py-4 px-4 border-b border-neutrals-200">
@@ -359,13 +359,13 @@ export default function Leaderboard() {
                       leaderboard.map((user, index) => {
                         const isCurrentUser = user.id === currentUser?.id;
                         const rankColor = 
-                          index === 0 ? "text-secondary" :
-                          index === 1 ? "text-neutrals-400" :
+                          index === 0 ? "text-teal-600" :
+                          index === 1 ? "text-cyan-500" :
                           index === 2 ? "text-amber-700" : "";
-                        
+
                         // Mock location assignment based on user id
                         const userLocation = ["Dammam", "Riyadh", "Jeddah", "Khobar"][user.id % 4];
-                        
+
                         return (
                           <div 
                             key={user.id} 
@@ -389,22 +389,22 @@ export default function Leaderboard() {
                                 {user.avatar ? (
                                   <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
                                 ) : (
-                                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
                                     {user.name.charAt(0)}
                                   </div>
                                 )}
                                 {index < 3 && (
                                   <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white ${
-                                    index === 0 ? "bg-secondary" : index === 1 ? "bg-neutrals-400" : "bg-amber-700"
+                                    index === 0 ? "bg-gradient-to-r from-teal-600 to-cyan-600" : index === 1 ? "bg-gradient-to-r from-cyan-500 to-teal-500" : "bg-amber-700"
                                   }`}>
                                     <span className="material-icons text-[10px]">emoji_events</span>
                                   </div>
                                 )}
                               </div>
                               <div className="ml-3">
-                                <span className={`font-medium ${isCurrentUser ? "text-primary" : ""}`}>
+                                <span className={`font-medium ${isCurrentUser ? "text-teal-600" : ""}`}>
                                   {user.name}
-                                  {isCurrentUser && <span className="text-xs text-primary ml-2">(You)</span>}
+                                  {isCurrentUser && <span className="text-xs text-teal-600 ml-2">(You)</span>}
                                 </span>
                               </div>
                             </div>
@@ -430,7 +430,7 @@ export default function Leaderboard() {
                 </TabsContent>
               </Tabs>
             </div>
-            
+
             {/* Leaderboard Insights */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="bg-white p-6 rounded-xl shadow-sm">
@@ -442,7 +442,7 @@ export default function Leaderboard() {
                     <h2 className="font-heading text-lg font-semibold">Your Rank</h2>
                   </div>
                 </div>
-                
+
                 {isLoading ? (
                   <Skeleton className="h-12 w-24" />
                 ) : leaderboard && currentUser ? (
@@ -469,7 +469,7 @@ export default function Leaderboard() {
                   <p className="text-neutrals-600">Not available</p>
                 )}
               </div>
-              
+
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 rounded-full bg-accent bg-opacity-20 flex items-center justify-center mr-3">
@@ -479,7 +479,7 @@ export default function Leaderboard() {
                     <h2 className="font-heading text-lg font-semibold">Points to Next Rank</h2>
                   </div>
                 </div>
-                
+
                 {isLoading ? (
                   <Skeleton className="h-12 w-24" />
                 ) : leaderboard && currentUser ? (
@@ -498,9 +498,9 @@ export default function Leaderboard() {
                         </>
                       );
                     }
-                    
+
                     const pointsNeeded = (leaderboard[userIndex - 1]?.xpPoints || 0) - (currentUser.xpPoints || 0) + 1;
-                    
+
                     return (
                       <>
                         <div className="flex items-baseline">
@@ -523,7 +523,7 @@ export default function Leaderboard() {
                   <p className="text-neutrals-600">Not available</p>
                 )}
               </div>
-              
+
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 rounded-full bg-secondary bg-opacity-20 flex items-center justify-center mr-3">
@@ -533,7 +533,7 @@ export default function Leaderboard() {
                     <h2 className="font-heading text-lg font-semibold">Top Achiever</h2>
                   </div>
                 </div>
-                
+
                 {isLoading ? (
                   <div className="flex items-center">
                     <Skeleton className="h-10 w-10 rounded-full mr-3" />

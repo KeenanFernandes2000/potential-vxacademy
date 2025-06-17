@@ -4,7 +4,7 @@ import { Link } from "wouter";
 
 export function WelcomeCard() {
   const { user } = useAuth();
-  
+
   const firstName = user?.name?.split(' ')[0] || 'User';
 
   // Determine if user is new (has no XP points)
@@ -29,7 +29,7 @@ export function WelcomeCard() {
         </div>
         <div className="mt-6 md:mt-0">
           <Link href="/courses">
-            <Button className="bg-accent hover:bg-accent-dark text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors">
+            <Button className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-6 py-2 rounded-lg font-medium transition-colors">
               <span className="material-icons mr-2">play_circle</span>
               <span>{isNewUser ? "Start Learning" : "Resume Learning"}</span>
             </Button>

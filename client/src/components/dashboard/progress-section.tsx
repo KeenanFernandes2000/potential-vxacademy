@@ -48,7 +48,7 @@ export function ProgressSection() {
             return timeB - timeA;
           })
           .slice(0, 3); // Take top 3
-        
+
         // If no courses have progress, show the first 3 available courses
         if (inProgressCourses.length === 0) {
           const firstThreeCourses = courses.slice(0, 3).map(course => ({
@@ -94,7 +94,7 @@ export function ProgressSection() {
           </a>
         </Link>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {isLoading ? (
           // Loading skeletons
@@ -146,7 +146,7 @@ export function ProgressSection() {
                     {course.progress?.percentComplete || 0}% Complete
                   </span>
                   <Link href={`/courses/${course.id}`}>
-                    <a className="bg-primary hover:bg-primary-light text-white font-medium text-sm py-1 px-3 rounded transition-colors">
+                    <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors">
                       Continue
                     </a>
                   </Link>
@@ -162,7 +162,7 @@ export function ProgressSection() {
               <h3 className="text-lg font-semibold mb-2">No courses in progress</h3>
               <p className="text-neutrals-600 mb-4">Start your learning journey by enrolling in a course.</p>
               <Link href="/courses">
-                <a className="bg-primary hover:bg-primary-light text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors">
+                <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors">
                   <span className="material-icons mr-2">search</span>
                   <span>Browse Courses</span>
                 </a>

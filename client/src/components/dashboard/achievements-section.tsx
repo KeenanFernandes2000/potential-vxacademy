@@ -61,7 +61,7 @@ export function AchievementsSection() {
           // Badge items
           recentBadges.map((userBadge) => (
             <div key={userBadge.id} className="flex items-center p-3 bg-neutrals-50 rounded-lg border border-neutrals-200">
-              <div className="bg-secondary-light bg-opacity-20 p-2 rounded-full mr-3">
+              <div className="bg-gradient-to-br from-teal-100 to-cyan-100 rounded-xl flex items-center justify-center mr-3">
                 {userBadge.badge?.imageUrl && userBadge.badge.imageUrl.includes('http') ? (
                   <img 
                     src={userBadge.badge.imageUrl} 
@@ -69,7 +69,7 @@ export function AchievementsSection() {
                     className="w-8 h-8 object-contain" 
                   />
                 ) : (
-                  <span className="material-icons text-secondary">
+                  <span className="material-icons text-2xl text-teal-600">
                     emoji_events
                   </span>
                 )}
