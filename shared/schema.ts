@@ -95,6 +95,8 @@ export const courses = pgTable("courses", {
   name: text("name").notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
+  internalNote: text("internal_note"), // admin-only field
+  courseType: text("course_type").notNull().default("standard"), // standard, certification, mandatory
   duration: integer("duration").notNull(), // in minutes
   level: text("level").notNull().default("beginner"), // beginner, intermediate, advanced
   createdAt: timestamp("created_at").defaultNow(),
@@ -111,6 +113,7 @@ export const units = pgTable("units", {
   courseId: integer("course_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
+  internalNote: text("internal_note"), // admin-only field
   order: integer("order").notNull(),
   duration: integer("duration").notNull().default(30), // in minutes
   xpPoints: integer("xp_points").notNull().default(100),
@@ -148,12 +151,20 @@ export const insertLearningBlockSchema = createInsertSchema(learningBlocks).omit
 // Assessments
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
-  unitId: integer("unit_id").notNull(),
+  unitId: integer("unit_id"), // nullable for course-level assessments
+  courseId: integer("course_id"), // nullable for unit-level assessments
   title: text("title").notNull(),
   description: text("description"),
-  passingScore: integer("passing_score").notNull().default(70),
-  xpPoints: integer("xp_points").notNull().default(50),
+  placement: text("placement").notNull().default("end"), // beginning, end
+  isGraded: boolean("is_graded").notNull().default(true),
+  showCorrectAnswers: boolean("show_correct_answers").notNull().default(false), // for non-graded
+  passingScore: integer("passing_score"), // only for graded assessments
+  hasTimeLimit: boolean("has_time_limit").notNull().default(false),
   timeLimit: integer("time_limit"), // in minutes, null means no limit
+  maxRetakes: integer("max_retakes").notNull().default(3),
+  hasCertificate: boolean("has_certificate").notNull().default(false),
+  certificateTemplate: text("certificate_template"), // URL or path to certificate template
+  xpPoints: integer("xp_points").notNull().default(50),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Course, InsertCourse, Module } from "@shared/schema";
+import { Course, InsertCourse, Module, TrainingArea } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 // UI Components
@@ -47,16 +47,23 @@ import AdminLayout from "@/components/layout/admin-layout";
 
 // Form validation schema
 const courseFormSchema = z.object({
-  name: z.string().min(2, {
-    message: "Course name must be at least 2 characters.",
+  trainingAreaId: z.coerce.number({
+    required_error: "Please select a training area.",
   }),
   moduleId: z.coerce.number({
     required_error: "Please select a module.",
   }),
+  name: z.string().min(2, {
+    message: "Course name must be at least 2 characters.",
+  }),
   description: z.string().optional(),
   imageUrl: z.string().optional().nullable(),
+  internalNote: z.string().optional(),
+  courseType: z.string({
+    required_error: "Please select a course type.",
+  }),
   duration: z.coerce.number({
-    required_error: "Please specify the duration in hours.",
+    required_error: "Please specify the duration in minutes.",
     invalid_type_error: "Duration must be a number.",
   }),
   level: z.string({
@@ -67,12 +74,25 @@ const courseFormSchema = z.object({
 export default function CourseManagement() {
   const { toast } = useToast();
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<number | null>(null);
 
-  // Fetch modules for dropdown
-  const { data: modules, isLoading: modulesLoading } = useQuery<Module[]>({
-    queryKey: ["/api/modules"],
+  // Fetch training areas for dropdown
+  const { data: trainingAreas, isLoading: areasLoading } = useQuery<TrainingArea[]>({
+    queryKey: ["/api/training-areas"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/modules");
+      const res = await apiRequest("GET", "/api/training-areas");
+      return await res.json();
+    },
+  });
+
+  // Fetch modules for dropdown (filtered by training area)
+  const { data: modules, isLoading: modulesLoading } = useQuery<Module[]>({
+    queryKey: ["/api/modules", selectedTrainingAreaId],
+    queryFn: async () => {
+      const url = selectedTrainingAreaId 
+        ? `/api/modules?trainingAreaId=${selectedTrainingAreaId}`
+        : "/api/modules";
+      const res = await apiRequest("GET", url);
       return await res.json();
     },
   });
