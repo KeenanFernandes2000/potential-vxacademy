@@ -193,18 +193,21 @@ export default function AdminDashboard() {
                     title="Manage Courses"
                     description="Add, edit, or delete courses"
                     gradient="from-teal-500 to-cyan-500"
+                    icon={<BookOpen className="h-5 w-5 text-white" />}
                   />
                   <QuickActionLink
                     href="/admin/users"
                     title="Manage Users"
                     description="Review and manage user accounts"
                     gradient="from-blue-500 to-indigo-500"
+                    icon={<Users className="h-5 w-5 text-white" />}
                   />
                   <QuickActionLink
                     href="/admin/modules"
                     title="Manage Modules"
                     description="Create and organize training modules"
                     gradient="from-green-500 to-emerald-500"
+                    icon={<GraduationCap className="h-5 w-5 text-white" />}
                   />
                 </div>
               </CardContent>
@@ -248,15 +251,18 @@ interface QuickActionLinkProps {
   title: string;
   description: string;
   gradient: string;
+  icon?: React.ReactNode;
 }
 
-function QuickActionLink({ href, title, description, gradient }: QuickActionLinkProps) {
+function QuickActionLink({ href, title, description, gradient, icon }: QuickActionLinkProps) {
   return (
     <a
       href={href}
       className="group block p-6 rounded-2xl border border-slate-200/50 bg-white/60 backdrop-blur-sm hover:bg-white/80 hover:shadow-lg transition-all duration-300 hover:scale-105"
     >
-      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} mb-4 group-hover:scale-110 transition-transform duration-300`}></div>
+      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} mb-4 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center`}>
+        {icon}
+      </div>
       <h3 className="font-semibold text-slate-800 group-hover:text-slate-900 transition-colors">{title}</h3>
       <p className="text-sm text-slate-600 mt-1">{description}</p>
     </a>

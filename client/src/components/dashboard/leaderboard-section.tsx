@@ -54,8 +54,8 @@ export function LeaderboardSection() {
                     </div>
                   )}
                   {index === 0 && (
-                    <div className="absolute -top-1 -right-1 bg-gradient-to-r from-teal-600 to-cyan-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-                      <span className="material-icons text-[8px]">emoji_events</span>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm">
+                      <span className="material-icons text-[8px] text-yellow-500">emoji_events</span>
                     </div>
                   )}
                 </div>

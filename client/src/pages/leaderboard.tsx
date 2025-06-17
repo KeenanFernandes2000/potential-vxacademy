@@ -156,10 +156,10 @@ export default function Leaderboard() {
                                   </div>
                                 )}
                                 {index < 3 && (
-                                  <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white ${
-                                    index === 0 ? "bg-gradient-to-r from-teal-600 to-cyan-600" : index === 1 ? "bg-gradient-to-r from-cyan-500 to-teal-500" : "bg-amber-700"
-                                  }`}>
-                                    <span className="material-icons text-[8px]">emoji_events</span>
+                                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm">
+                                    <span className={`material-icons text-[8px] ${
+                                      index === 0 ? "text-yellow-500" : index === 1 ? "text-gray-400" : "text-amber-700"
+                                    }`}>emoji_events</span>
                                   </div>
                                 )}
                               </div>
@@ -279,10 +279,10 @@ export default function Leaderboard() {
                                   </div>
                                 )}
                                 {index < 3 && (
-                                  <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white ${
-                                    index === 0 ? "bg-gradient-to-r from-teal-600 to-cyan-600" : index === 1 ? "bg-gradient-to-r from-cyan-500 to-teal-500" : "bg-amber-700"
-                                  }`}>
-                                    <span className="material-icons text-[8px]">emoji_events</span>
+                                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm">
+                                    <span className={`material-icons text-[8px] ${
+                                      index === 0 ? "text-yellow-500" : index === 1 ? "text-gray-400" : "text-amber-700"
+                                    }`}>emoji_events</span>
                                   </div>
                                 )}
                               </div>
@@ -394,10 +394,10 @@ export default function Leaderboard() {
                                   </div>
                                 )}
                                 {index < 3 && (
-                                  <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white ${
-                                    index === 0 ? "bg-gradient-to-r from-teal-600 to-cyan-600" : index === 1 ? "bg-gradient-to-r from-cyan-500 to-teal-500" : "bg-amber-700"
-                                  }`}>
-                                    <span className="material-icons text-[8px]">emoji_events</span>
+                                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm">
+                                    <span className={`material-icons text-[8px] ${
+                                      index === 0 ? "text-yellow-500" : index === 1 ? "text-gray-400" : "text-amber-700"
+                                    }`}>emoji_events</span>
                                   </div>
                                 )}
                               </div>
