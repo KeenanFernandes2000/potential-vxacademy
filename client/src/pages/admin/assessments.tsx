@@ -276,6 +276,7 @@ export default function AssessmentsManagement() {
         description: "Assessment deleted successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "assessments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
     onError: (error) => {
       toast({
