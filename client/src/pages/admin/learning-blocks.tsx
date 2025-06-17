@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { LearningBlock, InsertLearningBlock, Unit } from "@shared/schema";
+import { LearningBlock, InsertLearningBlock, Unit, Course, Module, TrainingArea } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 // UI Components
@@ -42,7 +42,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Pencil, Plus, Trash, Video, FileText, FileCode, Package, Upload, Image as ImageIcon } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash, Video, FileText, FileCode, Package, Upload, Image as ImageIcon, Search, Filter } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import AdminLayout from "@/components/layout/admin-layout";
 
 // Form validation schema
@@ -72,7 +78,26 @@ export default function LearningBlocksManagement() {
   const [imageUploading, setImageUploading] = useState(false);
   const imageFileRef = useRef<HTMLInputElement>(null);
   
-  // Fetch units for dropdown
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<string>("all");
+  const [selectedModuleId, setSelectedModuleId] = useState<string>("all");
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
+  const [selectedFilterUnitId, setSelectedFilterUnitId] = useState<string>("all");
+  
+  // Fetch all data for filters and dropdowns
+  const { data: trainingAreas } = useQuery<TrainingArea[]>({
+    queryKey: ["/api/training-areas"],
+  });
+
+  const { data: modules } = useQuery<Module[]>({
+    queryKey: ["/api/modules"],
+  });
+
+  const { data: courses } = useQuery<Course[]>({
+    queryKey: ["/api/courses"],
+  });
+
   const { data: units, isLoading: unitsLoading } = useQuery<Unit[]>({
     queryKey: ["/api/units"],
     queryFn: async () => {
@@ -88,16 +113,58 @@ export default function LearningBlocksManagement() {
     }
   }, [units, selectedUnitId]);
 
-  // Fetch learning blocks for the selected unit
-  const { data: blocks, isLoading: blocksLoading } = useQuery<LearningBlock[]>({
-    queryKey: ["/api/units", selectedUnitId, "blocks"],
+  // Fetch all learning blocks for filtering
+  const { data: allBlocks, isLoading: blocksLoading } = useQuery<LearningBlock[]>({
+    queryKey: ["/api/learning-blocks"],
     queryFn: async () => {
-      if (!selectedUnitId) return [];
-      const res = await apiRequest("GET", `/api/units/${selectedUnitId}/blocks`);
+      const res = await apiRequest("GET", `/api/learning-blocks`);
       return await res.json();
     },
-    enabled: !!selectedUnitId,
   });
+
+  // Filter blocks based on search and filter criteria
+  const filteredBlocks = allBlocks?.filter(block => {
+    // Search filter
+    if (searchTerm && !block.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // Get unit info for this block
+    const unit = units?.find(u => u.id === block.unitId);
+    if (!unit) return false;
+
+    // Get course info for this unit
+    const unitCourses = courses?.filter(course => 
+      // Check if unit is assigned to this course through courseUnits table
+      // For now, we'll use a simplified approach since we don't have courseUnits data in frontend
+      true // Will be refined when courseUnits API is available
+    );
+
+    // Unit filter
+    if (selectedFilterUnitId !== "all" && block.unitId !== parseInt(selectedFilterUnitId)) {
+      return false;
+    }
+
+    // Course filter (simplified - would need course-unit relationship data)
+    if (selectedCourseId !== "all") {
+      // This would need proper course-unit relationship checking
+      // For now, skip this filter until we have the proper API
+    }
+
+    // Module filter (via course relationship)
+    if (selectedModuleId !== "all") {
+      const relevantCourses = courses?.filter(c => c.moduleId === parseInt(selectedModuleId));
+      // Would need to check if unit belongs to any of these courses
+    }
+
+    // Training Area filter (via module-course-unit relationship)
+    if (selectedTrainingAreaId !== "all") {
+      const relevantModules = modules?.filter(m => m.trainingAreaId === parseInt(selectedTrainingAreaId));
+      // Would need to trace through module -> course -> unit relationships
+    }
+
+    return true;
+  }) || [];
 
   // Fetch SCORM packages for dropdown selection
   const { data: scormPackages, isLoading: scormPackagesLoading } = useQuery({

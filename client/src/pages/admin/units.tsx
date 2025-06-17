@@ -545,7 +545,7 @@ export default function UnitsManagement() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span>{unit.duration} min</span>
-                            <Button
+                            {/* <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => {
@@ -557,12 +557,12 @@ export default function UnitsManagement() {
                                 });
                               }}
                             >
+                            </Button> */}
                               {unit.showDuration !== false ? (
                                 <Eye className="h-4 w-4 text-green-600" />
                               ) : (
                                 <EyeOff className="h-4 w-4 text-gray-400" />
                               )}
-                            </Button>
                           </div>
                         </TableCell>
                         <TableCell>{unit.xpPoints} XP</TableCell>
