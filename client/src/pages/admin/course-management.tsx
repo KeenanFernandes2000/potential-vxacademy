@@ -647,9 +647,9 @@ export default function CourseManagement() {
                   
                   {/* Training Area Filter */}
                   <Select
-                    value={filterTrainingAreaId?.toString() || ""}
+                    value={filterTrainingAreaId?.toString() || "all"}
                     onValueChange={(value) => {
-                      const areaId = value ? parseInt(value) : null;
+                      const areaId = value === "all" ? null : parseInt(value);
                       setFilterTrainingAreaId(areaId);
                       setFilterModuleId(null); // Reset module filter
                     }}
@@ -658,7 +658,7 @@ export default function CourseManagement() {
                       <SelectValue placeholder="Filter by Training Area" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Training Areas</SelectItem>
+                      <SelectItem value="all">All Training Areas</SelectItem>
                       {trainingAreas?.map((area) => (
                         <SelectItem key={area.id} value={area.id.toString()}>
                           {area.name}
@@ -669,9 +669,9 @@ export default function CourseManagement() {
                   
                   {/* Module Filter */}
                   <Select
-                    value={filterModuleId?.toString() || ""}
+                    value={filterModuleId?.toString() || "all"}
                     onValueChange={(value) => {
-                      const moduleId = value ? parseInt(value) : null;
+                      const moduleId = value === "all" ? null : parseInt(value);
                       setFilterModuleId(moduleId);
                     }}
                     disabled={!filterTrainingAreaId}
@@ -680,7 +680,7 @@ export default function CourseManagement() {
                       <SelectValue placeholder="Filter by Module" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Modules</SelectItem>
+                      <SelectItem value="all">All Modules</SelectItem>
                       {filterModulesList?.map((module) => (
                         <SelectItem key={module.id} value={module.id.toString()}>
                           {module.name}
