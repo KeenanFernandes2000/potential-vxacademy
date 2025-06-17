@@ -78,7 +78,8 @@ export interface IStorage {
   deleteModule(id: number): Promise<boolean>;
   
   // Units
-  getUnits(courseId: number): Promise<Unit[]>;
+  getUnits(courseId?: number): Promise<Unit[]>;
+  getAllUnits(): Promise<Unit[]>;
   getUnit(id: number): Promise<Unit | undefined>;
   createUnit(unit: InsertUnit): Promise<Unit>;
   updateUnit(id: number, data: Partial<Unit>): Promise<Unit | undefined>;

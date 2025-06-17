@@ -487,11 +487,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Units
-  async getUnits(courseId: number): Promise<Unit[]> {
+  async getUnits(courseId?: number): Promise<Unit[]> {
+    if (courseId) {
+      return await db
+        .select()
+        .from(units)
+        .where(eq(units.courseId, courseId))
+        .orderBy(asc(units.order));
+    }
     return await db
       .select()
       .from(units)
-      .where(eq(units.courseId, courseId))
+      .orderBy(asc(units.order));
+  }
+
+  async getAllUnits(): Promise<Unit[]> {
+    return await db
+      .select()
+      .from(units)
       .orderBy(asc(units.order));
   }
 

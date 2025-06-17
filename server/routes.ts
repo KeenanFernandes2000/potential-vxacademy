@@ -113,19 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (courseId) {
         units = await storage.getUnits(courseId);
       } else {
-        // Get all courses, then get units for each course
-        const courses = await storage.getCourses();
-
-        if (!courses || courses.length === 0) {
-          return res.json([]);
-        }
-
-        // Get units for all courses
-        units = [];
-        for (const course of courses) {
-          const courseUnits = await storage.getUnits(course.id);
-          units = [...units, ...courseUnits];
-        }
+        units = await storage.getAllUnits();
       }
 
       res.json(units);
