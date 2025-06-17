@@ -344,8 +344,7 @@ export class DatabaseStorage implements IStorage {
     const [completion] = await db
       .select()
       .from(blockCompletions)
-      .where(eq(blockCompletions.userId, userId))
-      .where(eq(blockCompletions.blockId, blockId));
+      .where(and(eq(blockCompletions.userId, userId), eq(blockCompletions.blockId, blockId)));
     return completion;
   }
 
@@ -404,8 +403,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(assessmentAttempts)
-      .where(eq(assessmentAttempts.userId, userId))
-      .where(eq(assessmentAttempts.assessmentId, assessmentId));
+      .where(and(eq(assessmentAttempts.userId, userId), eq(assessmentAttempts.assessmentId, assessmentId)));
   }
 
   async createAssessmentAttempt(attempt: InsertAssessmentAttempt): Promise<AssessmentAttempt> {
@@ -448,7 +446,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTrainingArea(id: number): Promise<boolean> {
     const result = await db.delete(trainingAreas).where(eq(trainingAreas.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Modules
@@ -483,7 +481,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteModule(id: number): Promise<boolean> {
     const result = await db.delete(modules).where(eq(modules.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Units
@@ -529,7 +527,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUnit(id: number): Promise<boolean> {
     const result = await db.delete(units).where(eq(units.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Learning Blocks
