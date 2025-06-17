@@ -781,95 +781,195 @@ export default function LearningBlocksManagement() {
           {/* Learning Blocks List */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Learning Blocks</CardTitle>
-              <CardDescription>
-                {selectedUnitId
-                  ? `Learning blocks for ${getUnitName(selectedUnitId)}`
-                  : "Select a unit to view its learning blocks"}
-              </CardDescription>
-              {!selectedUnitId && (
-                <div className="mt-2">
-                  <Select onValueChange={(value) => setSelectedUnitId(parseInt(value))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {unitsLoading ? (
-                        <div className="flex justify-center p-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                      ) : (
-                        units?.map((unit) => (
+              <div className="flex flex-col space-y-4">
+                <div>
+                  <CardTitle>Existing Learning Blocks</CardTitle>
+                  <CardDescription>
+                    Search and filter learning content blocks across all units
+                  </CardDescription>
+                </div>
+                
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search blocks by title..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Hierarchical Filters */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {/* Training Area Filter */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Training Area</label>
+                    <Select value={selectedTrainingAreaId} onValueChange={setSelectedTrainingAreaId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="All Areas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Areas</SelectItem>
+                        {trainingAreas?.map((area) => (
+                          <SelectItem key={area.id} value={area.id.toString()}>
+                            {area.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Module Filter */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Module</label>
+                    <Select value={selectedModuleId} onValueChange={setSelectedModuleId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="All Modules" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Modules</SelectItem>
+                        {modules?.filter(module => 
+                          selectedTrainingAreaId === "all" || 
+                          module.trainingAreaId === parseInt(selectedTrainingAreaId)
+                        ).map((module) => (
+                          <SelectItem key={module.id} value={module.id.toString()}>
+                            {module.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Course Filter */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Course</label>
+                    <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="All Courses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Courses</SelectItem>
+                        {courses?.filter(course => 
+                          selectedModuleId === "all" || 
+                          course.moduleId === parseInt(selectedModuleId)
+                        ).map((course) => (
+                          <SelectItem key={course.id} value={course.id.toString()}>
+                            {course.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Unit Filter */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Unit</label>
+                    <Select value={selectedFilterUnitId} onValueChange={setSelectedFilterUnitId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="All Units" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Units</SelectItem>
+                        {units?.map((unit) => (
                           <SelectItem key={unit.id} value={unit.id.toString()}>
                             {unit.name}
                           </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              )}
+
+                {/* Results Summary */}
+                <div className="text-sm text-gray-600">
+                  Showing {filteredBlocks.length} of {allBlocks?.length || 0} learning blocks
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {blocksLoading ? (
                 <div className="flex justify-center p-12">
                   <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
                 </div>
-              ) : blocks && blocks.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[60px]">Order</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>XP</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {blocks.map((block) => (
-                      <TableRow key={block.id}>
-                        <TableCell>{block.order}</TableCell>
-                        <TableCell>
-                          <div className="font-medium">{block.title}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            {getBlockTypeIcon(block.type)}
-                            <span className="capitalize">{block.type}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{block.xpPoints}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(block)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(block.id)}
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </div>
-                        </TableCell>
+              ) : filteredBlocks && filteredBlocks.length > 0 ? (
+                <TooltipProvider>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[60px]">Order</TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Unit</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>XP</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredBlocks.map((block) => (
+                        <TableRow key={block.id}>
+                          <TableCell>{block.order}</TableCell>
+                          <TableCell>
+                            <div className="font-medium">{block.title}</div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm text-gray-600">
+                              {getUnitName(block.unitId)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {getBlockTypeIcon(block.type)}
+                              <span className="capitalize">{block.type}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{block.xpPoints}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEdit(block)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="sr-only">Edit</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Edit learning block</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(block.id)}
+                                    disabled={deleteMutation.isPending}
+                                  >
+                                    <Trash className="h-4 w-4" />
+                                    <span className="sr-only">Delete</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete learning block</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TooltipProvider>
               ) : (
                 <div className="text-center py-8 text-slate-600">
-                  {selectedUnitId
-                    ? "No learning blocks found. Create your first block!"
-                    : "Select a unit to view its learning blocks"}
+                  {searchTerm || selectedTrainingAreaId !== "all" || selectedModuleId !== "all" || 
+                   selectedCourseId !== "all" || selectedFilterUnitId !== "all"
+                    ? "No learning blocks match your current filters. Try adjusting your search criteria."
+                    : "No learning blocks found. Create your first block using the form on the left!"}
                 </div>
               )}
             </CardContent>

@@ -209,6 +209,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Learning Blocks
+  // Get all learning blocks (for admin filtering)
+  app.get("/api/learning-blocks", async (req, res) => {
+    try {
+      // Get all units first
+      const units = await storage.getAllUnits();
+      let allBlocks: any[] = [];
+      
+      // Fetch blocks for each unit
+      for (const unit of units) {
+        const blocks = await storage.getLearningBlocks(unit.id);
+        allBlocks = allBlocks.concat(blocks || []);
+      }
+      
+      console.log(`Retrieved ${allBlocks.length} total learning blocks`);
+      res.json(allBlocks);
+    } catch (error) {
+      console.error("Error fetching all learning blocks:", error);
+      res.status(500).json({
+        message: "Error fetching learning blocks",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+
   app.get("/api/units/:unitId/blocks", async (req, res) => {
     try {
       const unitId = parseInt(req.params.unitId);
