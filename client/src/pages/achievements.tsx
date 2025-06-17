@@ -46,19 +46,19 @@ export default function Achievements() {
   if (userBadges && allBadges) {
     // Map badge IDs that the user has earned
     const earnedBadgeIds = userBadges.map(ub => ub.badgeId);
-    
+
     // For earned badges, ensure badge data is properly nested
     groupedBadges.earned = userBadges.map(userBadge => {
       // Find the full badge details based on the badgeId
       const fullBadge = allBadges.find(b => b.id === userBadge.badgeId);
-      
+
       // Combine user badge with the full badge details
       return {
         ...userBadge,
         badge: fullBadge || undefined
       };
     });
-    
+
     // Filter out badges that haven't been earned yet
     groupedBadges.locked = allBadges.filter(badge => !earnedBadgeIds.includes(badge.id));
   }
@@ -84,7 +84,7 @@ export default function Achievements() {
         <main className="flex-1 overflow-y-auto bg-neutrals-100 p-4 pb-16 md:pb-4">
           <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
             <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-6">My Achievements</h1>
-            
+
             {/* Achievements Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card>
@@ -103,7 +103,7 @@ export default function Achievements() {
                   )}
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Achievement Level</CardTitle>
@@ -134,7 +134,7 @@ export default function Achievements() {
                   )}
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Total XP from Badges</CardTitle>
@@ -155,10 +155,10 @@ export default function Achievements() {
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Certificates Section */}
             <CertificateSection />
-            
+
             {/* Earned Badges */}
             <div className="mb-10">
               <div className="flex items-center mb-4">
@@ -171,7 +171,7 @@ export default function Achievements() {
                   )}
                 </div>
               </div>
-              
+
               {isLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {Array(4).fill(0).map((_, i) => (
@@ -221,7 +221,7 @@ export default function Achievements() {
                 </div>
               )}
             </div>
-            
+
             {/* Available Badges */}
             <div>
               <div className="flex items-center mb-4">
@@ -234,7 +234,7 @@ export default function Achievements() {
                   )}
                 </div>
               </div>
-              
+
               {isLoadingAllBadges ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {Array(6).fill(0).map((_, i) => (

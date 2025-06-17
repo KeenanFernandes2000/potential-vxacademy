@@ -27,7 +27,7 @@ export default function Leaderboard() {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
   const { user: currentUser } = useAuth();
-  
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -42,6 +42,19 @@ export default function Leaderboard() {
   const locations = ["all", "abu-dhabi-island", "corniche", "yas-island", "saadiyat-island", "al-reem"];
 
   return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+              Leaderboard
+            </h1>
+            <p className="text-white/80 text-lg max-w-2xl mx-auto">
+              See how you rank among your peers and celebrate top performers in
+              the VX Academy community.
+            </p>
+          </div>
+
     <div className="h-screen flex flex-col md:flex-row">
       {/* Mobile sidebar (shown when toggled) */}
       {sidebarOpen && (
@@ -64,7 +77,7 @@ export default function Leaderboard() {
             <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-4 md:mb-0">Leaderboard</h1>
-                
+
                 <Select value={timeframe} onValueChange={setTimeframe}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select timeframe" />
@@ -76,14 +89,14 @@ export default function Leaderboard() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
                 <TabsList className="mb-6">
                   <TabsTrigger value="global">Global Ranking</TabsTrigger>
                   <TabsTrigger value="department">By Department</TabsTrigger>
                   <TabsTrigger value="location">By Location</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="global">
                   <div className="overflow-hidden rounded-lg border border-neutrals-200">
                     <div className="bg-primary text-white grid grid-cols-12 gap-4 py-3 px-4">
@@ -92,7 +105,7 @@ export default function Leaderboard() {
                       <div className="hidden md:block md:col-span-3 font-medium">Achievement Level</div>
                       <div className="col-span-3 md:col-span-2 text-right font-medium">XP Points</div>
                     </div>
-                    
+
                     {isLoading ? (
                       // Loading skeletons
                       Array(10).fill(0).map((_, index) => (
@@ -117,17 +130,17 @@ export default function Leaderboard() {
                           index === 0 ? "text-secondary" :
                           index === 1 ? "text-neutrals-400" :
                           index === 2 ? "text-amber-700" : "";
-                        
+
                         const achievementLevel = 
                           user.xpPoints >= 3000 ? "Expert" :
                           user.xpPoints >= 1500 ? "Advanced" :
                           user.xpPoints >= 500 ? "Intermediate" : "Beginner";
-                        
+
                         const achievementIcon = 
                           user.xpPoints >= 3000 ? "workspace_premium" :
                           user.xpPoints >= 1500 ? "emoji_events" :
                           user.xpPoints >= 500 ? "military_tech" : "person";
-                        
+
                         return (
                           <div 
                             key={user.id} 
@@ -197,7 +210,7 @@ export default function Leaderboard() {
                     )}
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="department">
                   <div className="mb-4">
                     <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
@@ -214,7 +227,7 @@ export default function Leaderboard() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="overflow-hidden rounded-lg border border-neutrals-200">
                     <div className="bg-primary text-white grid grid-cols-12 gap-4 py-3 px-4">
                       <div className="col-span-1 text-center font-medium">Rank</div>
@@ -222,7 +235,7 @@ export default function Leaderboard() {
                       <div className="hidden md:block md:col-span-3 font-medium">Department</div>
                       <div className="col-span-4 md:col-span-3 text-right font-medium">XP Points</div>
                     </div>
-                    
+
                     {isLoading ? (
                       Array(10).fill(0).map((_, index) => (
                         <div key={index} className="grid grid-cols-12 gap-4 py-4 px-4 border-b border-neutrals-200">
@@ -246,11 +259,11 @@ export default function Leaderboard() {
                           index === 0 ? "text-secondary" :
                           index === 1 ? "text-neutrals-400" :
                           index === 2 ? "text-amber-700" : "";
-                        
+
                         // Mock department assignment based on user role
                         const userDepartment = user.role === "admin" ? "Administration" : 
                                              user.role === "instructor" ? "Training" : "Customer Service";
-                        
+
                         return (
                           <div 
                             key={user.id} 
@@ -313,7 +326,7 @@ export default function Leaderboard() {
                     )}
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="location">
                   <div className="mb-4">
                     <Select value={locationFilter} onValueChange={setLocationFilter}>
@@ -330,7 +343,7 @@ export default function Leaderboard() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="overflow-hidden rounded-lg border border-neutrals-200">
                     <div className="bg-primary text-white grid grid-cols-12 gap-4 py-3 px-4">
                       <div className="col-span-1 text-center font-medium">Rank</div>
@@ -338,7 +351,7 @@ export default function Leaderboard() {
                       <div className="hidden md:block md:col-span-3 font-medium">Location</div>
                       <div className="col-span-4 md:col-span-3 text-right font-medium">XP Points</div>
                     </div>
-                    
+
                     {isLoading ? (
                       Array(10).fill(0).map((_, index) => (
                         <div key={index} className="grid grid-cols-12 gap-4 py-4 px-4 border-b border-neutrals-200">
@@ -362,10 +375,10 @@ export default function Leaderboard() {
                           index === 0 ? "text-secondary" :
                           index === 1 ? "text-neutrals-400" :
                           index === 2 ? "text-amber-700" : "";
-                        
+
                         // Mock location assignment based on user id
                         const userLocation = ["Dammam", "Riyadh", "Jeddah", "Khobar"][user.id % 4];
-                        
+
                         return (
                           <div 
                             key={user.id} 
@@ -430,7 +443,7 @@ export default function Leaderboard() {
                 </TabsContent>
               </Tabs>
             </div>
-            
+
             {/* Leaderboard Insights */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="bg-white p-6 rounded-xl shadow-sm">
@@ -442,7 +455,7 @@ export default function Leaderboard() {
                     <h2 className="font-heading text-lg font-semibold">Your Rank</h2>
                   </div>
                 </div>
-                
+
                 {isLoading ? (
                   <Skeleton className="h-12 w-24" />
                 ) : leaderboard && currentUser ? (
@@ -469,7 +482,7 @@ export default function Leaderboard() {
                   <p className="text-neutrals-600">Not available</p>
                 )}
               </div>
-              
+
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 rounded-full bg-accent bg-opacity-20 flex items-center justify-center mr-3">
@@ -479,7 +492,7 @@ export default function Leaderboard() {
                     <h2 className="font-heading text-lg font-semibold">Points to Next Rank</h2>
                   </div>
                 </div>
-                
+
                 {isLoading ? (
                   <Skeleton className="h-12 w-24" />
                 ) : leaderboard && currentUser ? (
@@ -498,9 +511,9 @@ export default function Leaderboard() {
                         </>
                       );
                     }
-                    
+
                     const pointsNeeded = (leaderboard[userIndex - 1]?.xpPoints || 0) - (currentUser.xpPoints || 0) + 1;
-                    
+
                     return (
                       <>
                         <div className="flex items-baseline">
@@ -523,7 +536,7 @@ export default function Leaderboard() {
                   <p className="text-neutrals-600">Not available</p>
                 )}
               </div>
-              
+
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 rounded-full bg-secondary bg-opacity-20 flex items-center justify-center mr-3">
@@ -533,7 +546,7 @@ export default function Leaderboard() {
                     <h2 className="font-heading text-lg font-semibold">Top Achiever</h2>
                   </div>
                 </div>
-                
+
                 {isLoading ? (
                   <div className="flex items-center">
                     <Skeleton className="h-10 w-10 rounded-full mr-3" />
@@ -566,6 +579,7 @@ export default function Leaderboard() {
 
         <MobileNav />
       </div>
+    </div>
     </div>
   );
 }

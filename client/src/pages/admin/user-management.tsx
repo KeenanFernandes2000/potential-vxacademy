@@ -114,7 +114,7 @@ export default function UserManagement() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   // Add New User Form
   const addUserForm = useForm<NewUserFormValues>({
     resolver: zodResolver(newUserSchema),
@@ -128,7 +128,7 @@ export default function UserManagement() {
       courseIds: [],
     }
   });
-  
+
   // Bulk Add Users Form
   const bulkUserForm = useForm<BulkUserData>({
     resolver: zodResolver(bulkUserSchema),
@@ -139,28 +139,28 @@ export default function UserManagement() {
       courseIds: [],
     }
   });
-  
+
   // Setup field array for bulk user creation
   const { fields: userFields, append: appendUser, remove: removeUser } = useFieldArray({
     name: "users",
     control: bulkUserForm.control,
   });
-  
+
   // Function to add a new user field in bulk creation
   const addUserField = () => {
     appendUser({ name: "", email: "", username: "", password: "" });
   };
-  
+
   // Function to remove a user field
   const removeUserField = (index: number) => {
     removeUser(index);
   };
-  
+
   // Handle bulk user submission
   const onBulkAddSubmit = (data: BulkUserData) => {
     createBulkUsersMutation.mutate(data);
   };
-  
+
   // Handle single user submission
   const onAddUserSubmit = (data: NewUserFormValues) => {
     createUserMutation.mutate(data);
@@ -184,7 +184,7 @@ export default function UserManagement() {
   const { data: courses } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
   });
-  
+
   // Fetch available roles
   const { data: roles } = useQuery<typeof RoleType.$inferSelect[]>({
     queryKey: ["/api/roles"],
@@ -213,7 +213,7 @@ export default function UserManagement() {
       });
     },
   });
-  
+
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: NewUserFormValues) => {
@@ -245,7 +245,7 @@ export default function UserManagement() {
       });
     },
   });
-  
+
   // Create bulk users mutation
   const createBulkUsersMutation = useMutation({
     mutationFn: async (usersData: BulkUserData) => {
@@ -274,7 +274,7 @@ export default function UserManagement() {
       });
     },
   });
-  
+
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -303,7 +303,7 @@ export default function UserManagement() {
       deleteUserMutation.mutate(userId);
     }
   };
-  
+
   // Excel upload mutation
   const uploadExcelMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -334,7 +334,7 @@ export default function UserManagement() {
       console.error("Excel upload error:", error);
     }
   });
-  
+
   // Handle drag and drop events
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -388,7 +388,7 @@ export default function UserManagement() {
   // Handle file upload
   const handleFileUpload = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!selectedFile && !fileInputRef.current?.files?.length) {
       toast({
         title: "No file selected",
@@ -397,14 +397,14 @@ export default function UserManagement() {
       });
       return;
     }
-    
+
     // Get form data
     const formData = new FormData(e.currentTarget);
-    
+
     // Validate required fields
     const defaultRole = formData.get("defaultRole") as string;
     const defaultLanguage = formData.get("defaultLanguage") as string;
-    
+
     if (!defaultRole || !defaultLanguage) {
       toast({
         title: "Missing required fields",
@@ -413,7 +413,7 @@ export default function UserManagement() {
       });
       return;
     }
-    
+
     setIsUploading(true);
     uploadExcelMutation.mutate(formData);
   };
@@ -456,9 +456,9 @@ export default function UserManagement() {
           user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
           user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.username.toLowerCase().includes(searchQuery.toLowerCase());
-        
+
         const matchesRole = roleFilter === "all" || user.role === roleFilter;
-        
+
         return matchesSearch && matchesRole;
       })
     : [];
@@ -496,7 +496,7 @@ export default function UserManagement() {
           <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
               <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-4 md:mb-0">User Management</h1>
-              
+
               <div className="w-full md:w-auto flex flex-col md:flex-row gap-3">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -508,7 +508,7 @@ export default function UserManagement() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="flex-shrink-0">
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
                     <SelectTrigger className="w-full md:w-[180px]">
@@ -524,7 +524,7 @@ export default function UserManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <Button onClick={() => setIsAddDialogOpen(true)}>
                     <span className="material-icons mr-2">add</span>
@@ -541,7 +541,7 @@ export default function UserManagement() {
                 </div>
               </div>
             </div>
-            
+
             {isLoading ? (
               <div className="rounded-md border">
                 <div className="p-4">
@@ -648,7 +648,7 @@ export default function UserManagement() {
               Update the user details below. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -664,7 +664,7 @@ export default function UserManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -678,7 +678,7 @@ export default function UserManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="role"
@@ -715,7 +715,7 @@ export default function UserManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="language"
@@ -741,7 +741,7 @@ export default function UserManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
                 <Button type="submit" disabled={updateUserMutation.isPending}>
                   {updateUserMutation.isPending ? (
@@ -766,7 +766,7 @@ export default function UserManagement() {
               Create a new user account and assign courses. Fill in all required fields.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...addUserForm}>
             <form onSubmit={addUserForm.handleSubmit(onAddUserSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -783,7 +783,7 @@ export default function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={addUserForm.control}
                   name="email"
@@ -798,7 +798,7 @@ export default function UserManagement() {
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={addUserForm.control}
@@ -813,7 +813,7 @@ export default function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={addUserForm.control}
                   name="password"
@@ -832,7 +832,7 @@ export default function UserManagement() {
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={addUserForm.control}
@@ -865,7 +865,7 @@ export default function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={addUserForm.control}
                   name="language"
@@ -892,7 +892,7 @@ export default function UserManagement() {
                   )}
                 />
               </div>
-              
+
               {/* Course Assignment - only show if courses are available */}
               {courses && courses.length > 0 && (
                 <FormField
@@ -952,7 +952,7 @@ export default function UserManagement() {
                   )}
                 />
               )}
-              
+
               <DialogFooter>
                 <Button 
                   type="submit" 
@@ -973,7 +973,7 @@ export default function UserManagement() {
       </Dialog>
 
       {/* Bulk Add Users Dialog */}
-      <Dialog open={isBulkAddDialogOpen} onOpenChange={setIsBulkAddDialogOpen}>
+      <Dialog open={isBulkAddDialogOpen} onOpenChange={setIsBulkAddDialogOpen}>```python
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">Bulk Add Users</DialogTitle>
@@ -981,7 +981,7 @@ export default function UserManagement() {
               Add multiple users at once. Each user requires a name, email, and username.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...bulkUserForm}>
             <form onSubmit={bulkUserForm.handleSubmit(onBulkAddSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1011,7 +1011,7 @@ export default function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Default Language */}
                 <FormField
                   control={bulkUserForm.control}
@@ -1039,7 +1039,7 @@ export default function UserManagement() {
                   )}
                 />
               </div>
-              
+
               {/* Course Assignment - only show if courses are available */}
               {courses && courses.length > 0 && (
                 <FormField
@@ -1082,7 +1082,7 @@ export default function UserManagement() {
                   )}
                 />
               )}
-              
+
               {/* Users List */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -1097,7 +1097,7 @@ export default function UserManagement() {
                     Add Another User
                   </Button>
                 </div>
-                
+
                 {userFields.map((field, index) => (
                   <div key={field.id} className="border rounded-md p-4 relative">
                     <div className="absolute right-2 top-2">
@@ -1113,7 +1113,7 @@ export default function UserManagement() {
                         </Button>
                       )}
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Name */}
                       <FormField
@@ -1129,7 +1129,7 @@ export default function UserManagement() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {/* Email */}
                       <FormField
                         control={bulkUserForm.control}
@@ -1144,7 +1144,7 @@ export default function UserManagement() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {/* Username */}
                       <FormField
                         control={bulkUserForm.control}
@@ -1159,7 +1159,7 @@ export default function UserManagement() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {/* Password */}
                       <FormField
                         control={bulkUserForm.control}
@@ -1185,7 +1185,7 @@ export default function UserManagement() {
                   </div>
                 ))}
               </div>
-              
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsBulkAddDialogOpen(false)}>
                   Cancel
@@ -1201,7 +1201,7 @@ export default function UserManagement() {
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Excel Upload Dialog */}
       <Dialog open={isExcelUploadDialogOpen} onOpenChange={setIsExcelUploadDialogOpen}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -1212,7 +1212,7 @@ export default function UserManagement() {
               Email addresses are used for login. Passwords are optional - if not provided, they will be generated automatically.
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={handleFileUpload} className="space-y-4">
             <div className="grid gap-4">
               <div className="flex flex-col space-y-1.5">
@@ -1237,7 +1237,7 @@ export default function UserManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="defaultLanguage">Default Language</Label>
                 <Select name="defaultLanguage" defaultValue="en" required>
@@ -1250,7 +1250,7 @@ export default function UserManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {courses && courses.length > 0 && (
                 <div className="flex flex-col space-y-1.5">
                   <Label>Assign Courses (Optional)</Label>
@@ -1266,7 +1266,7 @@ export default function UserManagement() {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="excelFile">Excel File</Label>
                 <div 
@@ -1319,7 +1319,7 @@ export default function UserManagement() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="text-xs text-muted-foreground">
                 <p className="font-medium mb-1">Excel file should have these columns:</p>
                 <ul className="list-disc list-inside space-y-1">
@@ -1329,7 +1329,7 @@ export default function UserManagement() {
                 </ul>
               </div>
             </div>
-            
+
             <DialogFooter>
               <Button 
                 type="button" 

@@ -250,7 +250,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
           {children}
         </main>
       </div>
