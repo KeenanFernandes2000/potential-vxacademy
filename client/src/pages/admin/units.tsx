@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation, Link } from "wouter";
-import { Course, Unit, InsertUnit } from "@shared/schema";
+import { Course, Unit, InsertUnit, TrainingArea, Module } from "@shared/schema";
 
 // UI Components
 import {
@@ -52,7 +52,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Pencil, Plus, Trash, FileText, School, ChevronRight } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash, FileText, School, ChevronRight, Search, Filter, Eye, EyeOff } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
 
 // Form validation schema
@@ -66,6 +66,7 @@ const unitFormSchema = z.object({
   description: z.string().optional(),
   order: z.coerce.number().default(1),
   duration: z.coerce.number().min(1).default(30),
+  showDuration: z.boolean().default(true),
   xpPoints: z.coerce.number().min(0).default(100),
 });
 
@@ -75,6 +76,13 @@ export default function UnitsManagement() {
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<number | null>(null);
+  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  const [selectedFilterCourseId, setSelectedFilterCourseId] = useState<number | null>(null);
+  
   const { toast } = useToast();
 
   // Get courseId from URL if present
@@ -86,25 +94,74 @@ export default function UnitsManagement() {
     }
   }, []);
 
-  // Fetch courses for dropdown
-  const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
-    queryKey: ["/api/courses"],
+  // Fetch training areas
+  const { data: trainingAreas } = useQuery<TrainingArea[]>({
+    queryKey: ["/api/training-areas"],
+  });
+
+  // Fetch modules (filtered by training area if selected)
+  const { data: modules } = useQuery<Module[]>({
+    queryKey: ["/api/modules", selectedTrainingAreaId],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/courses");
+      const url = selectedTrainingAreaId 
+        ? `/api/modules?trainingAreaId=${selectedTrainingAreaId}`
+        : "/api/modules";
+      const res = await apiRequest("GET", url);
       return await res.json();
     },
   });
 
-  // Fetch units for the selected course
-  const { data: units, isLoading: unitsLoading } = useQuery<Unit[]>({
-    queryKey: ["/api/units", selectedCourseId],
+  // Fetch courses for dropdown and filtering
+  const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
+    queryKey: ["/api/courses", selectedModuleId],
     queryFn: async () => {
-      if (!selectedCourseId) return [];
-      const res = await apiRequest("GET", `/api/units?courseId=${selectedCourseId}`);
+      const url = selectedModuleId 
+        ? `/api/courses?moduleId=${selectedModuleId}`
+        : "/api/courses";
+      const res = await apiRequest("GET", url);
       return await res.json();
     },
-    enabled: !!selectedCourseId,
   });
+
+  // Fetch all units
+  const { data: allUnits, isLoading: unitsLoading } = useQuery<Unit[]>({
+    queryKey: ["/api/units"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/units");
+      return await res.json();
+    },
+  });
+
+  // Filter units based on search and filters
+  const filteredUnits = allUnits?.filter(unit => {
+    const course = courses?.find(c => c.id === unit.courseId);
+    const module = modules?.find(m => m.id === course?.moduleId);
+    const trainingArea = trainingAreas?.find(ta => ta.id === course?.trainingAreaId);
+
+    // Search filter
+    const matchesSearch = !searchTerm || 
+      unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      unit.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Training area filter
+    const matchesTrainingArea = !selectedTrainingAreaId || 
+      trainingArea?.id === selectedTrainingAreaId;
+
+    // Module filter
+    const matchesModule = !selectedModuleId || 
+      module?.id === selectedModuleId;
+
+    // Course filter
+    const matchesCourse = !selectedFilterCourseId || 
+      course?.id === selectedFilterCourseId;
+
+    return matchesSearch && matchesTrainingArea && matchesModule && matchesCourse;
+  }) || [];
+
+  // Units for the selected course (for form dropdown)
+  const units = selectedCourseId 
+    ? allUnits?.filter(unit => unit.courseId === selectedCourseId)
+    : [];
 
   // Form setup
   const form = useForm<InsertUnit>({
@@ -320,7 +377,7 @@ export default function UnitsManagement() {
                 <div className="flex justify-center p-12">
                   <Loader2 className="h-8 w-8 animate-spin text-abu-primary" />
                 </div>
-              ) : units && units.length > 0 ? (
+              ) : filteredUnits && filteredUnits.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
