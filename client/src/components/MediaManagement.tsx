@@ -88,10 +88,11 @@ export default function MediaManagement() {
     mutationFn: async (formData: FormData) => {
       return apiRequest("POST", "/api/media/upload", formData, null, null, true);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
+      const uploadedCount = Array.isArray(response) ? response.length : 1;
       toast({
         title: "Upload Successful",
-        description: `Successfully uploaded ${response.files?.length || 1} file(s)`,
+        description: `Successfully uploaded ${uploadedCount} file(s)`,
         duration: 3000,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/media"] });
@@ -134,10 +135,11 @@ export default function MediaManagement() {
     mutationFn: async (ids: number[]) => {
       return apiRequest("POST", "/api/media/bulk-delete", { ids });
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
+      const deletedCount = response.deletedCount || selectedFiles.size;
       toast({
         title: "Files Deleted",
-        description: `Successfully deleted ${response.deletedCount} file(s)`,
+        description: `Successfully deleted ${deletedCount} file(s)`,
         duration: 3000,
       });
       setSelectedFiles(new Set());
