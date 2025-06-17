@@ -60,8 +60,8 @@ const unitFormSchema = z.object({
   name: z.string().min(2, {
     message: "Unit name must be at least 2 characters.",
   }),
-  courseId: z.coerce.number({
-    required_error: "Please select a course.",
+  courseIds: z.array(z.number()).min(1, {
+    message: "Please select at least one course.",
   }),
   description: z.string().optional(),
   order: z.coerce.number().default(1),
@@ -134,44 +134,27 @@ export default function UnitsManagement() {
 
   // Filter units based on search and filters
   const filteredUnits = allUnits?.filter(unit => {
-    const course = courses?.find(c => c.id === unit.courseId);
-    const module = modules?.find(m => m.id === course?.moduleId);
-    const trainingArea = trainingAreas?.find(ta => ta.id === course?.trainingAreaId);
-
     // Search filter
     const matchesSearch = !searchTerm || 
       unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       unit.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Training area filter
-    const matchesTrainingArea = !selectedTrainingAreaId || 
-      trainingArea?.id === selectedTrainingAreaId;
-
-    // Module filter
-    const matchesModule = !selectedModuleId || 
-      module?.id === selectedModuleId;
-
-    // Course filter
-    const matchesCourse = !selectedFilterCourseId || 
-      course?.id === selectedFilterCourseId;
-
-    return matchesSearch && matchesTrainingArea && matchesModule && matchesCourse;
+    return matchesSearch;
   }) || [];
 
   // Units for the selected course (for form dropdown)
-  const units = selectedCourseId 
-    ? allUnits?.filter(unit => unit.courseId === selectedCourseId)
-    : [];
+  const units = allUnits || [];
 
   // Form setup
-  const form = useForm<InsertUnit>({
+  const form = useForm({
     resolver: zodResolver(unitFormSchema),
     defaultValues: {
       name: "",
       description: "",
-      courseId: selectedCourseId || undefined,
+      courseIds: [],
       order: 1,
       duration: 30,
+      showDuration: true,
       xpPoints: 100,
     },
   });
@@ -179,28 +162,44 @@ export default function UnitsManagement() {
   // Reset form when editing a unit
   useEffect(() => {
     if (editingUnit) {
-      form.reset({
-        name: editingUnit.name,
-        courseId: editingUnit.courseId,
-        description: editingUnit.description || "",
-        order: editingUnit.order,
-        duration: editingUnit.duration,
-        xpPoints: editingUnit.xpPoints,
-      });
+      // Get courses for this unit
+      const getCoursesForUnit = async () => {
+        try {
+          const res = await apiRequest("GET", `/api/units/${editingUnit.id}/courses`);
+          const unitCourses = await res.json();
+          
+          form.reset({
+            name: editingUnit.name,
+            courseIds: unitCourses.map((c: any) => c.id),
+            description: editingUnit.description || "",
+            order: editingUnit.order,
+            duration: editingUnit.duration,
+            showDuration: editingUnit.showDuration,
+            xpPoints: editingUnit.xpPoints,
+          });
+        } catch (error) {
+          console.error("Failed to fetch courses for unit:", error);
+          form.reset({
+            name: editingUnit.name,
+            courseIds: [],
+            description: editingUnit.description || "",
+            order: editingUnit.order,
+            duration: editingUnit.duration,
+            showDuration: editingUnit.showDuration,
+            xpPoints: editingUnit.xpPoints,
+          });
+        }
+      };
+      
+      getCoursesForUnit();
     }
   }, [editingUnit, form]);
 
-  // Update form when selected course changes
-  useEffect(() => {
-    if (selectedCourseId) {
-      form.setValue('courseId', selectedCourseId);
-    }
-  }, [selectedCourseId, form]);
-
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: async (data: InsertUnit) => {
-      const res = await apiRequest("POST", "/api/units", data);
+    mutationFn: async (data: any) => {
+      const { courseIds, ...unitData } = data;
+      const res = await apiRequest("POST", "/api/units", { ...unitData, courseIds });
       return await res.json();
     },
     onSuccess: () => {
@@ -211,12 +210,14 @@ export default function UnitsManagement() {
       form.reset({
         name: "",
         description: "",
+        courseIds: [],
         order: 1,
         duration: 30,
+        showDuration: true,
         xpPoints: 100,
       });
       setIsAddModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedCourseId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/units"] });
     },
     onError: (error) => {
       toast({
@@ -229,8 +230,9 @@ export default function UnitsManagement() {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async (data: { id: number; unit: Partial<Unit> }) => {
-      const res = await apiRequest("PATCH", `/api/units/${data.id}`, data.unit);
+    mutationFn: async (data: { id: number; unit: any }) => {
+      const { courseIds, ...unitData } = data.unit;
+      const res = await apiRequest("PATCH", `/api/units/${data.id}`, { ...unitData, courseIds });
       return await res.json();
     },
     onSuccess: () => {
@@ -240,7 +242,7 @@ export default function UnitsManagement() {
       });
       setEditingUnit(null);
       setIsEditModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedCourseId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/units"] });
     },
     onError: (error) => {
       toast({

@@ -531,6 +531,63 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
+  // Course-Unit associations
+  async addUnitToCourse(courseId: number, unitId: number, order: number): Promise<CourseUnit> {
+    const [courseUnit] = await db
+      .insert(courseUnits)
+      .values({ courseId, unitId, order })
+      .returning();
+    return courseUnit;
+  }
+
+  async removeUnitFromCourse(courseId: number, unitId: number): Promise<boolean> {
+    const result = await db
+      .delete(courseUnits)
+      .where(and(eq(courseUnits.courseId, courseId), eq(courseUnits.unitId, unitId)));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getUnitsForCourse(courseId: number): Promise<Unit[]> {
+    const result = await db
+      .select({
+        id: units.id,
+        name: units.name,
+        description: units.description,
+        internalNote: units.internalNote,
+        order: courseUnits.order,
+        duration: units.duration,
+        showDuration: units.showDuration,
+        xpPoints: units.xpPoints,
+        createdAt: units.createdAt,
+      })
+      .from(courseUnits)
+      .innerJoin(units, eq(courseUnits.unitId, units.id))
+      .where(eq(courseUnits.courseId, courseId))
+      .orderBy(asc(courseUnits.order));
+    return result;
+  }
+
+  async getCoursesForUnit(unitId: number): Promise<Course[]> {
+    const result = await db
+      .select({
+        id: courses.id,
+        trainingAreaId: courses.trainingAreaId,
+        moduleId: courses.moduleId,
+        name: courses.name,
+        description: courses.description,
+        imageUrl: courses.imageUrl,
+        difficulty: courses.difficulty,
+        duration: courses.duration,
+        xpPoints: courses.xpPoints,
+        isActive: courses.isActive,
+        createdAt: courses.createdAt,
+      })
+      .from(courseUnits)
+      .innerJoin(courses, eq(courseUnits.courseId, courses.id))
+      .where(eq(courseUnits.unitId, unitId));
+    return result;
+  }
+
   // Learning Blocks
   async getLearningBlocks(unitId: number): Promise<LearningBlock[]> {
     try {
