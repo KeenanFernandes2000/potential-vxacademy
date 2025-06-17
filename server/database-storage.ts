@@ -576,10 +576,12 @@ export class DatabaseStorage implements IStorage {
         name: courses.name,
         description: courses.description,
         imageUrl: courses.imageUrl,
-        difficulty: courses.difficulty,
+        internalNote: courses.internalNote,
+        courseType: courses.courseType,
         duration: courses.duration,
-        xpPoints: courses.xpPoints,
-        isActive: courses.isActive,
+        showDuration: courses.showDuration,
+        level: courses.level,
+        showLevel: courses.showLevel,
         createdAt: courses.createdAt,
       })
       .from(courseUnits)

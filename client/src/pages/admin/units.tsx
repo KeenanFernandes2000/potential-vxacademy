@@ -518,9 +518,6 @@ export default function UnitsManagement() {
                 </TableHeader>
                 <TableBody>
                   {filteredUnits.map((unit) => {
-                    const course = courses?.find(c => c.id === unit.courseId);
-                    const module = modules?.find(m => m.id === course?.moduleId);
-                    const trainingArea = trainingAreas?.find(ta => ta.id === course?.trainingAreaId);
                     return (
                       <TableRow key={unit.id}>
                         <TableCell>
@@ -531,11 +528,11 @@ export default function UnitsManagement() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium">{course?.name || 'Unknown Course'}</div>
-                          <div className="text-sm text-muted-foreground">{module?.name || 'Unknown Module'}</div>
+                          <div className="font-medium">Multiple Courses</div>
+                          <div className="text-sm text-muted-foreground">Can be assigned to multiple courses</div>
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium">{trainingArea?.name || 'Unknown Area'}</div>
+                          <div className="font-medium">Various</div>
                         </TableCell>
                         <TableCell>{unit.order}</TableCell>
                         <TableCell>
@@ -652,34 +649,46 @@ export default function UnitsManagement() {
 
               <FormField
                 control={form.control}
-                name="courseId"
+                name="courseIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Course</FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      defaultValue={selectedCourseId?.toString()}
-                      value={selectedCourseId?.toString()}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a course" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
+                    <FormLabel>Courses</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
                         {coursesLoading ? (
                           <div className="flex justify-center p-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
                           </div>
                         ) : (
-                          courses?.map((course) => (
-                            <SelectItem key={course.id} value={course.id.toString()}>
-                              {course.name}
-                            </SelectItem>
-                          ))
+                          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                            {courses?.map((course) => (
+                              <div key={course.id} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`course-${course.id}`}
+                                  checked={field.value?.includes(course.id) || false}
+                                  onChange={(e) => {
+                                    const currentValue = field.value || [];
+                                    if (e.target.checked) {
+                                      field.onChange([...currentValue, course.id]);
+                                    } else {
+                                      field.onChange(currentValue.filter((id: number) => id !== course.id));
+                                    }
+                                  }}
+                                  className="rounded border-gray-300"
+                                />
+                                <label
+                                  htmlFor={`course-${course.id}`}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  {course.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
                         )}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -795,34 +804,46 @@ export default function UnitsManagement() {
 
               <FormField
                 control={form.control}
-                name="courseId"
+                name="courseIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Course</FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      defaultValue={field.value?.toString()}
-                      value={field.value?.toString()}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a course" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
+                    <FormLabel>Courses</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
                         {coursesLoading ? (
                           <div className="flex justify-center p-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
                           </div>
                         ) : (
-                          courses?.map((course) => (
-                            <SelectItem key={course.id} value={course.id.toString()}>
-                              {course.name}
-                            </SelectItem>
-                          ))
+                          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                            {courses?.map((course) => (
+                              <div key={course.id} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`edit-course-${course.id}`}
+                                  checked={field.value?.includes(course.id) || false}
+                                  onChange={(e) => {
+                                    const currentValue = field.value || [];
+                                    if (e.target.checked) {
+                                      field.onChange([...currentValue, course.id]);
+                                    } else {
+                                      field.onChange(currentValue.filter((id: number) => id !== course.id));
+                                    }
+                                  }}
+                                  className="rounded border-gray-300"
+                                />
+                                <label
+                                  htmlFor={`edit-course-${course.id}`}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  {course.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
                         )}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -128,7 +128,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/units", async (req, res) => {
     try {
-      const unit = await storage.createUnit(req.body);
+      const { courseIds, ...unitData } = req.body;
+      
+      // Create the unit first
+      const unit = await storage.createUnit(unitData);
+      
+      // Then create course-unit associations if courseIds are provided
+      if (courseIds && Array.isArray(courseIds)) {
+        for (const courseId of courseIds) {
+          await storage.addUnitToCourse(courseId, unit.id, unitData.order || 1);
+        }
+      }
+      
       res.status(201).json(unit);
     } catch (error) {
       console.error("Error creating unit:", error);
@@ -139,13 +150,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/units/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const unit = await storage.updateUnit(id, req.body);
+      const { courseIds, ...unitData } = req.body;
+      
+      // Update the unit data
+      const unit = await storage.updateUnit(id, unitData);
       if (!unit) {
         return res.status(404).json({ message: "Unit not found" });
       }
+      
+      // Update course associations if courseIds are provided
+      if (courseIds && Array.isArray(courseIds)) {
+        // Get current courses for this unit
+        const currentCourses = await storage.getCoursesForUnit(id);
+        const currentCourseIds = currentCourses.map(c => c.id);
+        
+        // Remove associations that are no longer needed
+        for (const courseId of currentCourseIds) {
+          if (!courseIds.includes(courseId)) {
+            await storage.removeUnitFromCourse(courseId, id);
+          }
+        }
+        
+        // Add new associations
+        for (const courseId of courseIds) {
+          if (!currentCourseIds.includes(courseId)) {
+            await storage.addUnitToCourse(courseId, id, unitData.order || 1);
+          }
+        }
+      }
+      
       res.json(unit);
     } catch (error) {
       res.status(500).json({ message: "Error updating unit" });
+    }
+  });
+
+  app.get("/api/units/:id/courses", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const courses = await storage.getCoursesForUnit(id);
+      res.json(courses);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching courses for unit" });
     }
   });
 
