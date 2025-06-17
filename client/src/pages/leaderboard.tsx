@@ -580,5 +580,6 @@ export default function Leaderboard() {
         <MobileNav />
       </div>
     </div>
+    </div>
   );
 }
