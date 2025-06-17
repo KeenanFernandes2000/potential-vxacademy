@@ -34,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Loader2, Pencil, Trash } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
 
@@ -232,17 +233,13 @@ export default function TrainingAreaManagement() {
                     control={form.control}
                     name="imageUrl"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image URL</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="https://example.com/image.jpg"
-                            {...field}
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      <ImageUpload
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        label="Training Area Image"
+                        placeholder="Image URL (will be set automatically after upload)"
+                        disabled={isSubmitting}
+                      />
                     )}
                   />
 
