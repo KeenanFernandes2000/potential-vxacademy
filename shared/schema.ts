@@ -138,9 +138,7 @@ export const learningBlocks = pgTable("learning_blocks", {
   videoUrl: text("video_url"), // For videos
   imageUrl: text("image_url"), // For image content
   interactiveData: json("interactive_data"), // For simulations and interactive content
-  // Note: scormPackageId is defined in the schema but doesn't exist in the database
-  // We'll add it when we migrate the database
-  // scormPackageId: integer("scorm_package_id"), // Reference to SCORM package
+  scormPackageId: integer("scorm_package_id"), // Reference to SCORM package
   order: integer("order").notNull(),
   xpPoints: integer("xp_points").notNull().default(10),
   createdAt: timestamp("created_at").defaultNow(),
@@ -176,6 +174,8 @@ export const assessments = pgTable("assessments", {
 export const insertAssessmentSchema = createInsertSchema(assessments).omit({
   id: true,
   createdAt: true,
+}).extend({
+  assessmentFor: z.enum(["unit", "course"]).optional(),
 });
 
 // Assessment Questions
