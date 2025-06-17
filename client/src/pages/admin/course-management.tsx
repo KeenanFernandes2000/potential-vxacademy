@@ -169,13 +169,17 @@ export default function CourseManagement() {
       });
       setEditingCourse(null);
       form.reset({
+        trainingAreaId: undefined,
+        moduleId: undefined,
         name: "",
         description: "",
         imageUrl: "",
+        internalNote: "",
+        courseType: "standard",
         duration: 0,
         level: "beginner",
-        moduleId: undefined,
       });
+      setSelectedTrainingAreaId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
     },
     onError: (error: Error) => {
@@ -266,20 +270,49 @@ export default function CourseManagement() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {/* 1. Training Area */}
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="trainingAreaId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Course Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g. Cultural Heritage of Abu Dhabi" {...field} />
-                        </FormControl>
+                        <FormLabel>Training Area</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(parseInt(value));
+                            setSelectedTrainingAreaId(parseInt(value));
+                            form.setValue("moduleId", undefined);
+                          }}
+                          value={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a training area" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {areasLoading ? (
+                              <div className="flex justify-center p-2">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              </div>
+                            ) : (
+                              trainingAreas?.map((area) => (
+                                <SelectItem
+                                  key={area.id}
+                                  value={area.id.toString()}
+                                >
+                                  {area.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
+                  {/* 2. Module */}
                   <FormField
                     control={form.control}
                     name="moduleId"
@@ -288,12 +321,12 @@ export default function CourseManagement() {
                         <FormLabel>Module</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value?.toString()}
                           value={field.value?.toString()}
+                          disabled={!selectedTrainingAreaId}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a module" />
+                              <SelectValue placeholder={selectedTrainingAreaId ? "Select a module" : "Select training area first"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -302,7 +335,8 @@ export default function CourseManagement() {
                                 <Loader2 className="h-5 w-5 animate-spin" />
                               </div>
                             ) : (
-                              modules?.map((module) => (
+                              modules?.filter(module => module.trainingAreaId === selectedTrainingAreaId)
+                                .map((module) => (
                                 <SelectItem
                                   key={module.id}
                                   value={module.id.toString()}
@@ -318,12 +352,28 @@ export default function CourseManagement() {
                     )}
                   />
 
+                  {/* 3. Course Name */}
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Course Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Cultural Heritage of Abu Dhabi" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 4. Course Description */}
                   <FormField
                     control={form.control}
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>Course Description</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Course description..."
@@ -336,6 +386,7 @@ export default function CourseManagement() {
                     )}
                   />
 
+                  {/* 5. Image URL */}
                   <FormField
                     control={form.control}
                     name="imageUrl"
@@ -354,20 +405,94 @@ export default function CourseManagement() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="duration"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Duration (hours)</FormLabel>
+                  {/* 6. Internal Note (admin-only) */}
+                  <FormField
+                    control={form.control}
+                    name="internalNote"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Internal Note (Admin Only)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Internal notes for administrators..."
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 7. Course Type */}
+                  <FormField
+                    control={form.control}
+                    name="courseType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Course Type</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <Input type="number" min="0" {...field} />
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select course type" />
+                            </SelectTrigger>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          <SelectContent>
+                            <SelectItem value="standard">Standard</SelectItem>
+                            <SelectItem value="certification">Certification</SelectItem>
+                            <SelectItem value="mandatory">Mandatory</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 8. Duration (minutes) */}
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duration (minutes)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            placeholder="e.g. 60"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 9. Difficulty Level */}
+                  <FormField
+                    control={form.control}
+                    name="level"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Difficulty Level</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select difficulty level" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
 
                     <FormField
                       control={form.control}

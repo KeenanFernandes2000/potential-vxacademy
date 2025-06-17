@@ -108,9 +108,6 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
   createdAt: true,
 });
 
-export type InsertCourse = z.infer<typeof insertCourseSchema>;
-export type Course = typeof courses.$inferSelect;
-
 // Units
 export const units = pgTable("units", {
   id: serial("id").primaryKey(),
@@ -128,9 +125,6 @@ export const insertUnitSchema = createInsertSchema(units).omit({
   id: true,
   createdAt: true,
 });
-
-export type InsertUnit = z.infer<typeof insertUnitSchema>;
-export type Unit = typeof units.$inferSelect;
 
 // Learning Blocks
 export const learningBlocks = pgTable("learning_blocks", {
@@ -458,6 +452,10 @@ export const modulesRelations = relations(modules, ({ one, many }) => ({
 }));
 
 export const coursesRelations = relations(courses, ({ one, many }) => ({
+  trainingArea: one(trainingAreas, {
+    fields: [courses.trainingAreaId],
+    references: [trainingAreas.id],
+  }),
   module: one(modules, {
     fields: [courses.moduleId],
     references: [modules.id],
@@ -466,6 +464,7 @@ export const coursesRelations = relations(courses, ({ one, many }) => ({
   userProgress: many(userProgress),
   certificates: many(certificates),
   roleMandatoryCourses: many(roleMandatoryCourses),
+  assessments: many(assessments),
 }));
 
 export const unitsRelations = relations(units, ({ one, many }) => ({
@@ -489,6 +488,10 @@ export const assessmentsRelations = relations(assessments, ({ one, many }) => ({
   unit: one(units, {
     fields: [assessments.unitId],
     references: [units.id],
+  }),
+  course: one(courses, {
+    fields: [assessments.courseId],
+    references: [courses.id],
   }),
   questions: many(questions),
   attempts: many(assessmentAttempts),
