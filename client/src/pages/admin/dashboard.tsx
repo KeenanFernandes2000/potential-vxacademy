@@ -69,7 +69,7 @@ export default function AdminDashboard() {
 
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-12 w-12 animate-spin text-teal-500" />
+            <Loader2 className="h-12 w-12 animate-spin text-teal-600" />
           </div>
         ) : (
           <>
@@ -79,28 +79,28 @@ export default function AdminDashboard() {
                 title="Total Users"
                 value={stats?.users.total || 0}
                 description="Registered platform users"
-                icon={<Users className="h-8 w-8 text-teal-500" />}
+                icon={<Users className="h-6 w-6 text-white" />}
                 gradient="from-teal-500 to-cyan-500"
               />
               <SummaryCard
                 title="Total Courses"
                 value={stats?.courses.total || 0}
                 description="Available training courses"
-                icon={<BookOpen className="h-8 w-8 text-blue-500" />}
+                icon={<BookOpen className="h-6 w-6 text-white" />}
                 gradient="from-blue-500 to-indigo-500"
               />
               <SummaryCard
                 title="Completions"
                 value={stats?.progress.totalCompletions || 0}
                 description="Course completions"
-                icon={<GraduationCap className="h-8 w-8 text-green-500" />}
+                icon={<GraduationCap className="h-6 w-6 text-white" />}
                 gradient="from-green-500 to-emerald-500"
               />
               <SummaryCard
                 title="Badges Awarded"
                 value={stats?.badges.totalAwarded || 0}
                 description="Achievement badges earned"
-                icon={<Award className="h-8 w-8 text-orange-500" />}
+                icon={<Award className="h-6 w-6 text-white" />}
                 gradient="from-orange-500 to-red-500"
               />
             </div>

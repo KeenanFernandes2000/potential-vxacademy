@@ -315,7 +315,7 @@ export default function RolesManagement() {
               Create and manage roles in the system
             </p>
           </div>
-          <Button onClick={() => openDialog()}>
+          <Button onClick={() => openDialog()} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
             Create New Role
           </Button>
         </div>
@@ -330,6 +330,7 @@ export default function RolesManagement() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteRole(role.id)}
+                    className="hover:bg-red-50 hover:text-red-600"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -355,7 +356,7 @@ export default function RolesManagement() {
                   <Button 
                     variant="default" 
                     size="sm" 
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
                     onClick={() => openMandatoryCoursesDialog(role)}
                   >
                     <Book className="h-4 w-4 mr-2" />
@@ -366,7 +367,7 @@ export default function RolesManagement() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="w-full"
+                      className="w-full border-teal-600 text-teal-600 hover:bg-teal-50"
                       onClick={() => openDialog(role)}
                     >
                       Edit Role
@@ -437,6 +438,7 @@ export default function RolesManagement() {
                 <Button 
                   type="submit"
                   disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
                 >
                   {(createRoleMutation.isPending || updateRoleMutation.isPending) && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -477,7 +479,7 @@ export default function RolesManagement() {
                               className="flex items-center justify-between p-3 bg-secondary/10 rounded-md"
                             >
                               <div className="flex items-center">
-                                <CheckCircle className="h-5 w-5 text-primary mr-2" />
+                                <CheckCircle className="h-5 w-5 text-teal-600 mr-2" />
                                 <div>
                                   <p className="font-medium">{mandatoryCourse.name || `Course #${mandatoryCourse.courseId}`}</p>
                                   <p className="text-sm text-muted-foreground">{mandatoryCourse.description || 'No description available'}</p>
@@ -494,9 +496,10 @@ export default function RolesManagement() {
                                 size="sm"
                                 onClick={() => handleRemoveMandatoryCourse(mandatoryCourse.courseId)}
                                 disabled={removeMandatoryCourseMutation.isPending}
+                                className="hover:bg-red-50 hover:text-red-600"
                               >
                                 {removeMandatoryCourseMutation.isPending && mandatoryCourse.courseId === removeMandatoryCourseMutation.variables?.courseId && (
-                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2 text-teal-600" />
                                 )}
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -539,7 +542,7 @@ export default function RolesManagement() {
                               className="flex items-center justify-between p-3 bg-accent/5 rounded-md"
                             >
                               <div className="flex items-center">
-                                <Book className="h-5 w-5 text-muted-foreground mr-2" />
+                                <Book className="h-5 w-5 text-teal-600 mr-2" />
                                 <div>
                                   <p className="font-medium">{course.name}</p>
                                   <p className="text-sm text-muted-foreground">
@@ -557,11 +560,12 @@ export default function RolesManagement() {
                                 size="sm"
                                 onClick={() => handleAddMandatoryCourse(course.id)}
                                 disabled={addMandatoryCourseMutation.isPending}
+                                className="hover:bg-teal-50 hover:text-teal-600"
                               >
                                 {addMandatoryCourseMutation.isPending && course.id === addMandatoryCourseMutation.variables?.courseId && (
-                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2 text-teal-600" />
                                 )}
-                                <PlusCircle className="h-4 w-4" />
+                                <PlusCircle className="h-4 w-4 text-teal-600" />
                               </Button>
                             </div>
                           ))}
