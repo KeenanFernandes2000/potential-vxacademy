@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -42,19 +43,6 @@ export default function Leaderboard() {
   const locations = ["all", "abu-dhabi-island", "corniche", "yas-island", "saadiyat-island", "al-reem"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-              Leaderboard
-            </h1>
-            <p className="text-white/80 text-lg max-w-2xl mx-auto">
-              See how you rank among your peers and celebrate top performers in
-              the VX Academy community.
-            </p>
-          </div>
-
     <div className="h-screen flex flex-col md:flex-row">
       {/* Mobile sidebar (shown when toggled) */}
       {sidebarOpen && (
@@ -579,7 +567,6 @@ export default function Leaderboard() {
 
         <MobileNav />
       </div>
-    </div>
     </div>
   );
 }
