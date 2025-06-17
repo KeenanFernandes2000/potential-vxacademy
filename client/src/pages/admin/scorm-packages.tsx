@@ -140,7 +140,6 @@ export default function ScormPackagesPage() {
           <Button
             onClick={() => refetch()}
             variant="outline"
-            className="border-slate-300 text-slate-600 hover:bg-slate-50"
           >
             <RefreshCcw className="h-4 w-4 mr-2" />
             Refresh

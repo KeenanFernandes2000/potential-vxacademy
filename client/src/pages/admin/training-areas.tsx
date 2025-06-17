@@ -80,7 +80,11 @@ export default function TrainingAreaManagement() {
         title: "Training area created",
         description: "The training area has been created successfully.",
       });
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        imageUrl: "",
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/training-areas"] });
     },
     onError: (error: Error) => {
@@ -104,7 +108,11 @@ export default function TrainingAreaManagement() {
         description: "The training area has been updated successfully.",
       });
       setEditingArea(null);
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        imageUrl: "",
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/training-areas"] });
     },
     onError: (error: Error) => {
@@ -158,7 +166,11 @@ export default function TrainingAreaManagement() {
 
   function handleCancel() {
     setEditingArea(null);
-    form.reset();
+    form.reset({
+      name: "",
+      description: "",
+      imageUrl: "",
+    });
   }
 
   const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;

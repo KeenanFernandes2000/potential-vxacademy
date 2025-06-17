@@ -100,7 +100,12 @@ export default function ModuleManagement() {
         title: "Module created",
         description: "The module has been created successfully.",
       });
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        imageUrl: "",
+        trainingAreaId: undefined,
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
     },
     onError: (error: Error) => {
@@ -179,7 +184,12 @@ export default function ModuleManagement() {
 
   function handleCancel() {
     setEditingModule(null);
-    form.reset();
+    form.reset({
+      name: "",
+      description: "",
+      imageUrl: "",
+      trainingAreaId: undefined,
+    });
   }
 
   const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;

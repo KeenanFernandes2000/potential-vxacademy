@@ -190,7 +190,14 @@ export default function CourseManagement() {
 
   function handleCancel() {
     setEditingCourse(null);
-    form.reset();
+    form.reset({
+      name: "",
+      description: "",
+      imageUrl: "",
+      duration: 0,
+      level: "beginner",
+      moduleId: undefined,
+    });
   }
 
   const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;
