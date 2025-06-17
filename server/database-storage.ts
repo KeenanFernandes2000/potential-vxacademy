@@ -11,7 +11,7 @@ import { users, type User, type InsertUser, modules, type Module, type InsertMod
   mediaFiles, type MediaFile, type InsertMediaFile
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, desc, and } from "drizzle-orm";
+import { eq, asc, desc, and, inArray } from "drizzle-orm";
 import session from "express-session";
 import { IStorage } from "./storage";
 import connectPg from "connect-pg-simple";
@@ -811,11 +811,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMultipleMediaFiles(ids: number[]): Promise<number> {
     if (ids.length === 0) return 0;
-    const result = await db.delete(mediaFiles).where(
-      ids.length === 1 ? eq(mediaFiles.id, ids[0]) : 
-      // Use OR condition for multiple IDs
-      eq(mediaFiles.id, ids[0]) // Will need to implement proper IN clause
-    );
+    const result = await db.delete(mediaFiles).where(inArray(mediaFiles.id, ids));
     return result.rowCount ?? 0;
   }
 }

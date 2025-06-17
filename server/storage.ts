@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification } from "@shared/schema";
+import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification, mediaFiles, type MediaFile, type InsertMediaFile } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -132,6 +132,13 @@ export interface IStorage {
   markNotificationAsRead(id: number): Promise<boolean>;
   markAllNotificationsAsRead(userId: number): Promise<boolean>;
   deleteNotification(id: number): Promise<boolean>;
+
+  // Media Files
+  getMediaFiles(): Promise<MediaFile[]>;
+  getMediaFile(id: number): Promise<MediaFile | undefined>;
+  createMediaFile(file: InsertMediaFile): Promise<MediaFile>;
+  deleteMediaFile(id: number): Promise<boolean>;
+  deleteMultipleMediaFiles(ids: number[]): Promise<number>;
 
   // Session store for authentication
   sessionStore: session.Store;

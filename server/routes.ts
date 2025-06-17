@@ -22,6 +22,14 @@ import {
   serveImageFile,
 } from "./image-handler";
 import { uploadExcel, processExcelUpload } from "./excel-upload-handler";
+import {
+  uploadMedia,
+  handleMediaUpload,
+  getMediaFiles,
+  deleteMediaFile,
+  bulkDeleteMediaFiles,
+  serveMediaFile,
+} from "./media-handler";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
