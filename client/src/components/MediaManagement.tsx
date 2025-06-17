@@ -86,21 +86,41 @@ export default function MediaManagement() {
   // Upload mutation
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return apiRequest("POST", "/api/media/upload", formData, null, null, true);
+      const response = await fetch("/api/media/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = "Failed to upload files";
+        
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      return response.json();
     },
     onSuccess: (response: any) => {
-      const uploadedCount = Array.isArray(response) ? response.length : 1;
+      const uploadedCount = response.files ? response.files.length : 1;
       toast({
         title: "Upload Successful",
-        description: `Successfully uploaded ${uploadedCount} file(s)`,
+        description: response.message || `Successfully uploaded ${uploadedCount} file(s)`,
         duration: 3000,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/media"] });
     },
     onError: (error: Error) => {
+      console.error("Upload error:", error);
       toast({
         title: "Upload Failed",
-        description: error.message || "Failed to upload files",
+        description: error.message || "Failed to upload files. Please try again.",
         variant: "destructive",
         duration: 5000,
       });
@@ -161,6 +181,8 @@ export default function MediaManagement() {
     if (files.length > 0) {
       uploadFiles(files);
     }
+    // Reset the input so the same file can be selected again if needed
+    event.target.value = '';
   };
 
   // Handle drag and drop
@@ -179,18 +201,66 @@ export default function MediaManagement() {
     e.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const files = Array.from(e.dataTransfer.files);
-      uploadFiles(files);
+      
+      // Validate file types
+      const validFiles = files.filter(file => {
+        const allowedTypes = [
+          'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+          'application/pdf',
+          'video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/webm',
+          'audio/mpeg', 'audio/wav', 'audio/ogg'
+        ];
+        return allowedTypes.includes(file.type);
+      });
+
+      if (validFiles.length === 0) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload images, PDFs, videos, or audio files only.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        return;
+      }
+
+      if (validFiles.length !== files.length) {
+        toast({
+          title: "Some files skipped",
+          description: `${files.length - validFiles.length} file(s) were skipped due to invalid type.`,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+
+      uploadFiles(validFiles);
     }
-  }, []);
+  }, [toast]);
 
   // Upload files function
   const uploadFiles = (files: File[]) => {
+    if (files.length === 0) return;
+
+    // Check file sizes
+    const oversizedFiles = files.filter(file => file.size > 50 * 1024 * 1024); // 50MB
+    if (oversizedFiles.length > 0) {
+      toast({
+        title: "File too large",
+        description: `Some files exceed the 50MB limit and will be skipped.`,
+        variant: "destructive",
+        duration: 5000,
+      });
+      files = files.filter(file => file.size <= 50 * 1024 * 1024);
+    }
+
+    if (files.length === 0) return;
+
     const formData = new FormData();
     files.forEach((file) => {
       formData.append("mediaFiles", file);
     });
+    
     uploadMutation.mutate(formData);
   };
 
@@ -290,30 +360,45 @@ export default function MediaManagement() {
 
       {/* Upload Area */}
       <Card
-        className={`border-2 border-dashed transition-colors ${
+        className={`border-2 border-dashed transition-all duration-200 ${
           dragActive 
-            ? 'border-teal-500 bg-teal-50' 
+            ? 'border-teal-500 bg-teal-50 scale-105' 
             : 'border-gray-300 hover:border-gray-400'
-        }`}
+        } ${uploadMutation.isPending ? 'opacity-50 pointer-events-none' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
         <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-          <Upload className="h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Drop files here or click to upload</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Supports images, PDFs, videos, and audio files up to 50MB
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadMutation.isPending}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Choose Files
-          </Button>
+          {uploadMutation.isPending ? (
+            <>
+              <RefreshCw className="h-12 w-12 text-teal-600 mb-4 animate-spin" />
+              <h3 className="text-lg font-semibold mb-2">Uploading files...</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Please wait while your files are being uploaded
+              </p>
+            </>
+          ) : (
+            <>
+              <Upload className={`h-12 w-12 mb-4 ${dragActive ? 'text-teal-600' : 'text-gray-400'}`} />
+              <h3 className="text-lg font-semibold mb-2">
+                {dragActive ? 'Drop files here!' : 'Drop files here or click to upload'}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Supports images, PDFs, videos, and audio files up to 50MB
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadMutation.isPending}
+                className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Choose Files
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
 
