@@ -108,6 +108,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? parseInt(req.query.courseId as string)
         : undefined;
 
+      console.log("Fetching units, courseId:", courseId);
+      
       // If courseId is provided, get units for that course, otherwise get all units
       let units;
       if (courseId) {
@@ -116,9 +118,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         units = await storage.getAllUnits();
       }
 
+      console.log("Units fetched successfully:", units?.length);
       res.json(units);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching units" });
+      console.error("Error fetching units:", error);
+      res.status(500).json({ message: "Error fetching units", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
