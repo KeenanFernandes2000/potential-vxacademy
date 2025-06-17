@@ -446,9 +446,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/assessments", async (req, res) => {
     try {
+      console.log("Creating assessment with data:", req.body);
       const assessment = await storage.createAssessment(req.body);
       res.status(201).json(assessment);
     } catch (error) {
+      console.error("Error creating assessment:", error);
       res.status(500).json({ message: "Error creating assessment" });
     }
   });

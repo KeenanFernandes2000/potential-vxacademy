@@ -188,8 +188,6 @@ export const assessments = pgTable("assessments", {
 export const insertAssessmentSchema = createInsertSchema(assessments).omit({
   id: true,
   createdAt: true,
-}).extend({
-  assessmentFor: z.enum(["unit", "course"]).optional(),
 });
 
 // Assessment Questions
