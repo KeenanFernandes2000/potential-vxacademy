@@ -313,7 +313,7 @@ export default function CourseManagement() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto py-6 px-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Course Management</h1>
         </div>
@@ -516,12 +516,12 @@ export default function CourseManagement() {
                   />
 
                   {/* 8. Duration (minutes) with visibility toggle */}
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+                  <div className="space-y-2">
                     <FormField
                       control={form.control}
                       name="duration"
                       render={({ field }) => (
-                        <FormItem className="lg:col-span-3">
+                        <FormItem>
                           <FormLabel>Duration (minutes)</FormLabel>
                           <FormControl>
                             <Input 
@@ -541,7 +541,7 @@ export default function CourseManagement() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Show to users</FormLabel>
+                            <FormLabel className="text-sm">Show duration to users</FormLabel>
                           </div>
                           <FormControl>
                             <Switch
@@ -555,12 +555,12 @@ export default function CourseManagement() {
                   </div>
 
                   {/* 9. Difficulty Level with visibility toggle */}
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+                  <div className="space-y-2">
                     <FormField
                       control={form.control}
                       name="level"
                       render={({ field }) => (
-                        <FormItem className="lg:col-span-3">
+                        <FormItem>
                           <FormLabel>Difficulty Level</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
@@ -584,7 +584,7 @@ export default function CourseManagement() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Show to users</FormLabel>
+                            <FormLabel className="text-sm">Show difficulty level to users</FormLabel>
                           </div>
                           <FormControl>
                             <Switch
