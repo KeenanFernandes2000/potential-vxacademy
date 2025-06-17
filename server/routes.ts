@@ -1810,6 +1810,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
   app.get("/api/scorm-packages/:scormPackageId/tracking", getScormTrackingData);
 
+  // Media Files Management
+  app.get("/api/media", getMediaFiles);
+  app.post("/api/media/upload", uploadMedia, handleMediaUpload);
+  app.delete("/api/media/:id", deleteMediaFile);
+  app.post("/api/media/bulk-delete", bulkDeleteMediaFiles);
+  app.get("/api/media/files/:filename", serveMediaFile);
+
   // Notification Management
   app.get("/api/notifications", async (req, res) => {
     if (!req.isAuthenticated()) {

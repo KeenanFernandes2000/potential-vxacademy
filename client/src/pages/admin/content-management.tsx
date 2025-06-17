@@ -76,6 +76,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import MediaManagement from "@/components/MediaManagement";
 
 // Course form schema
 const courseFormSchema = z.object({
@@ -713,6 +714,11 @@ export default function ContentManagement() {
                 <TabsTrigger value="blocks">Learning Blocks</TabsTrigger>
                 <TabsTrigger value="assessments">Assessments</TabsTrigger>
               </TabsList>
+              
+              {/* Media Tab */}
+              <TabsContent value="media">
+                <MediaManagement />
+              </TabsContent>
               
               {/* Courses Tab */}
               <TabsContent value="courses">
