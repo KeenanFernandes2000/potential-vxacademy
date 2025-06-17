@@ -129,7 +129,12 @@ export default function ModuleManagement() {
         description: "The module has been updated successfully.",
       });
       setEditingModule(null);
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        imageUrl: "",
+        trainingAreaId: undefined,
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
     },
     onError: (error: Error) => {

@@ -109,7 +109,14 @@ export default function CourseManagement() {
         title: "Course created",
         description: "The course has been created successfully.",
       });
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        imageUrl: "",
+        duration: 0,
+        level: "beginner",
+        moduleId: undefined,
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
     },
     onError: (error: Error) => {
@@ -133,7 +140,14 @@ export default function CourseManagement() {
         description: "The course has been updated successfully.",
       });
       setEditingCourse(null);
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        imageUrl: "",
+        duration: 0,
+        level: "beginner",
+        moduleId: undefined,
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
     },
     onError: (error: Error) => {
