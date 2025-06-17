@@ -119,6 +119,7 @@ export const units = pgTable("units", {
   internalNote: text("internal_note"), // admin-only field
   order: integer("order").notNull(),
   duration: integer("duration").notNull().default(30), // in minutes
+  showDuration: boolean("show_duration").notNull().default(true), // visibility toggle
   xpPoints: integer("xp_points").notNull().default(100),
   createdAt: timestamp("created_at").defaultNow(),
 });

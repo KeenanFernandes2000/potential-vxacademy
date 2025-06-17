@@ -302,8 +302,9 @@ export default function UnitsManagement() {
   };
 
   return (
-    <AdminLayout>
-      <div className="container mx-auto py-8 px-8">
+    <>
+      <AdminLayout>
+        <div className="container mx-auto py-8 px-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-abu-charcoal">Units Management</h1>
           <Button
@@ -619,7 +620,8 @@ export default function UnitsManagement() {
               )}
             </CardContent>
           </Card>
-      </div>
+        </div>
+      </AdminLayout>
 
       {/* Add Unit Dialog */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
@@ -627,7 +629,7 @@ export default function UnitsManagement() {
           <DialogHeader>
             <DialogTitle>Add New Unit</DialogTitle>
             <DialogDescription>
-              Create a learning unit for {selectedCourseId ? getCourseName(selectedCourseId) : "a course"}
+              Create a learning unit for the selected course
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -910,6 +912,6 @@ export default function UnitsManagement() {
           </Form>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }
