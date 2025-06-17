@@ -224,10 +224,9 @@ export default function CourseManagement() {
   // Set form values when editing
   function handleEdit(course: Course) {
     setEditingCourse(course);
-    const trainingAreaId = course.trainingAreaId || course.module?.trainingAreaId;
-    setSelectedTrainingAreaId(trainingAreaId);
+    setSelectedTrainingAreaId(course.trainingAreaId);
     form.reset({
-      trainingAreaId: trainingAreaId,
+      trainingAreaId: course.trainingAreaId,
       moduleId: course.moduleId,
       name: course.name,
       description: course.description || "",
