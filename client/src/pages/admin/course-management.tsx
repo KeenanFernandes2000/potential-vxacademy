@@ -63,7 +63,7 @@ const courseFormSchema = z.object({
   internalNote: z.string().optional(),
   courseType: z.enum(["sequential", "free"], {
     required_error: "Please select a course type.",
-  }),
+  }).default("sequential"),
   duration: z.coerce.number({
     required_error: "Please specify the duration in minutes.",
     invalid_type_error: "Duration must be a number.",
@@ -502,10 +502,14 @@ export default function CourseManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="sequential">Sequential (Learners must complete units in order)</SelectItem>
-                            <SelectItem value="free">Free (Learners can access any unit at any time)</SelectItem>
+                            <SelectItem value="sequential">Sequential</SelectItem>
+                            <SelectItem value="free">Free</SelectItem>
                           </SelectContent>
                         </Select>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          <strong>Sequential:</strong> Learners must complete units and learning blocks in order (can't access Unit 2 before Unit 1)<br/>
+                          <strong>Free:</strong> Learners can access any unit at any time
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
