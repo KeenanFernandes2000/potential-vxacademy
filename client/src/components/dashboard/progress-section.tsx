@@ -48,7 +48,7 @@ export function ProgressSection() {
             return timeB - timeA;
           })
           .slice(0, 3); // Take top 3
-
+        
         // If no courses have progress, show the first 3 available courses
         if (inProgressCourses.length === 0) {
           const firstThreeCourses = courses.slice(0, 3).map(course => ({
@@ -94,7 +94,7 @@ export function ProgressSection() {
           </a>
         </Link>
       </div>
-
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {isLoading ? (
           // Loading skeletons

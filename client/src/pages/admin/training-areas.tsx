@@ -165,17 +165,17 @@ export default function TrainingAreaManagement() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-8">
+      <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-white">Training Area Management</h1>
+          <h1 className="text-3xl font-bold text-abu-charcoal">Training Area Management</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Training Area Form */}
-          <Card className="bg-white/10 backdrop-blur-sm border border-white/20">
+          <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle className="text-white">{editingArea ? "Edit Training Area" : "Add New Training Area"}</CardTitle>
-              <CardDescription className="text-white/70">
+              <CardTitle>{editingArea ? "Edit Training Area" : "Add New Training Area"}</CardTitle>
+              <CardDescription>
                 {editingArea
                   ? "Update the training area information"
                   : "Create a new training area for the VX Academy"}
@@ -247,7 +247,7 @@ export default function TrainingAreaManagement() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600"
+                      className="bg-abu-primary text-white hover:bg-abu-primary/90"
                     >
                       {isSubmitting && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -261,10 +261,10 @@ export default function TrainingAreaManagement() {
           </Card>
 
           {/* Training Area List */}
-          <Card className="bg-white/10 backdrop-blur-sm border border-white/20">
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-white">Existing Training Areas</CardTitle>
-              <CardDescription className="text-white/70">Manage your existing training areas</CardDescription>
+              <CardTitle>Existing Training Areas</CardTitle>
+              <CardDescription>Manage your existing training areas</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (

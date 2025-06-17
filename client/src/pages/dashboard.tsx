@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -33,16 +34,16 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={toggleSidebar} />
 
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-4 pb-16 md:pb-4">
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-4 pb-16 md:pb-4">
           <div className="space-y-6">
             <WelcomeCard />
             <ProgressSection />
-
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <AchievementsSection />
               <LeaderboardSection />
             </div>
-
+            
             <RecommendedCourses />
           </div>
         </main>

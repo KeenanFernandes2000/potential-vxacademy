@@ -81,7 +81,7 @@ export default function Courses() {
         <main className="flex-1 overflow-y-auto bg-neutrals-100 p-4 pb-16 md:pb-4">
           <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
             <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-6">My Courses</h1>
-
+            
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1">
                 <Input
@@ -106,7 +106,7 @@ export default function Courses() {
                 </Select>
               </div>
             </div>
-
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {isLoading ? (
                 // Loading skeletons
@@ -147,7 +147,7 @@ export default function Courses() {
                         <span>{course.level}</span>
                       </div>
                       <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
-
+                      
                       {course.progress ? (
                         <>
                           <div className="w-full bg-neutrals-200 rounded-full h-2 mb-3">
