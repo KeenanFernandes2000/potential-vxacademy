@@ -114,6 +114,17 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 17, 2025: Comprehensive Learning Block page overhaul with advanced filtering
+  - Fixed database schema issue by adding missing scorm_package_id column to learning_blocks table
+  - Implemented comprehensive search functionality with real-time title-based filtering
+  - Added hierarchical filter system: Training Areas → Modules → Courses → Units with dependent filtering
+  - Enhanced table design with Unit column showing block ownership and improved visual layout
+  - Added hover tooltips for all action buttons ("Edit learning block", "Delete learning block")
+  - Updated page title to "Existing Learning Blocks" with descriptive subtitle and results summary
+  - Improved empty states with context-aware messages based on active filters
+  - Fixed form reset functionality and implemented proper cache invalidation
+  - Added new /api/learning-blocks endpoint for fetching all learning blocks across units
+  - Resolved Learning Block creation failures and enhanced user experience significantly
 - June 17, 2025: Enhanced Unit duration visibility and action icon tooltips
   - Added duration visibility toggle (showDuration) to Unit create/edit modals with checkbox control
   - Implemented hover tooltips for all action icons across admin pages (Units, Training Areas, Modules, Courses)

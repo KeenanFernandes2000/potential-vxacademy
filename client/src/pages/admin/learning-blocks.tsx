@@ -229,7 +229,7 @@ export default function LearningBlocksManagement() {
         imageUrl: "",
         interactiveData: null,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "blocks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/learning-blocks"] });
     },
     onError: (error) => {
       toast({
@@ -262,7 +262,7 @@ export default function LearningBlocksManagement() {
         imageUrl: "",
         interactiveData: null,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "blocks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/learning-blocks"] });
     },
     onError: (error) => {
       toast({
@@ -284,7 +284,7 @@ export default function LearningBlocksManagement() {
         title: "Success",
         description: "Learning block deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "blocks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/learning-blocks"] });
     },
     onError: (error) => {
       toast({
