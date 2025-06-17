@@ -114,6 +114,13 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 17, 2025: Comprehensive form field updates and reorganization
+  - Updated database schema for courses, units, and assessments with new fields
+  - Reorganized course form with hierarchical dropdowns (Training Area > Module > Course)
+  - Added internal notes, course types, and improved field ordering across all forms
+  - Enhanced assessment forms with placement options, grading toggles, and certificate management
+  - Implemented dynamic filtering for dependent dropdowns (training areas filter modules)
+  - Updated all form validation schemas and database relations
 - June 17, 2025: Enhanced image upload functionality
   - Created advanced ImageUpload component with drag and drop functionality
   - Added tabbed interface for choosing between file upload or URL input

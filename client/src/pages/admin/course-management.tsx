@@ -224,11 +224,16 @@ export default function CourseManagement() {
   // Set form values when editing
   function handleEdit(course: Course) {
     setEditingCourse(course);
+    const trainingAreaId = course.trainingAreaId || course.module?.trainingAreaId;
+    setSelectedTrainingAreaId(trainingAreaId);
     form.reset({
-      name: course.name,
+      trainingAreaId: trainingAreaId,
       moduleId: course.moduleId,
+      name: course.name,
       description: course.description || "",
-      imageUrl: course.imageUrl,
+      imageUrl: course.imageUrl || "",
+      internalNote: course.internalNote || "",
+      courseType: course.courseType || "standard",
       duration: course.duration,
       level: course.level,
     });
@@ -236,13 +241,17 @@ export default function CourseManagement() {
 
   function handleCancel() {
     setEditingCourse(null);
+    setSelectedTrainingAreaId(null);
     form.reset({
+      trainingAreaId: undefined,
+      moduleId: undefined,
       name: "",
       description: "",
       imageUrl: "",
+      internalNote: "",
+      courseType: "standard",
       duration: 0,
       level: "beginner",
-      moduleId: undefined,
     });
   }
 
@@ -279,9 +288,10 @@ export default function CourseManagement() {
                         <FormLabel>Training Area</FormLabel>
                         <Select
                           onValueChange={(value) => {
-                            field.onChange(parseInt(value));
-                            setSelectedTrainingAreaId(parseInt(value));
-                            form.setValue("moduleId", undefined);
+                            const id = parseInt(value);
+                            field.onChange(id);
+                            setSelectedTrainingAreaId(id);
+                            form.resetField("moduleId");
                           }}
                           value={field.value?.toString()}
                         >
@@ -491,36 +501,6 @@ export default function CourseManagement() {
                       </FormItem>
                     )}
                   />
-
-                  <div className="grid grid-cols-2 gap-4">
-
-                    <FormField
-                      control={form.control}
-                      name="level"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Difficulty Level</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select level" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="beginner">Beginner</SelectItem>
-                              <SelectItem value="intermediate">Intermediate</SelectItem>
-                              <SelectItem value="advanced">Advanced</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
 
                   <div className="flex justify-end space-x-2 pt-4">
                     {editingCourse && (
