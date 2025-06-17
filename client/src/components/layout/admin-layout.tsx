@@ -93,6 +93,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: <FileText className="h-5 w-5" />,
     },
     {
+      name: "Media",
+      path: "/admin/media",
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
       name: "Badges",
       path: "/admin/badges",
       icon: <Award className="h-5 w-5" />,
