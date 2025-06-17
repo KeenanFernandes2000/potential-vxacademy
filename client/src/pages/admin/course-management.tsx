@@ -313,7 +313,7 @@ export default function CourseManagement() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto py-6 px-4">
+      <div className="container mx-auto py-6 px-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Course Management</h1>
         </div>

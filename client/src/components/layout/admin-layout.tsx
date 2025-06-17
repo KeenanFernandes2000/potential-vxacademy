@@ -115,7 +115,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   ];
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)}>
@@ -255,7 +255,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <main className="flex-1 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
           {children}
         </main>
       </div>
