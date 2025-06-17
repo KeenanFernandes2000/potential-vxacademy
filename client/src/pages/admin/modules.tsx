@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { Loader2, Pencil, Trash } from "lucide-react";
+import { Loader2, Pencil, Trash, Search, Filter } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
 
 // Form validation schema
@@ -60,6 +60,8 @@ const moduleFormSchema = z.object({
 export default function ModuleManagement() {
   const { toast } = useToast();
   const [editingModule, setEditingModule] = useState<Module | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<string>("all");
 
   // Fetch existing modules
   const { data: modules, isLoading: isLoadingModules } = useQuery<Module[]>({
@@ -198,6 +200,14 @@ export default function ModuleManagement() {
     });
   }
 
+  // Filter modules based on search term and selected training area
+  const filteredModules = modules?.filter(module => {
+    const matchesSearch = module.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTrainingArea = selectedTrainingAreaId === "all" || 
+      module.trainingAreaId.toString() === selectedTrainingAreaId;
+    return matchesSearch && matchesTrainingArea;
+  }) || [];
+
   const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;
   const isLoading = isLoadingModules || isLoadingAreas;
 
@@ -334,14 +344,46 @@ export default function ModuleManagement() {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Existing Modules</CardTitle>
-              <CardDescription>Manage your existing training modules</CardDescription>
+              <CardDescription>Manage your existing modules</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Search and Filter Controls */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search modules by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex items-center gap-2 min-w-[200px]">
+                  <Filter className="text-gray-400 h-4 w-4" />
+                  <Select
+                    value={selectedTrainingAreaId}
+                    onValueChange={setSelectedTrainingAreaId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by Training Area" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Training Areas</SelectItem>
+                      {trainingAreas?.map((area) => (
+                        <SelectItem key={area.id} value={area.id.toString()}>
+                          {area.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               {isLoading ? (
                 <div className="flex justify-center p-6">
                   <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
                 </div>
-              ) : modules && modules.length > 0 ? (
+              ) : filteredModules.length > 0 ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -353,7 +395,7 @@ export default function ModuleManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {modules.map((module) => (
+                      {filteredModules.map((module) => (
                         <TableRow key={module.id}>
                           <TableCell className="font-medium">{module.name}</TableCell>
                           <TableCell>
@@ -389,6 +431,22 @@ export default function ModuleManagement() {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              ) : modules && modules.length > 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-muted-foreground">
+                    No modules match your search criteria. Try adjusting your search term or filter.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setSelectedTrainingAreaId("all");
+                    }}
+                    className="mt-4"
+                  >
+                    Clear Filters
+                  </Button>
                 </div>
               ) : (
                 <div className="text-center py-10">
