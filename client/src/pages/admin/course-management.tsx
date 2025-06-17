@@ -44,6 +44,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Pencil, Plus, Trash } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
+import ImageUpload from "@/components/ui/image-upload";
 
 // Form validation schema
 const courseFormSchema = z.object({
@@ -59,22 +60,27 @@ const courseFormSchema = z.object({
   description: z.string().optional(),
   imageUrl: z.string().optional().nullable(),
   internalNote: z.string().optional(),
-  courseType: z.string({
+  courseType: z.enum(["sequential", "free"], {
     required_error: "Please select a course type.",
   }),
   duration: z.coerce.number({
     required_error: "Please specify the duration in minutes.",
     invalid_type_error: "Duration must be a number.",
   }),
+  showDuration: z.boolean().default(true),
   level: z.string({
     required_error: "Please select a difficulty level.",
   }),
+  showLevel: z.boolean().default(true),
 });
 
 export default function CourseManagement() {
   const { toast } = useToast();
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterTrainingAreaId, setFilterTrainingAreaId] = useState<number | null>(null);
+  const [filterModuleId, setFilterModuleId] = useState<number | null>(null);
 
   // Fetch training areas for dropdown
   const { data: trainingAreas, isLoading: areasLoading } = useQuery<TrainingArea[]>({
@@ -106,6 +112,19 @@ export default function CourseManagement() {
     },
   });
 
+  // Filter courses based on search and filters
+  const filteredCourses = courses?.filter(course => {
+    const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTrainingArea = !filterTrainingAreaId || course.trainingAreaId === filterTrainingAreaId;
+    const matchesModule = !filterModuleId || course.moduleId === filterModuleId;
+    return matchesSearch && matchesTrainingArea && matchesModule;
+  });
+
+  // Filter modules for filter dropdown
+  const filterModules = modules?.filter(module => 
+    !filterTrainingAreaId || module.trainingAreaId === filterTrainingAreaId
+  );
+
   // Form setup
   const form = useForm<InsertCourse>({
     resolver: zodResolver(courseFormSchema),
@@ -116,9 +135,11 @@ export default function CourseManagement() {
       description: "",
       imageUrl: "",
       internalNote: "",
-      courseType: "standard",
+      courseType: "sequential",
       duration: 0,
+      showDuration: true,
       level: "beginner",
+      showLevel: true,
     },
   });
 
@@ -232,9 +253,11 @@ export default function CourseManagement() {
       description: course.description || "",
       imageUrl: course.imageUrl || "",
       internalNote: course.internalNote || "",
-      courseType: course.courseType || "standard",
+      courseType: course.courseType === "free" ? "free" : "sequential",
       duration: course.duration,
+      showDuration: course.showDuration ?? true,
       level: course.level,
+      showLevel: course.showLevel ?? true,
     });
   }
 
@@ -248,9 +271,29 @@ export default function CourseManagement() {
       description: "",
       imageUrl: "",
       internalNote: "",
-      courseType: "standard",
+      courseType: "sequential",
       duration: 0,
+      showDuration: true,
       level: "beginner",
+      showLevel: true,
+    });
+  }
+
+  function handleDuplicate(course: Course) {
+    setEditingCourse(null);
+    setSelectedTrainingAreaId(course.trainingAreaId);
+    form.reset({
+      trainingAreaId: course.trainingAreaId,
+      moduleId: course.moduleId,
+      name: `${course.name} (Copy)`,
+      description: course.description || "",
+      imageUrl: course.imageUrl || "",
+      internalNote: course.internalNote || "",
+      courseType: course.courseType === "free" ? "free" : "sequential",
+      duration: course.duration,
+      showDuration: course.showDuration ?? true,
+      level: course.level,
+      showLevel: course.showLevel ?? true,
     });
   }
 

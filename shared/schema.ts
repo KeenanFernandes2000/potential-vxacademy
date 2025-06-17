@@ -97,9 +97,11 @@ export const courses = pgTable("courses", {
   description: text("description"),
   imageUrl: text("image_url"),
   internalNote: text("internal_note"), // admin-only field
-  courseType: text("course_type").notNull().default("standard"), // standard, certification, mandatory
+  courseType: text("course_type").notNull().default("sequential"), // sequential, free
   duration: integer("duration").notNull(), // in minutes
+  showDuration: boolean("show_duration").notNull().default(true),
   level: text("level").notNull().default("beginner"), // beginner, intermediate, advanced
+  showLevel: boolean("show_level").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
