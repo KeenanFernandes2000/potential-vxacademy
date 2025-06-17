@@ -30,6 +30,7 @@ import QuestionsManagement from "@/pages/admin/questions";
 import BadgesManagement from "@/pages/admin/badges";
 import ScormPackagesManagement from "@/pages/admin/scorm-packages";
 import RolesManagement from "@/pages/admin/roles-management";
+import MediaManagementPage from "@/pages/admin/media";
 
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -71,6 +72,7 @@ function Router() {
       <ProtectedRoute path="/admin/questions" component={QuestionsManagement} />
       <ProtectedRoute path="/admin/badges" component={BadgesManagement} />
       <ProtectedRoute path="/admin/scorm" component={ScormPackagesManagement} />
+      <ProtectedRoute path="/admin/media" component={MediaManagementPage} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
