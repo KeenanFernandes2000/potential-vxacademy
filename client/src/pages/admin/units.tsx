@@ -316,6 +316,129 @@ export default function UnitsManagement() {
           </Button>
         </div>
 
+        {/* Search and Filter Section */}
+        <div className="mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Search & Filter Units
+              </CardTitle>
+              <CardDescription>
+                Search by unit name and filter by training area, module, and course
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search units by name or description..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Hierarchical Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Training Area Filter */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Training Area</label>
+                  <Select
+                    value={selectedTrainingAreaId?.toString() || "all"}
+                    onValueChange={(value) => {
+                      const areaId = value === "all" ? null : parseInt(value);
+                      setSelectedTrainingAreaId(areaId);
+                      setSelectedModuleId(null);
+                      setSelectedFilterCourseId(null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Training Areas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Training Areas</SelectItem>
+                      {trainingAreas?.map((area) => (
+                        <SelectItem key={area.id} value={area.id.toString()}>
+                          {area.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Module Filter */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Module</label>
+                  <Select
+                    value={selectedModuleId?.toString() || "all"}
+                    onValueChange={(value) => {
+                      const moduleId = value === "all" ? null : parseInt(value);
+                      setSelectedModuleId(moduleId);
+                      setSelectedFilterCourseId(null);
+                    }}
+                    disabled={!selectedTrainingAreaId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Modules" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Modules</SelectItem>
+                      {modules?.map((module) => (
+                        <SelectItem key={module.id} value={module.id.toString()}>
+                          {module.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Course Filter */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Course</label>
+                  <Select
+                    value={selectedFilterCourseId?.toString() || "all"}
+                    onValueChange={(value) => {
+                      const courseId = value === "all" ? null : parseInt(value);
+                      setSelectedFilterCourseId(courseId);
+                    }}
+                    disabled={!selectedModuleId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Courses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Courses</SelectItem>
+                      {courses?.map((course) => (
+                        <SelectItem key={course.id} value={course.id.toString()}>
+                          {course.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Clear Filters Button */}
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedTrainingAreaId(null);
+                    setSelectedModuleId(null);
+                    setSelectedFilterCourseId(null);
+                  }}
+                  className="text-sm"
+                >
+                  Clear All Filters
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="mb-6">
           <Card>
             <CardHeader>
@@ -364,34 +487,39 @@ export default function UnitsManagement() {
           </Card>
         </div>
 
-        {selectedCourseId && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Units for {getCourseName(selectedCourseId)}</CardTitle>
-              <CardDescription>
-                Manage learning units for this course
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {unitsLoading ? (
-                <div className="flex justify-center p-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-abu-primary" />
-                </div>
-              ) : filteredUnits && filteredUnits.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[60px]">Order</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>XP Points</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {units.map((unit) => (
+        {/* All Units Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>All Units</CardTitle>
+            <CardDescription>
+              {filteredUnits.length} unit{filteredUnits.length !== 1 ? 's' : ''} found
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {unitsLoading ? (
+              <div className="flex justify-center p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+              </div>
+            ) : filteredUnits && filteredUnits.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Unit Name</TableHead>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Training Area</TableHead>
+                    <TableHead>Order</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>XP Points</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUnits.map((unit) => {
+                    const course = courses?.find(c => c.id === unit.courseId);
+                    const module = modules?.find(m => m.id === course?.moduleId);
+                    const trainingArea = trainingAreas?.find(ta => ta.id === course?.trainingAreaId);
+                    return (
                       <TableRow key={unit.id}>
-                        <TableCell>{unit.order}</TableCell>
                         <TableCell>
                           <div className="font-medium">{unit.name}</div>
                           <div className="text-sm text-muted-foreground">
@@ -399,7 +527,37 @@ export default function UnitsManagement() {
                             {unit.description && unit.description.length > 60 ? "..." : ""}
                           </div>
                         </TableCell>
-                        <TableCell>{unit.duration} min</TableCell>
+                        <TableCell>
+                          <div className="font-medium">{course?.name || 'Unknown Course'}</div>
+                          <div className="text-sm text-muted-foreground">{module?.name || 'Unknown Module'}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{trainingArea?.name || 'Unknown Area'}</div>
+                        </TableCell>
+                        <TableCell>{unit.order}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span>{unit.duration} min</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                // Toggle duration visibility
+                                // This would require updating the unit with showDuration field
+                                toast({
+                                  title: "Duration visibility toggle",
+                                  description: "This feature will be implemented when the database schema is updated.",
+                                });
+                              }}
+                            >
+                              {unit.showDuration !== false ? (
+                                <Eye className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <EyeOff className="h-4 w-4 text-gray-400" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
                         <TableCell>{unit.xpPoints} XP</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
@@ -439,8 +597,9 @@ export default function UnitsManagement() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
+                    );
+                  })}
+                </TableBody>
                 </Table>
               ) : (
                 <div className="text-center py-12">
@@ -460,7 +619,6 @@ export default function UnitsManagement() {
               )}
             </CardContent>
           </Card>
-        )}
       </div>
 
       {/* Add Unit Dialog */}
