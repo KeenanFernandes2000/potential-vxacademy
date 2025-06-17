@@ -42,9 +42,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Pencil, Plus, Trash } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, Pencil, Plus, Trash, Copy, Search, Filter } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
-import ImageUpload from "@/components/ui/image-upload";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 // Form validation schema
 const courseFormSchema = z.object({
@@ -438,18 +439,19 @@ export default function CourseManagement() {
                     )}
                   />
 
-                  {/* 5. Image URL */}
+                  {/* 5. Image Upload */}
                   <FormField
                     control={form.control}
                     name="imageUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Image URL</FormLabel>
+                        <FormLabel>Course Image</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="https://example.com/image.jpg"
-                            {...field}
+                          <ImageUpload
                             value={field.value || ""}
+                            onChange={field.onChange}
+                            label="Course Image"
+                            placeholder="Upload image or enter URL..."
                           />
                         </FormControl>
                         <FormMessage />
@@ -490,9 +492,8 @@ export default function CourseManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="standard">Standard</SelectItem>
-                            <SelectItem value="certification">Certification</SelectItem>
-                            <SelectItem value="mandatory">Mandatory</SelectItem>
+                            <SelectItem value="sequential">Sequential (Learners must complete units in order)</SelectItem>
+                            <SelectItem value="free">Free (Learners can access any unit at any time)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -500,49 +501,87 @@ export default function CourseManagement() {
                     )}
                   />
 
-                  {/* 8. Duration (minutes) */}
-                  <FormField
-                    control={form.control}
-                    name="duration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Duration (minutes)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
-                            placeholder="e.g. 60"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* 9. Difficulty Level */}
-                  <FormField
-                    control={form.control}
-                    name="level"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Difficulty Level</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                  {/* 8. Duration (minutes) with visibility toggle */}
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+                    <FormField
+                      control={form.control}
+                      name="duration"
+                      render={({ field }) => (
+                        <FormItem className="lg:col-span-3">
+                          <FormLabel>Duration (minutes)</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select difficulty level" />
-                            </SelectTrigger>
+                            <Input 
+                              type="number" 
+                              min="0" 
+                              placeholder="e.g. 60"
+                              {...field} 
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="beginner">Beginner</SelectItem>
-                            <SelectItem value="intermediate">Intermediate</SelectItem>
-                            <SelectItem value="advanced">Advanced</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="showDuration"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-sm">Show to users</FormLabel>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* 9. Difficulty Level with visibility toggle */}
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+                    <FormField
+                      control={form.control}
+                      name="level"
+                      render={({ field }) => (
+                        <FormItem className="lg:col-span-3">
+                          <FormLabel>Difficulty Level</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select difficulty level" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="beginner">Beginner</SelectItem>
+                              <SelectItem value="intermediate">Intermediate</SelectItem>
+                              <SelectItem value="advanced">Advanced</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="showLevel"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-sm">Show to users</FormLabel>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <div className="flex justify-end space-x-2 pt-4">
                     {editingCourse && (
@@ -573,59 +612,135 @@ export default function CourseManagement() {
           {/* Course List */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Existing Courses</CardTitle>
-              <CardDescription>Manage your existing courses</CardDescription>
+              <div className="flex flex-col space-y-4">
+                <div>
+                  <CardTitle>Existing Courses</CardTitle>
+                  <CardDescription>Manage your existing courses</CardDescription>
+                </div>
+                
+                {/* Search and Filters */}
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Search Bar */}
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search courses by name..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  {/* Training Area Filter */}
+                  <Select
+                    value={filterTrainingAreaId?.toString() || ""}
+                    onValueChange={(value) => {
+                      const areaId = value ? parseInt(value) : null;
+                      setFilterTrainingAreaId(areaId);
+                      setFilterModuleId(null); // Reset module filter
+                    }}
+                  >
+                    <SelectTrigger className="w-full lg:w-48">
+                      <SelectValue placeholder="Filter by Training Area" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Training Areas</SelectItem>
+                      {trainingAreas?.map((area) => (
+                        <SelectItem key={area.id} value={area.id.toString()}>
+                          {area.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Module Filter */}
+                  <Select
+                    value={filterModuleId?.toString() || ""}
+                    onValueChange={(value) => {
+                      const moduleId = value ? parseInt(value) : null;
+                      setFilterModuleId(moduleId);
+                    }}
+                    disabled={!filterTrainingAreaId}
+                  >
+                    <SelectTrigger className="w-full lg:w-48">
+                      <SelectValue placeholder="Filter by Module" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Modules</SelectItem>
+                      {filterModules?.map((module) => (
+                        <SelectItem key={module.id} value={module.id.toString()}>
+                          {module.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="flex justify-center p-6">
                   <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
                 </div>
-              ) : courses && courses.length > 0 ? (
+              ) : filteredCourses && filteredCourses.length > 0 ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
+                        <TableHead>Course Name</TableHead>
+                        <TableHead>Training Area</TableHead>
                         <TableHead>Module</TableHead>
-                        <TableHead>Level</TableHead>
-                        <TableHead>Duration</TableHead>
+                        <TableHead>Internal Note</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {courses.map((course) => (
-                        <TableRow key={course.id}>
-                          <TableCell className="font-medium">{course.name}</TableCell>
-                          <TableCell>
-                            {modules?.find((m) => m.id === course.moduleId)?.name || course.moduleId}
-                          </TableCell>
-                          <TableCell className="capitalize">{course.level}</TableCell>
-                          <TableCell>{course.duration} hours</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(course)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  if (window.confirm("Are you sure you want to delete this course?")) {
-                                    deleteMutation.mutate(course.id);
-                                  }
-                                }}
-                              >
-                                <Trash className="h-4 w-4 text-teal-600" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {filteredCourses.map((course) => {
+                        const trainingArea = trainingAreas?.find(area => area.id === course.trainingAreaId);
+                        const module = modules?.find(mod => mod.id === course.moduleId);
+                        return (
+                          <TableRow key={course.id}>
+                            <TableCell className="font-medium">{course.name}</TableCell>
+                            <TableCell>{trainingArea?.name || 'N/A'}</TableCell>
+                            <TableCell>{module?.name || 'N/A'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground max-w-48 truncate">
+                              {course.internalNote || '-'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEdit(course)}
+                                  title="Edit Course"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDuplicate(course)}
+                                  title="Duplicate Course"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    if (window.confirm("Are you sure you want to delete this course?")) {
+                                      deleteMutation.mutate(course.id);
+                                    }
+                                  }}
+                                  title="Delete Course"
+                                >
+                                  <Trash className="h-4 w-4 text-red-600" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
