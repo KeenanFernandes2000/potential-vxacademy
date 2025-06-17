@@ -114,6 +114,13 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 17, 2025: Completed PostgreSQL database integration
+  - Successfully configured Neon serverless PostgreSQL connection
+  - Migrated from in-memory MemStorage to DatabaseStorage implementation
+  - Updated database configuration to use Neon serverless driver
+  - Pushed complete database schema with 21 tables to PostgreSQL
+  - Verified database connection and table creation
+  - All learning platform data now persists in PostgreSQL database
 - June 13, 2025: Completed VX Academy rebrand and fixes
   - Successfully rebranded from EHC Academy to VX Academy across entire platform
   - Updated header, sidebar, and landing page with hospitality and tourism focus
