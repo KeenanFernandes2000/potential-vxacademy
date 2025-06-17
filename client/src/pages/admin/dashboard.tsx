@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { ApiResponse, apiRequest } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import AdminLayout from "@/components/layout/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -59,7 +59,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto py-8 px-6">
+      <div className="container mx-auto py-8 px-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-2">
             Admin Dashboard

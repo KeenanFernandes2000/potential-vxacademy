@@ -352,7 +352,7 @@ export default function LearningBlocksManagement() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto py-8 px-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Learning Blocks Management</h1>
         </div>
