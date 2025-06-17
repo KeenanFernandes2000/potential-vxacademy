@@ -43,6 +43,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Loader2, Pencil, Trash, Search, Filter } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import AdminLayout from "@/components/layout/admin-layout";
 
 // Form validation schema
@@ -406,26 +412,43 @@ export default function ModuleManagement() {
                             {module.description || "-"}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(module)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  if (window.confirm("Are you sure you want to delete this module? This will also affect any associated courses.")) {
-                                    deleteMutation.mutate(module.id);
-                                  }
-                                }}
-                              >
-                                <Trash className="h-4 w-4 text-teal-600" />
-                              </Button>
-                            </div>
+                            <TooltipProvider>
+                              <div className="flex justify-end space-x-2">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEdit(module)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Edit Module</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => {
+                                        if (window.confirm("Are you sure you want to delete this module? This will also affect any associated courses.")) {
+                                          deleteMutation.mutate(module.id);
+                                        }
+                                      }}
+                                    >
+                                      <Trash className="h-4 w-4 text-teal-600" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Delete Module</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </TooltipProvider>
                           </TableCell>
                         </TableRow>
                       ))}

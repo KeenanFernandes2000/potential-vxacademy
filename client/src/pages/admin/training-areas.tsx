@@ -36,6 +36,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Loader2, Pencil, Trash } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import AdminLayout from "@/components/layout/admin-layout";
 
 // Form validation schema
@@ -298,26 +304,43 @@ export default function TrainingAreaManagement() {
                             {area.description || "-"}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(area)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  if (window.confirm("Are you sure you want to delete this training area? This will also affect any associated modules.")) {
-                                    deleteMutation.mutate(area.id);
-                                  }
-                                }}
-                              >
-                                <Trash className="h-4 w-4 text-teal-600" />
-                              </Button>
-                            </div>
+                            <TooltipProvider>
+                              <div className="flex justify-end space-x-2">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEdit(area)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Edit Training Area</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => {
+                                        if (window.confirm("Are you sure you want to delete this training area? This will also affect any associated modules.")) {
+                                          deleteMutation.mutate(area.id);
+                                        }
+                                      }}
+                                    >
+                                      <Trash className="h-4 w-4 text-teal-600" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Delete Training Area</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </TooltipProvider>
                           </TableCell>
                         </TableRow>
                       ))}

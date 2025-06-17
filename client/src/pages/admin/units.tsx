@@ -53,6 +53,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Loader2, Pencil, Plus, Trash, FileText, School, ChevronRight, Search, Filter, Eye, EyeOff } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import AdminLayout from "@/components/layout/admin-layout";
 
 // Form validation schema
@@ -560,41 +567,74 @@ export default function UnitsManagement() {
                         </TableCell>
                         <TableCell>{unit.xpPoints} XP</TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setLocation(`/admin/learning-blocks?unitId=${unit.id}`)}
-                            >
-                              <FileText className="h-4 w-4 mr-1" />
-                              Blocks
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setLocation(`/admin/assessments?unitId=${unit.id}`)}
-                            >
-                              <School className="h-4 w-4 mr-1" />
-                              Assessments
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(unit)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(unit.id)}
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </div>
+                          <TooltipProvider>
+                            <div className="flex justify-end space-x-2">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setLocation(`/admin/learning-blocks?unitId=${unit.id}`)}
+                                  >
+                                    <FileText className="h-4 w-4 mr-1" />
+                                    Blocks
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Manage Learning Blocks</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setLocation(`/admin/assessments?unitId=${unit.id}`)}
+                                  >
+                                    <School className="h-4 w-4 mr-1" />
+                                    Assessments
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Manage Assessments</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEdit(unit)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="sr-only">Edit</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Edit Unit</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(unit.id)}
+                                    disabled={deleteMutation.isPending}
+                                  >
+                                    <Trash className="h-4 w-4" />
+                                    <span className="sr-only">Delete</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete Unit</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     );
@@ -760,6 +800,29 @@ export default function UnitsManagement() {
                 />
               </div>
 
+              <FormField
+                control={form.control}
+                name="showDuration"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Show Duration to Students
+                      </FormLabel>
+                      <FormDescription>
+                        When enabled, students will see the estimated duration for this unit
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
               <DialogFooter>
                 <Button
                   type="submit"
@@ -878,6 +941,7 @@ export default function UnitsManagement() {
                       <FormControl>
                         <Input type="number" min="1" {...field} />
                       </FormControl>
+                      <FormDescription>Order in the course</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -892,6 +956,7 @@ export default function UnitsManagement() {
                       <FormControl>
                         <Input type="number" min="1" {...field} />
                       </FormControl>
+                      <FormDescription>Estimated time to complete</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -906,11 +971,35 @@ export default function UnitsManagement() {
                       <FormControl>
                         <Input type="number" min="0" {...field} />
                       </FormControl>
+                      <FormDescription>Points awarded on completion</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="showDuration"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Show Duration to Students
+                      </FormLabel>
+                      <FormDescription>
+                        When enabled, students will see the estimated duration for this unit
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
               <DialogFooter>
                 <Button
