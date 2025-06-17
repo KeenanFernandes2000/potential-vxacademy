@@ -17,7 +17,7 @@ export function LeaderboardSection() {
         <h2 className="font-heading text-lg font-semibold text-neutrals-800">Leaderboard</h2>
         <div className="flex items-center">
           <span className="text-sm text-neutrals-600 mr-2">This week</span>
-          <span className="material-icons text-neutrals-500 text-sm">arrow_drop_down</span>
+          <span className="material-icons text-teal-600 text-sm">arrow_drop_down</span>
         </div>
       </div>
       <div className="space-y-3">
@@ -49,12 +49,12 @@ export function LeaderboardSection() {
                   {user.avatar ? (
                     <img src={user.avatar} alt={user.name} className="rounded-full" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
                       {user.name.charAt(0)}
                     </div>
                   )}
                   {index === 0 && (
-                    <div className="absolute -top-1 -right-1 bg-secondary text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                    <div className="absolute -top-1 -right-1 bg-gradient-to-r from-teal-600 to-cyan-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
                       <span className="material-icons text-[10px]">emoji_events</span>
                     </div>
                   )}
@@ -62,10 +62,10 @@ export function LeaderboardSection() {
                 <div className="flex-1">
                   <span className="font-medium text-neutrals-800">
                     {user.name}
-                    {isCurrentUser && <span className="text-xs text-primary ml-2">(You)</span>}
+                    {isCurrentUser && <span className="text-xs text-teal-600 ml-2">(You)</span>}
                   </span>
                 </div>
-                <div className="text-primary font-semibold">{user.xpPoints?.toLocaleString() || 0} XP</div>
+                <div className="text-teal-600 font-semibold">{user.xpPoints?.toLocaleString() || 0} XP</div>
               </div>
             );
           })
@@ -78,7 +78,7 @@ export function LeaderboardSection() {
 
         <div className="pt-2">
           <Link href="/leaderboard">
-            <a className="block text-center text-primary font-medium hover:underline">
+            <a className="block text-center text-teal-600 font-medium hover:underline">
               View full leaderboard
             </a>
           </Link>

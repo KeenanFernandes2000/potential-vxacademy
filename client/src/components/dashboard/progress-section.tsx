@@ -162,7 +162,7 @@ export function ProgressSection() {
               <h3 className="text-lg font-semibold mb-2">No courses in progress</h3>
               <p className="text-neutrals-600 mb-4">Start your learning journey by enrolling in a course.</p>
               <Link href="/courses">
-                <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
                   <span className="material-icons mr-2">search</span>
                   <span>Browse Courses</span>
                 </a>

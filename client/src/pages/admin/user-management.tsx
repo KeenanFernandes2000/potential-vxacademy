@@ -526,15 +526,15 @@ export default function UserManagement() {
                 </div>
                 
                 <div className="flex gap-3">
-                  <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <Button onClick={() => setIsAddDialogOpen(true)} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
                     <span className="material-icons mr-2">add</span>
                     Add User
                   </Button>
-                  <Button variant="outline" onClick={() => setIsBulkAddDialogOpen(true)}>
+                  <Button variant="outline" onClick={() => setIsBulkAddDialogOpen(true)} className="border-teal-600 text-teal-600 hover:bg-teal-50">
                     <span className="material-icons mr-2">group_add</span>
                     Bulk Add Users
                   </Button>
-                  <Button variant="secondary" onClick={() => setIsExcelUploadDialogOpen(true)}>
+                  <Button variant="secondary" onClick={() => setIsExcelUploadDialogOpen(true)} className="bg-cyan-100 text-teal-700 hover:bg-cyan-200">
                     <FileSpreadsheet className="mr-2 h-5 w-5" />
                     Import Excel
                   </Button>
@@ -573,7 +573,7 @@ export default function UserManagement() {
                         <TableRow key={user.id}>
                           <TableCell className="font-medium">
                             <div className="flex items-center">
-                              <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold mr-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold mr-2">
                                 {user.name.charAt(0)}
                               </div>
                               {user.name}
@@ -583,9 +583,9 @@ export default function UserManagement() {
                           <TableCell>{user.username}</TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              user.role === 'admin' ? 'bg-primary bg-opacity-10 text-primary' :
-                              user.role === 'supervisor' ? 'bg-accent bg-opacity-10 text-accent' :
-                              user.role === 'content_creator' ? 'bg-secondary bg-opacity-10 text-secondary' :
+                              user.role === 'admin' ? 'bg-teal-100 text-teal-700' :
+                              user.role === 'supervisor' ? 'bg-cyan-100 text-cyan-700' :
+                              user.role === 'content_creator' ? 'bg-teal-50 text-teal-600' :
                               'bg-neutrals-200 text-neutrals-700'
                             }`}>
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1).replace('_', ' ')}
@@ -743,7 +743,7 @@ export default function UserManagement() {
               />
               
               <DialogFooter>
-                <Button type="submit" disabled={updateUserMutation.isPending}>
+                <Button type="submit" disabled={updateUserMutation.isPending} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
                   {updateUserMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -957,7 +957,7 @@ export default function UserManagement() {
                 <Button 
                   type="submit" 
                   disabled={createUserMutation.isPending}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
                 >
                   {createUserMutation.isPending ? (
                     <>
@@ -1190,7 +1190,7 @@ export default function UserManagement() {
                 <Button type="button" variant="outline" onClick={() => setIsBulkAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createBulkUsersMutation.isPending}>
+                <Button type="submit" disabled={createBulkUsersMutation.isPending} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
                   {createBulkUsersMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
@@ -1339,7 +1339,7 @@ export default function UserManagement() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isUploading}>
+              <Button type="submit" disabled={isUploading} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
