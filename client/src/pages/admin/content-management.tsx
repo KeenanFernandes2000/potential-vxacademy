@@ -705,6 +705,7 @@ export default function ContentManagement() {
             
             <Tabs defaultValue="areas" value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-6">
+                <TabsTrigger value="media">Media</TabsTrigger>
                 <TabsTrigger value="areas">Training Areas</TabsTrigger>
                 <TabsTrigger value="modules">Modules</TabsTrigger>
                 <TabsTrigger value="courses">Courses</TabsTrigger>

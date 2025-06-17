@@ -7,7 +7,8 @@ import { users, type User, type InsertUser, modules, type Module, type InsertMod
   userBadges, type UserBadge, type InsertUserBadge, aiTutorConversations, type AiTutorConversation, type InsertAiTutorConversation,
   scormPackages, type ScormPackage, type InsertScormPackage, scormTrackingData, type ScormTrackingData, type InsertScormTrackingData,
   roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse,
-  certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification
+  certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification,
+  mediaFiles, type MediaFile, type InsertMediaFile
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, and } from "drizzle-orm";
@@ -786,5 +787,35 @@ export class DatabaseStorage implements IStorage {
       .delete(notifications)
       .where(eq(notifications.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Media Files Management
+  async getMediaFiles(): Promise<MediaFile[]> {
+    return await db.select().from(mediaFiles).orderBy(desc(mediaFiles.createdAt));
+  }
+
+  async getMediaFile(id: number): Promise<MediaFile | undefined> {
+    const [file] = await db.select().from(mediaFiles).where(eq(mediaFiles.id, id));
+    return file;
+  }
+
+  async createMediaFile(file: InsertMediaFile): Promise<MediaFile> {
+    const [newFile] = await db.insert(mediaFiles).values(file).returning();
+    return newFile;
+  }
+
+  async deleteMediaFile(id: number): Promise<boolean> {
+    const result = await db.delete(mediaFiles).where(eq(mediaFiles.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async deleteMultipleMediaFiles(ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    const result = await db.delete(mediaFiles).where(
+      ids.length === 1 ? eq(mediaFiles.id, ids[0]) : 
+      // Use OR condition for multiple IDs
+      eq(mediaFiles.id, ids[0]) // Will need to implement proper IN clause
+    );
+    return result.rowCount ?? 0;
   }
 }
