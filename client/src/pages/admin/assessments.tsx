@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Assessment, InsertAssessment, Unit, Question, Course, Module, TrainingArea } from "@shared/schema";
+import { Assessment, InsertAssessment, insertAssessmentSchema, Unit, Question, Course, Module, TrainingArea } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 // UI Components
@@ -46,11 +46,31 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Pencil, Plus, Trash, Timer, Award, List } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
 
-// Form validation schema extending from database schema
-const assessmentFormSchema = insertAssessmentSchema.extend({
+// Form validation schema with all comprehensive fields
+const assessmentFormSchema = z.object({
   assessmentFor: z.enum(["course", "unit"], {
     required_error: "Please select if this assessment is for a course or unit.",
   }),
+  trainingAreaId: z.coerce.number().optional(),
+  moduleId: z.coerce.number().optional(),
+  courseId: z.coerce.number().optional(),
+  unitId: z.coerce.number().optional(),
+  title: z.string().min(2, {
+    message: "Assessment title must be at least 2 characters.",
+  }),
+  description: z.string().optional(),
+  placement: z.enum(["beginning", "end"], {
+    required_error: "Please select placement.",
+  }).default("end"),
+  isGraded: z.boolean().default(true),
+  showCorrectAnswers: z.boolean().default(false),
+  passingScore: z.coerce.number().min(0).max(100).optional(),
+  hasTimeLimit: z.boolean().default(false),
+  timeLimit: z.coerce.number().min(0).optional(),
+  maxRetakes: z.coerce.number().min(0).default(3),
+  hasCertificate: z.boolean().default(false),
+  certificateTemplate: z.string().optional(),
+  xpPoints: z.coerce.number().min(0).default(50),
 });
 
 export default function AssessmentsManagement() {
@@ -125,7 +145,7 @@ export default function AssessmentsManagement() {
       unitId: undefined,
       title: "",
       description: "",
-      placement: "end" as const,
+      placement: "end",
       isGraded: true,
       showCorrectAnswers: false,
       passingScore: 70,
@@ -146,31 +166,31 @@ export default function AssessmentsManagement() {
       
       form.reset({
         assessmentFor,
-        trainingAreaId: editingAssessment.trainingAreaId,
-        moduleId: editingAssessment.moduleId,
-        courseId: editingAssessment.courseId,
-        unitId: editingAssessment.unitId,
+        trainingAreaId: editingAssessment.trainingAreaId || undefined,
+        moduleId: editingAssessment.moduleId || undefined,
+        courseId: editingAssessment.courseId || undefined,
+        unitId: editingAssessment.unitId || undefined,
         title: editingAssessment.title,
-        description: editingAssessment.description,
-        placement: editingAssessment.placement || "end",
+        description: editingAssessment.description || "",
+        placement: editingAssessment.placement === "beginning" ? "beginning" : "end",
         isGraded: editingAssessment.isGraded ?? true,
         showCorrectAnswers: editingAssessment.showCorrectAnswers ?? false,
-        passingScore: editingAssessment.passingScore,
+        passingScore: editingAssessment.passingScore || undefined,
         hasTimeLimit: editingAssessment.hasTimeLimit ?? false,
-        timeLimit: editingAssessment.timeLimit,
+        timeLimit: editingAssessment.timeLimit || undefined,
         maxRetakes: editingAssessment.maxRetakes ?? 3,
         hasCertificate: editingAssessment.hasCertificate ?? false,
-        certificateTemplate: editingAssessment.certificateTemplate,
+        certificateTemplate: editingAssessment.certificateTemplate || "",
         xpPoints: editingAssessment.xpPoints,
       });
       
       // Set state for hierarchical dropdowns
       if (assessmentFor === "course") {
-        setSelectedTrainingAreaId(editingAssessment.trainingAreaId);
-        setSelectedModuleId(editingAssessment.moduleId);
-        setSelectedCourseId(editingAssessment.courseId);
+        setSelectedTrainingAreaId(editingAssessment.trainingAreaId || null);
+        setSelectedModuleId(editingAssessment.moduleId || null);
+        setSelectedCourseId(editingAssessment.courseId || null);
       } else {
-        setSelectedUnitId(editingAssessment.unitId);
+        setSelectedUnitId(editingAssessment.unitId || null);
       }
     }
   }, [editingAssessment, form]);
@@ -280,11 +300,28 @@ export default function AssessmentsManagement() {
   // Function to handle canceling edit
   const handleCancelEdit = () => {
     setEditingAssessment(null);
+    setAssessmentFor("unit");
+    setSelectedTrainingAreaId(null);
+    setSelectedModuleId(null);
+    setSelectedCourseId(null);
+    setSelectedUnitId(null);
     form.reset({
+      assessmentFor: "unit",
+      trainingAreaId: undefined,
+      moduleId: undefined,
+      courseId: undefined,
+      unitId: undefined,
       title: "",
       description: "",
+      placement: "end",
+      isGraded: true,
+      showCorrectAnswers: false,
       passingScore: 70,
+      hasTimeLimit: false,
       timeLimit: 30,
+      maxRetakes: 3,
+      hasCertificate: false,
+      certificateTemplate: "",
       xpPoints: 50,
     });
   };
@@ -321,6 +358,208 @@ export default function AssessmentsManagement() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {/* Assessment For */}
+                  <FormField
+                    control={form.control}
+                    name="assessmentFor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>This Assessment is for</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setAssessmentFor(value as "course" | "unit");
+                            // Reset hierarchical selections
+                            setSelectedTrainingAreaId(null);
+                            setSelectedModuleId(null);
+                            setSelectedCourseId(null);
+                            setSelectedUnitId(null);
+                          }}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select assessment type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="course">Course</SelectItem>
+                            <SelectItem value="unit">Unit</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Course-level fields */}
+                  {assessmentFor === "course" && (
+                    <>
+                      {/* Training Area */}
+                      <FormField
+                        control={form.control}
+                        name="trainingAreaId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Training Area</FormLabel>
+                            <Select
+                              onValueChange={(value) => {
+                                const areaId = parseInt(value);
+                                field.onChange(areaId);
+                                setSelectedTrainingAreaId(areaId);
+                                setSelectedModuleId(null);
+                                setSelectedCourseId(null);
+                              }}
+                              value={field.value?.toString()}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select training area" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {trainingAreasLoading ? (
+                                  <div className="flex justify-center p-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  </div>
+                                ) : (
+                                  trainingAreas?.map((area) => (
+                                    <SelectItem key={area.id} value={area.id.toString()}>
+                                      {area.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Module */}
+                      <FormField
+                        control={form.control}
+                        name="moduleId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Module</FormLabel>
+                            <Select
+                              onValueChange={(value) => {
+                                const moduleId = parseInt(value);
+                                field.onChange(moduleId);
+                                setSelectedModuleId(moduleId);
+                                setSelectedCourseId(null);
+                              }}
+                              value={field.value?.toString()}
+                              disabled={!selectedTrainingAreaId}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select module" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {modulesLoading ? (
+                                  <div className="flex justify-center p-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  </div>
+                                ) : (
+                                  modules?.map((module) => (
+                                    <SelectItem key={module.id} value={module.id.toString()}>
+                                      {module.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Course */}
+                      <FormField
+                        control={form.control}
+                        name="courseId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Course</FormLabel>
+                            <Select
+                              onValueChange={(value) => {
+                                const courseId = parseInt(value);
+                                field.onChange(courseId);
+                                setSelectedCourseId(courseId);
+                              }}
+                              value={field.value?.toString()}
+                              disabled={!selectedModuleId}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select course" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {coursesLoading ? (
+                                  <div className="flex justify-center p-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  </div>
+                                ) : (
+                                  courses?.map((course) => (
+                                    <SelectItem key={course.id} value={course.id.toString()}>
+                                      {course.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+
+                  {/* Unit-level field */}
+                  {assessmentFor === "unit" && (
+                    <FormField
+                      control={form.control}
+                      name="unitId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Unit</FormLabel>
+                          <Select
+                            onValueChange={(value) => {
+                              field.onChange(parseInt(value));
+                              setSelectedUnitId(parseInt(value));
+                            }}
+                            value={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a unit" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {unitsLoading ? (
+                                <div className="flex justify-center p-2">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                </div>
+                              ) : (
+                                units?.map((unit) => (
+                                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                                    {unit.name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Assessment Title */}
                   <FormField
                     control={form.control}
                     name="title"
@@ -335,47 +574,7 @@ export default function AssessmentsManagement() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="unitId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unit</FormLabel>
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(parseInt(value));
-                            // Also update the selected unit for filtering
-                            if (!editingAssessment) {
-                              setSelectedUnitId(parseInt(value));
-                            }
-                          }}
-                          defaultValue={field.value?.toString()}
-                          value={field.value?.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a unit" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {unitsLoading ? (
-                              <div className="flex justify-center p-2">
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              </div>
-                            ) : (
-                              units?.map((unit) => (
-                                <SelectItem key={unit.id} value={unit.id.toString()}>
-                                  {unit.name}
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
+                  {/* Description */}
                   <FormField
                     control={form.control}
                     name="description"
@@ -395,7 +594,53 @@ export default function AssessmentsManagement() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Placement */}
+                  <FormField
+                    control={form.control}
+                    name="placement"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Placement</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select placement" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="beginning">At the beginning</SelectItem>
+                            <SelectItem value="end">At the end</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Graded Assessment Toggle */}
+                  <FormField
+                    control={form.control}
+                    name="isGraded"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">This is a graded Assessment</FormLabel>
+                          <div className="text-sm text-muted-foreground">
+                            {field.value ? "Users must achieve passing score" : "Users see correct answers after completion"}
+                          </div>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Passing Score - only show if graded */}
+                  {form.watch("isGraded") && (
                     <FormField
                       control={form.control}
                       name="passingScore"
@@ -403,28 +648,134 @@ export default function AssessmentsManagement() {
                         <FormItem>
                           <FormLabel>Passing Score (%)</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" max="100" {...field} />
+                            <Input 
+                              type="number" 
+                              min="0" 
+                              max="100" 
+                              {...field}
+                              value={field.value || ""}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  )}
 
+                  {/* Time Limit Toggle */}
+                  <FormField
+                    control={form.control}
+                    name="hasTimeLimit"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Time Limit</FormLabel>
+                          <div className="text-sm text-muted-foreground">
+                            {field.value ? "Assessment has time limit" : "Unlimited time"}
+                          </div>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Time Limit - only show if enabled */}
+                  {form.watch("hasTimeLimit") && (
                     <FormField
                       control={form.control}
                       name="timeLimit"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Time Limit (min)</FormLabel>
+                          <FormLabel>Time Limit (minutes)</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" {...field} />
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              {...field}
+                              value={field.value || ""}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
+                  )}
 
+                  {/* Retakes */}
+                  <FormField
+                    control={form.control}
+                    name="maxRetakes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Retakes</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            {...field}
+                            value={field.value}
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          />
+                        </FormControl>
+                        <div className="text-sm text-muted-foreground">
+                          Number of times users can retake the assessment to pass
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Certificate Toggle */}
+                  <FormField
+                    control={form.control}
+                    name="hasCertificate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Certificate</FormLabel>
+                          <div className="text-sm text-muted-foreground">
+                            {field.value ? "Award certificate upon completion" : "No certificate"}
+                          </div>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Certificate Template - only show if certificate enabled */}
+                  {form.watch("hasCertificate") && (
+                    <FormField
+                      control={form.control}
+                      name="certificateTemplate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Certificate Template / PDF Link</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Upload template or add PDF certificate link"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* XP Points */}
                   <FormField
                     control={form.control}
                     name="xpPoints"
@@ -432,7 +783,13 @@ export default function AssessmentsManagement() {
                       <FormItem>
                         <FormLabel>XP Points</FormLabel>
                         <FormControl>
-                          <Input type="number" min="0" {...field} />
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            {...field}
+                            value={field.value}
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
