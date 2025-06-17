@@ -60,6 +60,7 @@ function Router() {
       <ProtectedRoute path="/admin/users" component={UserManagement} />
       <ProtectedRoute path="/admin/roles" component={RolesManagement} />
       <ProtectedRoute path="/admin/content" component={ContentManagement} />
+      <ProtectedRoute path="/admin/content-management" component={ContentManagement} />
       <ProtectedRoute path="/admin/analytics" component={Analytics} />
       <ProtectedRoute path="/admin/course-management" component={CourseManagement} />
       <ProtectedRoute path="/admin/modules" component={ModuleManagement} />
