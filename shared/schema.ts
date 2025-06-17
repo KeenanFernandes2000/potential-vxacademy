@@ -110,21 +110,34 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
   createdAt: true,
 });
 
-// Units
+// Units (now independent of courses for many-to-many relationship)
 export const units = pgTable("units", {
   id: serial("id").primaryKey(),
-  courseId: integer("course_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
   internalNote: text("internal_note"), // admin-only field
-  order: integer("order").notNull(),
+  order: integer("order").notNull().default(1), // default order
   duration: integer("duration").notNull().default(30), // in minutes
   showDuration: boolean("show_duration").notNull().default(true), // visibility toggle
   xpPoints: integer("xp_points").notNull().default(100),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Course-Unit junction table for many-to-many relationship
+export const courseUnits = pgTable("course_units", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").notNull(),
+  unitId: integer("unit_id").notNull(),
+  order: integer("order").notNull(), // order within the specific course
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUnitSchema = createInsertSchema(units).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCourseUnitSchema = createInsertSchema(courseUnits).omit({
   id: true,
   createdAt: true,
 });
@@ -303,6 +316,9 @@ export type Course = typeof courses.$inferSelect;
 export type InsertUnit = z.infer<typeof insertUnitSchema>;
 export type Unit = typeof units.$inferSelect;
 
+export type InsertCourseUnit = z.infer<typeof insertCourseUnitSchema>;
+export type CourseUnit = typeof courseUnits.$inferSelect;
+
 export type InsertLearningBlock = z.infer<typeof insertLearningBlockSchema>;
 export type LearningBlock = typeof learningBlocks.$inferSelect;
 
@@ -465,20 +481,28 @@ export const coursesRelations = relations(courses, ({ one, many }) => ({
     fields: [courses.moduleId],
     references: [modules.id],
   }),
-  units: many(units),
+  courseUnits: many(courseUnits),
   userProgress: many(userProgress),
   certificates: many(certificates),
   roleMandatoryCourses: many(roleMandatoryCourses),
   assessments: many(assessments),
 }));
 
-export const unitsRelations = relations(units, ({ one, many }) => ({
-  course: one(courses, {
-    fields: [units.courseId],
-    references: [courses.id],
-  }),
+export const unitsRelations = relations(units, ({ many }) => ({
+  courseUnits: many(courseUnits),
   learningBlocks: many(learningBlocks),
   assessments: many(assessments),
+}));
+
+export const courseUnitsRelations = relations(courseUnits, ({ one }) => ({
+  course: one(courses, {
+    fields: [courseUnits.courseId],
+    references: [courses.id],
+  }),
+  unit: one(units, {
+    fields: [courseUnits.unitId],
+    references: [units.id],
+  }),
 }));
 
 export const learningBlocksRelations = relations(learningBlocks, ({ one, many }) => ({

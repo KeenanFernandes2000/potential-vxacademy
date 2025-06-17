@@ -1,6 +1,7 @@
 import { users, type User, type InsertUser, modules, type Module, type InsertModule,
   trainingAreas, type TrainingArea, type InsertTrainingArea, courses, type Course, type InsertCourse,
-  units, type Unit, type InsertUnit, learningBlocks, type LearningBlock, type InsertLearningBlock,
+  units, type Unit, type InsertUnit, courseUnits, type CourseUnit, type InsertCourseUnit,
+  learningBlocks, type LearningBlock, type InsertLearningBlock,
   assessments, type Assessment, type InsertAssessment, questions, type Question, type InsertQuestion,
   userProgress, type UserProgress, type InsertUserProgress, blockCompletions, type BlockCompletion, type InsertBlockCompletion,
   assessmentAttempts, type AssessmentAttempt, type InsertAssessmentAttempt, badges, type Badge, type InsertBadge,
