@@ -114,6 +114,12 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 17, 2025: Enhanced Unit duration visibility and action icon tooltips
+  - Added duration visibility toggle (showDuration) to Unit create/edit modals with checkbox control
+  - Implemented hover tooltips for all action icons across admin pages (Units, Training Areas, Modules, Courses)
+  - Used TooltipProvider and Tooltip components from shadcn/ui for consistent hover feedback
+  - Action buttons now show descriptive tooltips: "Edit", "Delete", "Duplicate", "Manage Blocks", etc.
+  - Improved user experience with clear visual feedback for admin interface actions
 - June 17, 2025: Comprehensive form field updates and reorganization
   - Updated database schema for courses, units, and assessments with new fields
   - Reorganized course form with hierarchical dropdowns (Training Area > Module > Course)

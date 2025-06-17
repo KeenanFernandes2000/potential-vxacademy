@@ -44,6 +44,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Pencil, Plus, Trash, Copy, Search, Filter } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import AdminLayout from "@/components/layout/admin-layout";
 import { ImageUpload } from "@/components/ui/image-upload";
 
@@ -721,36 +727,58 @@ export default function CourseManagement() {
                               {course.internalNote || '-'}
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEdit(course)}
-                                  title="Edit Course"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDuplicate(course)}
-                                  title="Duplicate Course"
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    if (window.confirm("Are you sure you want to delete this course?")) {
-                                      deleteMutation.mutate(course.id);
-                                    }
-                                  }}
-                                  title="Delete Course"
-                                >
-                                  <Trash className="h-4 w-4 text-red-600" />
-                                </Button>
-                              </div>
+                              <TooltipProvider>
+                                <div className="flex justify-end space-x-2">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleEdit(course)}
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Edit Course</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                  
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleDuplicate(course)}
+                                      >
+                                        <Copy className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Duplicate Course</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                  
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                          if (window.confirm("Are you sure you want to delete this course?")) {
+                                            deleteMutation.mutate(course.id);
+                                          }
+                                        }}
+                                      >
+                                        <Trash className="h-4 w-4 text-red-600" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Delete Course</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </TooltipProvider>
                             </TableCell>
                           </TableRow>
                         );
