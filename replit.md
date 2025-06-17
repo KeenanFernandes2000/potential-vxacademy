@@ -114,6 +114,13 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 17, 2025: Enhanced image upload functionality
+  - Created advanced ImageUpload component with drag and drop functionality
+  - Added tabbed interface for choosing between file upload or URL input
+  - Implemented image preview with remove functionality
+  - Integrated enhanced upload component into Training Areas and Modules pages
+  - Added automatic file upload on selection/drop with progress indicators
+  - Styled component to match media page design with visual feedback
 - June 17, 2025: Completed PostgreSQL database integration
   - Successfully configured Neon serverless PostgreSQL connection
   - Migrated from in-memory MemStorage to DatabaseStorage implementation

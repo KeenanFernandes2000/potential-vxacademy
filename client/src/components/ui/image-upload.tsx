@@ -1,8 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Upload, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Upload, Loader2, Link2, X, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -18,15 +20,63 @@ export function ImageUpload({
   value, 
   onChange, 
   label = "Image", 
-  placeholder = "Image URL (will be set automatically after upload)",
+  placeholder = "Enter image URL...",
   disabled = false 
 }: ImageUploadProps) {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = async () => {
-    if (!fileInputRef.current?.files?.[0]) {
+  // Handle drag and drop
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      
+      // Validate file type
+      if (file.type.startsWith('image/')) {
+        setSelectedFile(file);
+        handleImageUpload(file);
+      } else {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, []);
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      handleImageUpload(file);
+    }
+    // Reset the input
+    event.target.value = '';
+  };
+
+  const handleImageUpload = async (file?: File) => {
+    const fileToUpload = file || selectedFile;
+    
+    if (!fileToUpload) {
       toast({
         title: "No image selected",
         description: "Please select an image file to upload.",
@@ -38,7 +88,7 @@ export function ImageUpload({
     try {
       setUploading(true);
       const formData = new FormData();
-      formData.append("imageFile", fileInputRef.current.files[0]);
+      formData.append("imageFile", fileToUpload);
 
       const response = await apiRequest("POST", "/api/images/upload", formData, null, null, true);
 
@@ -50,6 +100,7 @@ export function ImageUpload({
       
       // Set the image URL
       onChange(result.imageUrl);
+      setSelectedFile(null);
       
       toast({
         title: "Image uploaded",
@@ -66,87 +117,141 @@ export function ImageUpload({
     }
   };
 
+  const clearImage = () => {
+    onChange("");
+    setSelectedFile(null);
+  };
+
   return (
     <FormItem>
       <FormLabel>{label}</FormLabel>
       <FormControl>
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={(e) => {
-                // Clear previous image URL when selecting a new file
-                if (e.target.files && e.target.files.length > 0) {
-                  onChange("");
-                }
-              }}
-              disabled={disabled || uploading}
-            />
-            <Button 
-              type="button" 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled || uploading}
-              size="sm"
-              variant="outline"
+        <Tabs defaultValue="upload" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="upload" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Upload Image
+            </TabsTrigger>
+            <TabsTrigger value="url" className="flex items-center gap-2">
+              <Link2 className="h-4 w-4" />
+              Image URL
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="upload" className="space-y-4">
+            {/* Upload Area */}
+            <Card
+              className={`border-2 border-dashed transition-all duration-200 ${
+                dragActive 
+                  ? 'border-teal-500 bg-teal-50 scale-105' 
+                  : 'border-gray-300 hover:border-gray-400'
+              } ${(uploading || disabled) ? 'opacity-50 pointer-events-none' : ''}`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
             >
-              {uploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Select Image
-                </>
-              )}
-            </Button>
-            {fileInputRef.current?.files?.[0] && (
-              <Button 
-                type="button" 
-                onClick={handleImageUpload}
-                disabled={disabled || uploading}
-                size="sm"
-              >
+              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
                 {uploading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading...
+                    <Loader2 className="h-12 w-12 text-teal-600 mb-4 animate-spin" />
+                    <h3 className="text-lg font-semibold mb-2">Uploading image...</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Please wait while your image is being uploaded
+                    </p>
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload
+                    <ImageIcon className={`h-12 w-12 mb-4 ${dragActive ? 'text-teal-600' : 'text-gray-400'}`} />
+                    <h3 className="text-lg font-semibold mb-2">
+                      {dragActive ? 'Drop image here!' : 'Drop image here or click to upload'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Supports JPG, PNG, GIF, and SVG files up to 5MB
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={disabled || uploading}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Select Image
+                    </Button>
                   </>
                 )}
-              </Button>
+              </CardContent>
+            </Card>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              disabled={disabled || uploading}
+              className="hidden"
+            />
+
+            {/* Selected file info */}
+            {selectedFile && !uploading && (
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium">{selectedFile.name}</span>
+                  <span className="text-xs text-gray-500">
+                    ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedFile(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             )}
-          </div>
+          </TabsContent>
           
-          <Input
-            placeholder={placeholder}
-            value={value || ""}
-            onChange={(e) => onChange(e.target.value)}
-            disabled={disabled}
-          />
-          
-          {value && (
-            <div className="mt-2">
-              <img 
-                src={value} 
-                alt="Preview" 
-                className="max-w-xs max-h-32 object-cover rounded border"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-        </div>
+          <TabsContent value="url" className="space-y-4">
+            <Input
+              placeholder={placeholder}
+              value={value || ""}
+              onChange={(e) => onChange(e.target.value)}
+              disabled={disabled}
+            />
+          </TabsContent>
+        </Tabs>
       </FormControl>
+
+      {/* Image Preview */}
+      {value && (
+        <div className="mt-4">
+          <div className="relative inline-block">
+            <img 
+              src={value} 
+              alt="Preview" 
+              className="max-w-xs max-h-48 object-cover rounded-lg border shadow-sm"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+              onClick={clearImage}
+              disabled={disabled}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Image URL: {value}
+          </p>
+        </div>
+      )}
+
       <FormMessage />
     </FormItem>
   );
