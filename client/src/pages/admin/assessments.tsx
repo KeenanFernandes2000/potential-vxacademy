@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Assessment, InsertAssessment, Unit, Question } from "@shared/schema";
+import { Assessment, InsertAssessment, Unit, Question, Course, Module, TrainingArea } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 // UI Components
@@ -42,27 +42,46 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Loader2, Pencil, Plus, Trash, Timer, Award, List } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
 
-// Form validation schema
-const assessmentFormSchema = z.object({
-  title: z.string().min(2, {
-    message: "Assessment title must be at least 2 characters.",
+// Form validation schema extending from database schema
+const assessmentFormSchema = insertAssessmentSchema.extend({
+  assessmentFor: z.enum(["course", "unit"], {
+    required_error: "Please select if this assessment is for a course or unit.",
   }),
-  unitId: z.coerce.number({
-    required_error: "Please select a unit.",
-  }),
-  description: z.string().optional().nullable(),
-  passingScore: z.coerce.number().min(0).max(100).default(70),
-  timeLimit: z.coerce.number().min(0).default(30),
-  xpPoints: z.coerce.number().min(0).default(50),
 });
 
 export default function AssessmentsManagement() {
   const { toast } = useToast();
   const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<number | null>(null);
+  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+  const [assessmentFor, setAssessmentFor] = useState<"course" | "unit">("unit");
+  
+  // Fetch training areas
+  const { data: trainingAreas, isLoading: trainingAreasLoading } = useQuery<TrainingArea[]>({
+    queryKey: ["/api/training-areas"],
+  });
+
+  // Fetch modules filtered by training area
+  const { data: modules, isLoading: modulesLoading } = useQuery<Module[]>({
+    queryKey: ["/api/modules"],
+    select: (data) => selectedTrainingAreaId 
+      ? data.filter(module => module.trainingAreaId === selectedTrainingAreaId)
+      : data,
+  });
+
+  // Fetch courses filtered by module
+  const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
+    queryKey: ["/api/courses"],
+    select: (data) => selectedModuleId 
+      ? data.filter(course => course.moduleId === selectedModuleId)
+      : data,
+  });
   
   // Fetch units for dropdown with cache invalidation to ensure we get the latest data
   const { data: units, isLoading: unitsLoading } = useQuery<Unit[]>({
@@ -95,14 +114,26 @@ export default function AssessmentsManagement() {
     enabled: !!selectedUnitId,
   });
 
-  // Form setup
-  const form = useForm<InsertAssessment>({
+  // Form setup  
+  const form = useForm({
     resolver: zodResolver(assessmentFormSchema),
     defaultValues: {
+      assessmentFor: "unit" as const,
+      trainingAreaId: undefined,
+      moduleId: undefined,
+      courseId: undefined,
+      unitId: undefined,
       title: "",
       description: "",
+      placement: "end" as const,
+      isGraded: true,
+      showCorrectAnswers: false,
       passingScore: 70,
+      hasTimeLimit: false,
       timeLimit: 30,
+      maxRetakes: 3,
+      hasCertificate: false,
+      certificateTemplate: "",
       xpPoints: 50,
     },
   });
@@ -110,16 +141,37 @@ export default function AssessmentsManagement() {
   // Update form when editing an existing assessment
   useEffect(() => {
     if (editingAssessment) {
+      const assessmentFor = editingAssessment.courseId ? "course" : "unit";
+      setAssessmentFor(assessmentFor);
+      
       form.reset({
-        title: editingAssessment.title,
+        assessmentFor,
+        trainingAreaId: editingAssessment.trainingAreaId,
+        moduleId: editingAssessment.moduleId,
+        courseId: editingAssessment.courseId,
         unitId: editingAssessment.unitId,
+        title: editingAssessment.title,
         description: editingAssessment.description,
+        placement: editingAssessment.placement || "end",
+        isGraded: editingAssessment.isGraded ?? true,
+        showCorrectAnswers: editingAssessment.showCorrectAnswers ?? false,
         passingScore: editingAssessment.passingScore,
+        hasTimeLimit: editingAssessment.hasTimeLimit ?? false,
         timeLimit: editingAssessment.timeLimit,
+        maxRetakes: editingAssessment.maxRetakes ?? 3,
+        hasCertificate: editingAssessment.hasCertificate ?? false,
+        certificateTemplate: editingAssessment.certificateTemplate,
         xpPoints: editingAssessment.xpPoints,
       });
-      // Make sure the selected unit matches the assessment's unit
-      setSelectedUnitId(editingAssessment.unitId);
+      
+      // Set state for hierarchical dropdowns
+      if (assessmentFor === "course") {
+        setSelectedTrainingAreaId(editingAssessment.trainingAreaId);
+        setSelectedModuleId(editingAssessment.moduleId);
+        setSelectedCourseId(editingAssessment.courseId);
+      } else {
+        setSelectedUnitId(editingAssessment.unitId);
+      }
     }
   }, [editingAssessment, form]);
 

@@ -152,6 +152,8 @@ export const insertLearningBlockSchema = createInsertSchema(learningBlocks).omit
 // Assessments
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
+  trainingAreaId: integer("training_area_id"), // for course-level assessments
+  moduleId: integer("module_id"), // for course-level assessments  
   unitId: integer("unit_id"), // nullable for course-level assessments
   courseId: integer("course_id"), // nullable for unit-level assessments
   title: text("title").notNull(),
