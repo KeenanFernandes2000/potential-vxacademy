@@ -168,10 +168,10 @@ export default function AssessmentsManagement() {
       
       form.reset({
         assessmentFor,
-        trainingAreaId: assessmentFor === "course" ? editingAssessment.trainingAreaId || undefined : undefined,
-        moduleId: assessmentFor === "course" ? editingAssessment.moduleId || undefined : undefined,
-        courseId: assessmentFor === "course" ? editingAssessment.courseId || undefined : undefined,
-        unitId: assessmentFor === "unit" ? editingAssessment.unitId || undefined : undefined,
+        trainingAreaId: assessmentFor === "course" && editingAssessment.trainingAreaId ? editingAssessment.trainingAreaId : undefined,
+        moduleId: assessmentFor === "course" && editingAssessment.moduleId ? editingAssessment.moduleId : undefined,
+        courseId: assessmentFor === "course" && editingAssessment.courseId ? editingAssessment.courseId : undefined,
+        unitId: assessmentFor === "unit" && editingAssessment.unitId ? editingAssessment.unitId : undefined,
         title: editingAssessment.title,
         description: editingAssessment.description || "",
         placement: editingAssessment.placement === "beginning" ? "beginning" : "end",
@@ -209,13 +209,17 @@ export default function AssessmentsManagement() {
         description: "Assessment created successfully.",
       });
       form.reset({
+        assessmentFor: "unit",
         title: "",
         description: "",
+        placement: "end",
+        isGraded: true,
         passingScore: 70,
         timeLimit: 30,
         xpPoints: 50,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "assessments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
     onError: (error) => {
       toast({
@@ -239,13 +243,17 @@ export default function AssessmentsManagement() {
       });
       setEditingAssessment(null);
       form.reset({
+        assessmentFor: "unit",
         title: "",
         description: "",
+        placement: "end",
+        isGraded: true,
         passingScore: 70,
         timeLimit: 30,
         xpPoints: 50,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "assessments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
     onError: (error) => {
       toast({
@@ -279,11 +287,32 @@ export default function AssessmentsManagement() {
   });
 
   // Form submission handler
-  const onSubmit = (data: InsertAssessment) => {
+  const onSubmit = (data: AssessmentFormData) => {
+    // Transform form data to match the assessment schema
+    const assessmentData: InsertAssessment = {
+      title: data.title,
+      description: data.description,
+      placement: data.placement,
+      isGraded: data.isGraded,
+      showCorrectAnswers: data.showCorrectAnswers,
+      passingScore: data.passingScore,
+      hasTimeLimit: data.hasTimeLimit,
+      timeLimit: data.timeLimit,
+      maxRetakes: data.maxRetakes,
+      hasCertificate: data.hasCertificate,
+      certificateTemplate: data.certificateTemplate,
+      xpPoints: data.xpPoints,
+      // Set the appropriate ID based on assessment type
+      unitId: data.assessmentFor === "unit" ? data.unitId : undefined,
+      courseId: data.assessmentFor === "course" ? data.courseId : undefined,
+      trainingAreaId: data.assessmentFor === "course" ? data.trainingAreaId : undefined,
+      moduleId: data.assessmentFor === "course" ? data.moduleId : undefined,
+    };
+
     if (editingAssessment) {
-      updateMutation.mutate({ id: editingAssessment.id, assessment: data });
+      updateMutation.mutate({ id: editingAssessment.id, assessment: assessmentData });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(assessmentData);
     }
   };
 
@@ -412,7 +441,7 @@ export default function AssessmentsManagement() {
                                 setSelectedModuleId(null);
                                 setSelectedCourseId(null);
                               }}
-                              value={field.value?.toString()}
+                              value={field.value?.toString() || ""}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -452,7 +481,7 @@ export default function AssessmentsManagement() {
                                 setSelectedModuleId(moduleId);
                                 setSelectedCourseId(null);
                               }}
-                              value={field.value?.toString()}
+                              value={field.value?.toString() || ""}
                               disabled={!selectedTrainingAreaId}
                             >
                               <FormControl>
@@ -492,7 +521,7 @@ export default function AssessmentsManagement() {
                                 field.onChange(courseId);
                                 setSelectedCourseId(courseId);
                               }}
-                              value={field.value?.toString()}
+                              value={field.value?.toString() || ""}
                               disabled={!selectedModuleId}
                             >
                               <FormControl>
@@ -534,7 +563,7 @@ export default function AssessmentsManagement() {
                               field.onChange(parseInt(value));
                               setSelectedUnitId(parseInt(value));
                             }}
-                            value={field.value?.toString()}
+                            value={field.value?.toString() || ""}
                           >
                             <FormControl>
                               <SelectTrigger>
