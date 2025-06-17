@@ -73,6 +73,8 @@ const assessmentFormSchema = z.object({
   xpPoints: z.coerce.number().min(0).default(50),
 });
 
+type AssessmentFormData = z.infer<typeof assessmentFormSchema>;
+
 export default function AssessmentsManagement() {
   const { toast } = useToast();
   const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(null);
@@ -135,7 +137,7 @@ export default function AssessmentsManagement() {
   });
 
   // Form setup  
-  const form = useForm({
+  const form = useForm<AssessmentFormData>({
     resolver: zodResolver(assessmentFormSchema),
     defaultValues: {
       assessmentFor: "unit" as const,
@@ -166,10 +168,10 @@ export default function AssessmentsManagement() {
       
       form.reset({
         assessmentFor,
-        trainingAreaId: editingAssessment.trainingAreaId || undefined,
-        moduleId: editingAssessment.moduleId || undefined,
-        courseId: editingAssessment.courseId || undefined,
-        unitId: editingAssessment.unitId || undefined,
+        trainingAreaId: assessmentFor === "course" ? editingAssessment.trainingAreaId || undefined : undefined,
+        moduleId: assessmentFor === "course" ? editingAssessment.moduleId || undefined : undefined,
+        courseId: assessmentFor === "course" ? editingAssessment.courseId || undefined : undefined,
+        unitId: assessmentFor === "unit" ? editingAssessment.unitId || undefined : undefined,
         title: editingAssessment.title,
         description: editingAssessment.description || "",
         placement: editingAssessment.placement === "beginning" ? "beginning" : "end",
@@ -352,7 +354,7 @@ export default function AssessmentsManagement() {
               <CardDescription>
                 {editingAssessment
                   ? "Update assessment information"
-                  : "Create assessments for units"}
+                  : "Create assessments for units or courses with graded/non-graded options"}
               </CardDescription>
             </CardHeader>
             <CardContent>

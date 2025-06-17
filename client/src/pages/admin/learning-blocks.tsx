@@ -4,7 +4,14 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { LearningBlock, InsertLearningBlock, Unit, Course, Module, TrainingArea } from "@shared/schema";
+import {
+  LearningBlock,
+  InsertLearningBlock,
+  Unit,
+  Course,
+  Module,
+  TrainingArea,
+} from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 // UI Components
@@ -42,7 +49,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Pencil, Plus, Trash, Video, FileText, FileCode, Package, Upload, Image as ImageIcon, Search, Filter } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  Plus,
+  Trash,
+  Video,
+  FileText,
+  FileCode,
+  Package,
+  Upload,
+  Image as ImageIcon,
+  Search,
+  Filter,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -77,14 +97,16 @@ export default function LearningBlocksManagement() {
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const imageFileRef = useRef<HTMLInputElement>(null);
-  
+
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<string>("all");
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] =
+    useState<string>("all");
   const [selectedModuleId, setSelectedModuleId] = useState<string>("all");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
-  const [selectedFilterUnitId, setSelectedFilterUnitId] = useState<string>("all");
-  
+  const [selectedFilterUnitId, setSelectedFilterUnitId] =
+    useState<string>("all");
+
   // Fetch all data for filters and dropdowns
   const { data: trainingAreas } = useQuery<TrainingArea[]>({
     queryKey: ["/api/training-areas"],
@@ -105,7 +127,7 @@ export default function LearningBlocksManagement() {
       return await res.json();
     },
   });
-  
+
   // Set the first unit as selected by default if none is selected
   useEffect(() => {
     if (units && units.length > 0 && !selectedUnitId) {
@@ -114,7 +136,9 @@ export default function LearningBlocksManagement() {
   }, [units, selectedUnitId]);
 
   // Fetch all learning blocks for filtering
-  const { data: allBlocks, isLoading: blocksLoading } = useQuery<LearningBlock[]>({
+  const { data: allBlocks, isLoading: blocksLoading } = useQuery<
+    LearningBlock[]
+  >({
     queryKey: ["/api/learning-blocks"],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/learning-blocks`);
@@ -123,48 +147,60 @@ export default function LearningBlocksManagement() {
   });
 
   // Filter blocks based on search and filter criteria
-  const filteredBlocks = allBlocks?.filter(block => {
-    // Search filter
-    if (searchTerm && !block.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
+  const filteredBlocks =
+    allBlocks?.filter((block) => {
+      // Search filter
+      if (
+        searchTerm &&
+        !block.title.toLowerCase().includes(searchTerm.toLowerCase())
+      ) {
+        return false;
+      }
 
-    // Get unit info for this block
-    const unit = units?.find(u => u.id === block.unitId);
-    if (!unit) return false;
+      // Get unit info for this block
+      const unit = units?.find((u) => u.id === block.unitId);
+      if (!unit) return false;
 
-    // Get course info for this unit
-    const unitCourses = courses?.filter(course => 
-      // Check if unit is assigned to this course through courseUnits table
-      // For now, we'll use a simplified approach since we don't have courseUnits data in frontend
-      true // Will be refined when courseUnits API is available
-    );
+      // Get course info for this unit
+      const unitCourses = courses?.filter(
+        (course) =>
+          // Check if unit is assigned to this course through courseUnits table
+          // For now, we'll use a simplified approach since we don't have courseUnits data in frontend
+          true, // Will be refined when courseUnits API is available
+      );
 
-    // Unit filter
-    if (selectedFilterUnitId !== "all" && block.unitId !== parseInt(selectedFilterUnitId)) {
-      return false;
-    }
+      // Unit filter
+      if (
+        selectedFilterUnitId !== "all" &&
+        block.unitId !== parseInt(selectedFilterUnitId)
+      ) {
+        return false;
+      }
 
-    // Course filter (simplified - would need course-unit relationship data)
-    if (selectedCourseId !== "all") {
-      // This would need proper course-unit relationship checking
-      // For now, skip this filter until we have the proper API
-    }
+      // Course filter (simplified - would need course-unit relationship data)
+      if (selectedCourseId !== "all") {
+        // This would need proper course-unit relationship checking
+        // For now, skip this filter until we have the proper API
+      }
 
-    // Module filter (via course relationship)
-    if (selectedModuleId !== "all") {
-      const relevantCourses = courses?.filter(c => c.moduleId === parseInt(selectedModuleId));
-      // Would need to check if unit belongs to any of these courses
-    }
+      // Module filter (via course relationship)
+      if (selectedModuleId !== "all") {
+        const relevantCourses = courses?.filter(
+          (c) => c.moduleId === parseInt(selectedModuleId),
+        );
+        // Would need to check if unit belongs to any of these courses
+      }
 
-    // Training Area filter (via module-course-unit relationship)
-    if (selectedTrainingAreaId !== "all") {
-      const relevantModules = modules?.filter(m => m.trainingAreaId === parseInt(selectedTrainingAreaId));
-      // Would need to trace through module -> course -> unit relationships
-    }
+      // Training Area filter (via module-course-unit relationship)
+      if (selectedTrainingAreaId !== "all") {
+        const relevantModules = modules?.filter(
+          (m) => m.trainingAreaId === parseInt(selectedTrainingAreaId),
+        );
+        // Would need to trace through module -> course -> unit relationships
+      }
 
-    return true;
-  }) || [];
+      return true;
+    }) || [];
 
   // Fetch SCORM packages for dropdown selection
   const { data: scormPackages, isLoading: scormPackagesLoading } = useQuery({
@@ -243,7 +279,11 @@ export default function LearningBlocksManagement() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (data: { id: number; block: Partial<LearningBlock> }) => {
-      const res = await apiRequest("PATCH", `/api/learning-blocks/${data.id}`, data.block);
+      const res = await apiRequest(
+        "PATCH",
+        `/api/learning-blocks/${data.id}`,
+        data.block,
+      );
       return await res.json();
     },
     onSuccess: () => {
@@ -312,17 +352,24 @@ export default function LearningBlocksManagement() {
       formData.append("imageFile", imageFileRef.current.files[0]);
 
       // Use apiRequest utility to handle authentication
-      const response = await apiRequest("POST", "/api/images/upload", formData, null, null, true);
+      const response = await apiRequest(
+        "POST",
+        "/api/images/upload",
+        formData,
+        null,
+        null,
+        true,
+      );
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
       }
 
       const result = await response.json();
-      
+
       // Set the image URL in the form
       form.setValue("imageUrl", result.imageUrl);
-      
+
       toast({
         title: "Image uploaded",
         description: "The image was uploaded successfully.",
@@ -330,7 +377,8 @@ export default function LearningBlocksManagement() {
     } catch (error) {
       toast({
         title: "Upload failed",
-        description: error instanceof Error ? error.message : "Failed to upload image.",
+        description:
+          error instanceof Error ? error.message : "Failed to upload image.",
         variant: "destructive",
       });
     } finally {
@@ -342,24 +390,25 @@ export default function LearningBlocksManagement() {
   const onSubmit = (data: InsertLearningBlock) => {
     // Create a copy of the data to manipulate
     const submissionData = { ...data };
-    
+
     // Process interactive data if present
     if (data.type === "interactive" && data.interactiveData) {
       try {
         // If interactiveData is a string, parse it into a JSON object
-        if (typeof data.interactiveData === 'string') {
+        if (typeof data.interactiveData === "string") {
           submissionData.interactiveData = JSON.parse(data.interactiveData);
         }
       } catch (error) {
         toast({
           title: "Invalid JSON",
-          description: "The interactive data is not valid JSON. Please check your syntax.",
+          description:
+            "The interactive data is not valid JSON. Please check your syntax.",
           variant: "destructive",
         });
         return; // Exit early if invalid JSON
       }
     }
-    
+
     if (editingBlock) {
       updateMutation.mutate({ id: editingBlock.id, block: submissionData });
     } else {
@@ -374,7 +423,9 @@ export default function LearningBlocksManagement() {
 
   // Function to handle deleting a block
   const handleDelete = (id: number) => {
-    if (window.confirm("Are you sure you want to delete this learning block?")) {
+    if (
+      window.confirm("Are you sure you want to delete this learning block?")
+    ) {
       deleteMutation.mutate(id);
     }
   };
@@ -421,14 +472,20 @@ export default function LearningBlocksManagement() {
     <AdminLayout>
       <div className="container mx-auto py-8 px-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Learning Blocks Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+            Learning Blocks Management
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Learning Block Form */}
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle>{editingBlock ? "Edit Learning Block" : "Add New Learning Block"}</CardTitle>
+              <CardTitle>
+                {editingBlock
+                  ? "Edit Learning Block"
+                  : "Add New Learning Block"}
+              </CardTitle>
               <CardDescription>
                 {editingBlock
                   ? "Update learning block information"
@@ -437,7 +494,10 @@ export default function LearningBlocksManagement() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="title"
@@ -445,7 +505,10 @@ export default function LearningBlocksManagement() {
                       <FormItem>
                         <FormLabel>Block Title</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Introduction to Abu Dhabi" {...field} />
+                          <Input
+                            placeholder="e.g. Introduction to Abu Dhabi"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -487,7 +550,10 @@ export default function LearningBlocksManagement() {
                               </div>
                             ) : (
                               units?.map((unit) => (
-                                <SelectItem key={unit.id} value={unit.id.toString()}>
+                                <SelectItem
+                                  key={unit.id}
+                                  value={unit.id.toString()}
+                                >
                                   {unit.name}
                                 </SelectItem>
                               ))
@@ -519,7 +585,9 @@ export default function LearningBlocksManagement() {
                             <SelectItem value="text">Text</SelectItem>
                             <SelectItem value="video">Video</SelectItem>
                             <SelectItem value="image">Image</SelectItem>
-                            <SelectItem value="interactive">Interactive</SelectItem>
+                            <SelectItem value="interactive">
+                              Interactive
+                            </SelectItem>
                             <SelectItem value="scorm">SCORM Package</SelectItem>
                           </SelectContent>
                         </Select>
@@ -598,7 +666,7 @@ export default function LearningBlocksManagement() {
                       )}
                     />
                   )}
-                  
+
                   {form.watch("type") === "image" && (
                     <>
                       <FormField
@@ -615,13 +683,16 @@ export default function LearningBlocksManagement() {
                                   ref={imageFileRef}
                                   onChange={(e) => {
                                     // Clear previous image URL when selecting a new file
-                                    if (e.target.files && e.target.files.length > 0) {
+                                    if (
+                                      e.target.files &&
+                                      e.target.files.length > 0
+                                    ) {
                                       field.onChange("");
                                     }
                                   }}
                                 />
-                                <Button 
-                                  type="button" 
+                                <Button
+                                  type="button"
                                   onClick={handleImageUpload}
                                   disabled={imageUploading}
                                   size="sm"
@@ -639,19 +710,19 @@ export default function LearningBlocksManagement() {
                                   )}
                                 </Button>
                               </div>
-                              
+
                               <Input
                                 placeholder="Image URL (will be set automatically after upload)"
                                 {...field}
                                 value={field.value || ""}
                                 disabled
                               />
-                              
+
                               {field.value && (
                                 <div className="mt-2 border rounded-md overflow-hidden max-w-xs max-h-48">
-                                  <img 
-                                    src={field.value} 
-                                    alt="Uploaded image preview" 
+                                  <img
+                                    src={field.value}
+                                    alt="Uploaded image preview"
                                     className="w-full h-auto object-contain"
                                   />
                                 </div>
@@ -670,7 +741,9 @@ export default function LearningBlocksManagement() {
                       name="interactiveData"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Interactive Content JSON Configuration</FormLabel>
+                          <FormLabel>
+                            Interactive Content JSON Configuration
+                          </FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder='{
@@ -686,9 +759,13 @@ export default function LearningBlocksManagement() {
 }'
                               className="min-h-[250px] font-mono text-sm"
                               {...field}
-                              value={field.value ? 
-                                (typeof field.value === 'string' ? field.value : JSON.stringify(field.value, null, 2)) 
-                                : ''}
+                              value={
+                                field.value
+                                  ? typeof field.value === "string"
+                                    ? field.value
+                                    : JSON.stringify(field.value, null, 2)
+                                  : ""
+                              }
                               onChange={(e) => {
                                 try {
                                   // Try to parse as JSON to validate, but keep as string in the form
@@ -702,8 +779,14 @@ export default function LearningBlocksManagement() {
                             />
                           </FormControl>
                           <div className="text-xs text-muted-foreground mt-2">
-                            <p>Enter valid JSON configuration for the interactive element.</p>
-                            <p>The JSON structure will vary based on the type of interactive content (quizzes, flashcards, etc).</p>
+                            <p>
+                              Enter valid JSON configuration for the interactive
+                              element.
+                            </p>
+                            <p>
+                              The JSON structure will vary based on the type of
+                              interactive content (quizzes, flashcards, etc).
+                            </p>
                           </div>
                           <FormMessage />
                         </FormItem>
@@ -719,7 +802,9 @@ export default function LearningBlocksManagement() {
                         <FormItem>
                           <FormLabel>SCORM Package</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(parseInt(value))}
+                            onValueChange={(value) =>
+                              field.onChange(parseInt(value))
+                            }
                             defaultValue={field.value?.toString()}
                             value={field.value?.toString()}
                           >
@@ -734,11 +819,16 @@ export default function LearningBlocksManagement() {
                                   <Loader2 className="h-4 w-4 animate-spin" />
                                 </div>
                               ) : scormPackages && scormPackages.length > 0 ? (
-                                scormPackages.map((pkg: { id: number; title: string }) => (
-                                  <SelectItem key={pkg.id} value={pkg.id.toString()}>
-                                    {pkg.title}
-                                  </SelectItem>
-                                ))
+                                scormPackages.map(
+                                  (pkg: { id: number; title: string }) => (
+                                    <SelectItem
+                                      key={pkg.id}
+                                      value={pkg.id.toString()}
+                                    >
+                                      {pkg.title}
+                                    </SelectItem>
+                                  ),
+                                )
                               ) : (
                                 <div className="p-2 text-xs text-muted-foreground">
                                   No SCORM packages available. Upload one first.
@@ -747,8 +837,14 @@ export default function LearningBlocksManagement() {
                             </SelectContent>
                           </Select>
                           <div className="text-xs text-muted-foreground mt-2">
-                            <p>Select a SCORM package to embed in this learning block.</p>
-                            <p>If no packages are available, go to the SCORM Management page to upload one first.</p>
+                            <p>
+                              Select a SCORM package to embed in this learning
+                              block.
+                            </p>
+                            <p>
+                              If no packages are available, go to the SCORM
+                              Management page to upload one first.
+                            </p>
                           </div>
                           <FormMessage />
                         </FormItem>
@@ -758,16 +854,23 @@ export default function LearningBlocksManagement() {
 
                   <div className="flex justify-end space-x-2 pt-4">
                     {editingBlock && (
-                      <Button variant="outline" onClick={handleCancelEdit} type="button">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        type="button"
+                      >
                         Cancel
                       </Button>
                     )}
                     <Button
                       type="submit"
-                      disabled={createMutation.isPending || updateMutation.isPending}
+                      disabled={
+                        createMutation.isPending || updateMutation.isPending
+                      }
                       className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                     >
-                      {(createMutation.isPending || updateMutation.isPending) && (
+                      {(createMutation.isPending ||
+                        updateMutation.isPending) && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                       {editingBlock ? "Update Block" : "Create Block"}
@@ -785,10 +888,10 @@ export default function LearningBlocksManagement() {
                 <div>
                   <CardTitle>Existing Learning Blocks</CardTitle>
                   <CardDescription>
-                    Search and filter learning content blocks across all units
+                    Manage your Existing Learning Blocks
                   </CardDescription>
                 </div>
-                
+
                 {/* Search Bar */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -804,8 +907,13 @@ export default function LearningBlocksManagement() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {/* Training Area Filter */}
                   <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">Training Area</label>
-                    <Select value={selectedTrainingAreaId} onValueChange={setSelectedTrainingAreaId}>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">
+                      Training Area
+                    </label>
+                    <Select
+                      value={selectedTrainingAreaId}
+                      onValueChange={setSelectedTrainingAreaId}
+                    >
                       <SelectTrigger className="h-9">
                         <SelectValue placeholder="All Areas" />
                       </SelectTrigger>
@@ -822,50 +930,78 @@ export default function LearningBlocksManagement() {
 
                   {/* Module Filter */}
                   <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">Module</label>
-                    <Select value={selectedModuleId} onValueChange={setSelectedModuleId}>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">
+                      Module
+                    </label>
+                    <Select
+                      value={selectedModuleId}
+                      onValueChange={setSelectedModuleId}
+                    >
                       <SelectTrigger className="h-9">
                         <SelectValue placeholder="All Modules" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Modules</SelectItem>
-                        {modules?.filter(module => 
-                          selectedTrainingAreaId === "all" || 
-                          module.trainingAreaId === parseInt(selectedTrainingAreaId)
-                        ).map((module) => (
-                          <SelectItem key={module.id} value={module.id.toString()}>
-                            {module.name}
-                          </SelectItem>
-                        ))}
+                        {modules
+                          ?.filter(
+                            (module) =>
+                              selectedTrainingAreaId === "all" ||
+                              module.trainingAreaId ===
+                                parseInt(selectedTrainingAreaId),
+                          )
+                          .map((module) => (
+                            <SelectItem
+                              key={module.id}
+                              value={module.id.toString()}
+                            >
+                              {module.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Course Filter */}
                   <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">Course</label>
-                    <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">
+                      Course
+                    </label>
+                    <Select
+                      value={selectedCourseId}
+                      onValueChange={setSelectedCourseId}
+                    >
                       <SelectTrigger className="h-9">
                         <SelectValue placeholder="All Courses" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Courses</SelectItem>
-                        {courses?.filter(course => 
-                          selectedModuleId === "all" || 
-                          course.moduleId === parseInt(selectedModuleId)
-                        ).map((course) => (
-                          <SelectItem key={course.id} value={course.id.toString()}>
-                            {course.name}
-                          </SelectItem>
-                        ))}
+                        {courses
+                          ?.filter(
+                            (course) =>
+                              selectedModuleId === "all" ||
+                              course.moduleId === parseInt(selectedModuleId),
+                          )
+                          .map((course) => (
+                            <SelectItem
+                              key={course.id}
+                              value={course.id.toString()}
+                            >
+                              {course.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Unit Filter */}
                   <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">Unit</label>
-                    <Select value={selectedFilterUnitId} onValueChange={setSelectedFilterUnitId}>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">
+                      Unit
+                    </label>
+                    <Select
+                      value={selectedFilterUnitId}
+                      onValueChange={setSelectedFilterUnitId}
+                    >
                       <SelectTrigger className="h-9">
                         <SelectValue placeholder="All Units" />
                       </SelectTrigger>
@@ -883,7 +1019,8 @@ export default function LearningBlocksManagement() {
 
                 {/* Results Summary */}
                 <div className="text-sm text-gray-600">
-                  Showing {filteredBlocks.length} of {allBlocks?.length || 0} learning blocks
+                  Showing {filteredBlocks.length} of {allBlocks?.length || 0}{" "}
+                  learning blocks
                 </div>
               </div>
             </CardHeader>
@@ -966,8 +1103,11 @@ export default function LearningBlocksManagement() {
                 </TooltipProvider>
               ) : (
                 <div className="text-center py-8 text-slate-600">
-                  {searchTerm || selectedTrainingAreaId !== "all" || selectedModuleId !== "all" || 
-                   selectedCourseId !== "all" || selectedFilterUnitId !== "all"
+                  {searchTerm ||
+                  selectedTrainingAreaId !== "all" ||
+                  selectedModuleId !== "all" ||
+                  selectedCourseId !== "all" ||
+                  selectedFilterUnitId !== "all"
                     ? "No learning blocks match your current filters. Try adjusting your search criteria."
                     : "No learning blocks found. Create your first block using the form on the left!"}
                 </div>
