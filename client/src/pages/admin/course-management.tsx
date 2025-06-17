@@ -110,9 +110,13 @@ export default function CourseManagement() {
   const form = useForm<InsertCourse>({
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
+      trainingAreaId: undefined,
+      moduleId: undefined,
       name: "",
       description: "",
       imageUrl: "",
+      internalNote: "",
+      courseType: "standard",
       duration: 0,
       level: "beginner",
     },
@@ -130,13 +134,17 @@ export default function CourseManagement() {
         description: "The course has been created successfully.",
       });
       form.reset({
+        trainingAreaId: undefined,
+        moduleId: undefined,
         name: "",
         description: "",
         imageUrl: "",
+        internalNote: "",
+        courseType: "standard",
         duration: 0,
         level: "beginner",
-        moduleId: undefined,
       });
+      setSelectedTrainingAreaId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
     },
     onError: (error: Error) => {

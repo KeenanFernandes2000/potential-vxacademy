@@ -91,6 +91,7 @@ export const insertModuleSchema = createInsertSchema(modules).omit({
 // Courses
 export const courses = pgTable("courses", {
   id: serial("id").primaryKey(),
+  trainingAreaId: integer("training_area_id").notNull(),
   moduleId: integer("module_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
@@ -106,6 +107,9 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
   id: true,
   createdAt: true,
 });
+
+export type InsertCourse = z.infer<typeof insertCourseSchema>;
+export type Course = typeof courses.$inferSelect;
 
 // Units
 export const units = pgTable("units", {
@@ -124,6 +128,9 @@ export const insertUnitSchema = createInsertSchema(units).omit({
   id: true,
   createdAt: true,
 });
+
+export type InsertUnit = z.infer<typeof insertUnitSchema>;
+export type Unit = typeof units.$inferSelect;
 
 // Learning Blocks
 export const learningBlocks = pgTable("learning_blocks", {
