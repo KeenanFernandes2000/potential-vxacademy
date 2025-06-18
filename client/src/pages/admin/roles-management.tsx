@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Settings, Eye, Edit, Trash2, Users, Filter } from "lucide-react";
+import { Plus, Search, Settings, Eye, Edit, Trash2, Users, Filter, MoreHorizontal } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -356,7 +357,7 @@ export default function RolesManagement() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Role Management Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Role Management</h1>
             <p className="text-muted-foreground">
               Create and manage roles with asset, category, and seniority configurations
             </p>
@@ -496,7 +497,7 @@ export default function RolesManagement() {
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">
-                                  <Settings className="h-4 w-4" />
+                                  <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
