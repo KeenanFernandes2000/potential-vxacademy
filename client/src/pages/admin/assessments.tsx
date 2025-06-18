@@ -78,11 +78,17 @@ type AssessmentFormData = z.infer<typeof assessmentFormSchema>;
 export default function AssessmentsManagement() {
   const { toast } = useToast();
   const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(null);
-  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
+  
+  // Form state (separate from display filters)
   const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<number | null>(null);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [assessmentFor, setAssessmentFor] = useState<"course" | "unit">("unit");
+  
+  // Display filter state (independent of form)
+  const [displayFilter, setDisplayFilter] = useState<"all" | "unit" | "course">("all");
+  const [filterUnitId, setFilterUnitId] = useState<number | null>(null);
+  const [filterCourseId, setFilterCourseId] = useState<number | null>(null);
   
   // Fetch training areas
   const { data: trainingAreas, isLoading: trainingAreasLoading } = useQuery<TrainingArea[]>({
@@ -118,23 +124,24 @@ export default function AssessmentsManagement() {
     refetchOnWindowFocus: true,
   });
   
-  // Set the first unit as selected by default if none is selected
-  useEffect(() => {
-    if (units && units.length > 0 && !selectedUnitId) {
-      setSelectedUnitId(units[0].id);
-    }
-  }, [units, selectedUnitId]);
-
-  // Fetch assessments for the selected unit
-  const { data: assessments, isLoading: assessmentsLoading } = useQuery<Assessment[]>({
-    queryKey: ["/api/units", selectedUnitId, "assessments"],
+  // Fetch all assessments (independent of form state)
+  const { data: allAssessments, isLoading: assessmentsLoading } = useQuery<Assessment[]>({
+    queryKey: ["/api/assessments"],
     queryFn: async () => {
-      if (!selectedUnitId) return [];
-      const res = await apiRequest("GET", `/api/units/${selectedUnitId}/assessments`);
+      const res = await apiRequest("GET", "/api/assessments");
       return await res.json();
     },
-    enabled: !!selectedUnitId,
   });
+
+  // Filter assessments based on display filters
+  const filteredAssessments = allAssessments?.filter(assessment => {
+    if (displayFilter === "unit") {
+      return assessment.unitId && (!filterUnitId || assessment.unitId === filterUnitId);
+    } else if (displayFilter === "course") {
+      return assessment.courseId && (!filterCourseId || assessment.courseId === filterCourseId);
+    }
+    return true; // "all" filter
+  }) || [];
 
   // Form setup  
   const form = useForm<AssessmentFormData>({
@@ -191,8 +198,6 @@ export default function AssessmentsManagement() {
         setSelectedTrainingAreaId(editingAssessment.trainingAreaId || null);
         setSelectedModuleId(editingAssessment.moduleId || null);
         setSelectedCourseId(editingAssessment.courseId || null);
-      } else {
-        setSelectedUnitId(editingAssessment.unitId || null);
       }
     }
   }, [editingAssessment, form]);
@@ -218,7 +223,6 @@ export default function AssessmentsManagement() {
         timeLimit: 30,
         xpPoints: 50,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "assessments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
     onError: (error) => {
@@ -252,7 +256,6 @@ export default function AssessmentsManagement() {
         timeLimit: 30,
         xpPoints: 50,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "assessments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
     onError: (error) => {
@@ -275,7 +278,6 @@ export default function AssessmentsManagement() {
         title: "Success",
         description: "Assessment deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedUnitId, "assessments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
     onError: (error) => {
