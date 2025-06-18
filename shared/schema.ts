@@ -39,17 +39,25 @@ export type RoleMandatoryCourse = typeof roleMandatoryCourses.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type Role = typeof roles.$inferSelect;
 
-// User model
+// User model with comprehensive profile structure
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  name: text("name").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
-  role: text("role").notNull().default("frontliner"),
   xpPoints: integer("xp_points").notNull().default(0),
   avatar: text("avatar"),
-  language: text("language").default("en"),
+  language: text("language").default("english"),
+  nationality: text("nationality"),
+  yearsOfExperience: text("years_of_experience"),
+  assets: text("assets"),
+  roleCategory: text("role_category"),
+  subCategory: text("sub_category"),
+  seniority: text("seniority"),
+  organizationName: text("organization_name"),
+  isSubAdmin: boolean("is_sub_admin").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

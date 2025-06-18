@@ -850,7 +850,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/badges", async (req, res) => {
     if (
       !req.isAuthenticated() ||
-      (req.user!.role !== "admin" && req.user!.role !== "instructor")
+      (!req.user!.isSubAdmin && req.user!.id !== 1)
     ) {
       return res.status(403).json({ message: "Unauthorized" });
     }
@@ -869,7 +869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/badges/:id", async (req, res) => {
     if (
       !req.isAuthenticated() ||
-      (req.user!.role !== "admin" && req.user!.role !== "instructor")
+      (!req.user!.isSubAdmin && req.user!.id !== 1)
     ) {
       return res.status(403).json({ message: "Unauthorized" });
     }

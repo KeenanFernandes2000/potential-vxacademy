@@ -1587,28 +1587,34 @@ export default function UserManagement() {
               className="space-y-6"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Default Role */}
+                {/* Default Assets */}
                 <FormField
                   control={bulkUserForm.control}
-                  name="defaultRole"
+                  name="defaultAssets"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Default Role</FormLabel>
+                      <FormLabel>Default Assets</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a role" />
+                            <SelectValue placeholder="Select assets" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {roles?.map((role) => (
-                            <SelectItem key={role.id} value={role.name}>
-                              {role.name}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="museum">Museum</SelectItem>
+                          <SelectItem value="culture-site">Culture site</SelectItem>
+                          <SelectItem value="events">Events</SelectItem>
+                          <SelectItem value="mobility-operators">Mobility operators</SelectItem>
+                          <SelectItem value="airports">Airports</SelectItem>
+                          <SelectItem value="cruise-terminals">Cruise terminals</SelectItem>
+                          <SelectItem value="hospitality">Hospitality</SelectItem>
+                          <SelectItem value="malls">Malls</SelectItem>
+                          <SelectItem value="tour-guides">Tour Guides & operators</SelectItem>
+                          <SelectItem value="visitor-centers">Visitor information centers</SelectItem>
+                          <SelectItem value="entertainment">Entertainment & Attractions</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -1734,15 +1740,30 @@ export default function UserManagement() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Name */}
+                      {/* First Name */}
                       <FormField
                         control={bulkUserForm.control}
-                        name={`users.${index}.name`}
+                        name={`users.${index}.firstName`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Full Name</FormLabel>
+                            <FormLabel>First Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="John Doe" {...field} />
+                              <Input placeholder="John" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Last Name */}
+                      <FormField
+                        control={bulkUserForm.control}
+                        name={`users.${index}.lastName`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Doe" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
