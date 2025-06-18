@@ -114,6 +114,12 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 18, 2025: Fixed Authentication System and Database Integration
+  - Resolved password hashing method mismatch between bcrypt and scrypt
+  - Created properly authenticated admin account (admin@vx-academy.ae / admin123)
+  - Cleared and reseeded database with correct user profile structure
+  - Verified login functionality and session management working correctly
+  - All comprehensive user management features now fully accessible
 - June 18, 2025: Comprehensive User Management System Overhaul
   - Implemented hierarchical user system: Admin, Sub-Admin, and User roles with proper permissions
   - Enhanced database schema with comprehensive user profile fields (firstName, lastName, nationality, etc.)
