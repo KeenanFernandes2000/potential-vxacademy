@@ -45,6 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Pencil, Plus, Trash, Timer, Award, List } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
+import { CertificateTemplateUpload } from "@/components/admin/certificate-template-upload";
 
 // Form validation schema with all comprehensive fields
 const assessmentFormSchema = z.object({

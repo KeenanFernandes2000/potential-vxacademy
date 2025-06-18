@@ -17,6 +17,7 @@ import {
   Award,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -106,6 +107,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: "User Management",
       path: "/admin/users",
       icon: <Users className="h-5 w-5" />,
+    },
+    {
+      name: "Role Management",
+      path: "/admin/roles",
+      icon: <Shield className="h-5 w-5" />,
     },
     {
       name: "Analytics",
