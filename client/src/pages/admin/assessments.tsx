@@ -129,7 +129,9 @@ export default function AssessmentsManagement() {
     queryKey: ["/api/assessments"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/assessments");
-      return await res.json();
+      const data = await res.json();
+      console.log("Fetched assessments:", data);
+      return data;
     },
   });
 
@@ -142,6 +144,10 @@ export default function AssessmentsManagement() {
     }
     return true; // "all" filter
   }) || [];
+
+  console.log("Display filter:", displayFilter);
+  console.log("All assessments:", allAssessments);
+  console.log("Filtered assessments:", filteredAssessments);
 
   // Form setup  
   const form = useForm<AssessmentFormData>({
@@ -874,12 +880,12 @@ export default function AssessmentsManagement() {
                 {displayFilter === "unit" && (
                   <div className="flex-1">
                     <label className="text-sm font-medium">Filter by Unit</label>
-                    <Select value={filterUnitId?.toString() || ""} onValueChange={(value) => setFilterUnitId(value ? parseInt(value) : null)}>
+                    <Select value={filterUnitId?.toString() || "all"} onValueChange={(value) => setFilterUnitId(value === "all" ? null : parseInt(value))}>
                       <SelectTrigger>
                         <SelectValue placeholder="All units" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Units</SelectItem>
+                        <SelectItem value="all">All Units</SelectItem>
                         {units?.map((unit) => (
                           <SelectItem key={unit.id} value={unit.id.toString()}>
                             {unit.name}
@@ -893,12 +899,12 @@ export default function AssessmentsManagement() {
                 {displayFilter === "course" && (
                   <div className="flex-1">
                     <label className="text-sm font-medium">Filter by Course</label>
-                    <Select value={filterCourseId?.toString() || ""} onValueChange={(value) => setFilterCourseId(value ? parseInt(value) : null)}>
+                    <Select value={filterCourseId?.toString() || "all"} onValueChange={(value) => setFilterCourseId(value === "all" ? null : parseInt(value))}>
                       <SelectTrigger>
                         <SelectValue placeholder="All courses" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Courses</SelectItem>
+                        <SelectItem value="all">All Courses</SelectItem>
                         {courses?.map((course) => (
                           <SelectItem key={course.id} value={course.id.toString()}>
                             {course.name}
