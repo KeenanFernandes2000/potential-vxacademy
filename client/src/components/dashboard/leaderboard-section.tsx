@@ -63,7 +63,7 @@ export function LeaderboardSection() {
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
-                      {user.name.charAt(0)}
+                      {user.name?.charAt(0) || '?'}
                     </div>
                   )}
                   {index === 0 && (
