@@ -6,175 +6,76 @@ import {
   badges,
   userBadges,
 } from "@shared/schema";
-import { scrypt, randomBytes } from "crypto";
-import { promisify } from "util";
+import bcrypt from "bcrypt";
 import { eq, and, sql } from "drizzle-orm";
 
-const scryptAsync = promisify(scrypt);
-
 export async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+  return await bcrypt.hash(password, 10);
 }
 
 export async function seedDatabase() {
   try {
+    console.log("Clearing all users except admin...");
+    // Delete all users except admin
+    await db.delete(users).where(sql`email != 'admin@vx-academy.ae'`);
+    
     console.log("Checking for admin user...");
     // Check if admin user exists
     const adminUsers = await db
       .select()
       .from(users)
-      .where(eq(users.username, "admin"));
+      .where(eq(users.email, "admin@vx-academy.ae"));
 
     if (adminUsers.length === 0) {
       console.log("Admin user not found, creating...");
-      // Create admin user
-      const hashedPassword = await hashPassword("password");
+      // Create admin user with new schema
+      const hashedPassword = await hashPassword("admin123");
       await db.insert(users).values({
         username: "admin",
         password: hashedPassword,
-        name: "Admin User",
         email: "admin@vx-academy.ae",
+        firstName: "Admin",
+        lastName: "User",
         role: "admin",
         xpPoints: 0,
+        language: "English",
+        nationality: "United Arab Emirates",
+        yearsOfExperience: "10+ years",
+        assets: "Museum",
+        roleCategory: "Information desk staff",
+        subCategory: "Manager",
+        seniority: "Manager",
+        organizationName: "VX Academy",
+        isSubAdmin: false,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
       console.log("Admin user created successfully!");
     } else {
-      console.log("Admin user already exists.");
-    }
-
-    // Check for demo users
-    const demoUsers = await db
-      .select()
-      .from(users)
-      .where(eq(users.username, "instructor"));
-
-    if (demoUsers.length === 0) {
-      console.log("Creating demo users...");
-
-      // Create instructor
-      const instructorPassword = await hashPassword("password");
-      const [instructor] = await db
-        .insert(users)
-        .values({
-          username: "instructor",
-          password: instructorPassword,
-          name: "Sara Ahmed",
-          email: "sara@vx-academy.ae",
-          role: "instructor",
-          xpPoints: 500,
+      console.log("Admin user exists, updating with new schema...");
+      // Update existing admin user to match new schema
+      const hashedPassword = await hashPassword("admin123");
+      await db.update(users)
+        .set({
+          password: hashedPassword,
+          firstName: "Admin",
+          lastName: "User",
+          role: "admin",
+          language: "English",
+          nationality: "United Arab Emirates",
+          yearsOfExperience: "10+ years",
+          assets: "Museum",
+          roleCategory: "Information desk staff",
+          subCategory: "Manager",
+          seniority: "Manager",
+          organizationName: "VX Academy",
+          isSubAdmin: false,
+          isActive: true,
+          updatedAt: new Date(),
         })
-        .returning();
-
-      // Create frontline staff users with different progress levels
-      const staffPassword = await hashPassword("password");
-
-      // Beginner user (just started)
-      const [beginner] = await db
-        .insert(users)
-        .values({
-          username: "ahmed",
-          password: staffPassword,
-          name: "Ahmed Khan",
-          email: "ahmed@vx-academy.ae",
-          role: "staff",
-          xpPoints: 20,
-          language: "en",
-        })
-        .returning();
-
-      // Intermediate user (some progress)
-      const [intermediate] = await db
-        .insert(users)
-        .values({
-          username: "fatima",
-          password: staffPassword,
-          name: "Fatima Al Zaabi",
-          email: "fatima@vx-academy.ae",
-          role: "staff",
-          xpPoints: 150,
-          language: "ar",
-        })
-        .returning();
-
-      // Advanced user (significant progress)
-      const [advanced] = await db
-        .insert(users)
-        .values({
-          username: "hassan",
-          password: staffPassword,
-          name: "Hassan Ali",
-          email: "hassan@vx-academy.ae",
-          role: "staff",
-          xpPoints: 350,
-          language: "en",
-        })
-        .returning();
-
-      // Add progress records for sample users
-      if (beginner && intermediate && advanced) {
-        // For beginner - just started first course
-        await db.insert(userProgress).values({
-          userId: beginner.id,
-          courseId: 1,
-          completed: false,
-          percentComplete: 10,
-        });
-
-        // For intermediate - completed first course, started second
-        await db.insert(userProgress).values({
-          userId: intermediate.id,
-          courseId: 1,
-          completed: true,
-          percentComplete: 100,
-        });
-
-        await db.insert(userProgress).values({
-          userId: intermediate.id,
-          courseId: 2,
-          completed: false,
-          percentComplete: 30,
-        });
-
-        // For advanced - completed multiple courses
-        await db.insert(userProgress).values({
-          userId: advanced.id,
-          courseId: 1,
-          completed: true,
-          percentComplete: 100,
-        });
-
-        await db.insert(userProgress).values({
-          userId: advanced.id,
-          courseId: 2,
-          completed: true,
-          percentComplete: 100,
-        });
-
-        await db.insert(userProgress).values({
-          userId: advanced.id,
-          courseId: 3,
-          completed: false,
-          percentComplete: 75,
-        });
-
-        // Add some block completions for advanced user
-        const learningBlocks = await db.query.learningBlocks.findMany();
-        if (learningBlocks.length > 0) {
-          for (let i = 0; i < Math.min(5, learningBlocks.length); i++) {
-            await db.insert(blockCompletions).values({
-              userId: advanced.id,
-              blockId: learningBlocks[i].id,
-              completed: true,
-            });
-          }
-        }
-      }
-
-      console.log("Demo users created successfully!");
-    } else {
-      console.log("Demo users already exist.");
+        .where(eq(users.email, "admin@vx-academy.ae"));
+      console.log("Admin user updated successfully!");
     }
 
     // Check for badges
