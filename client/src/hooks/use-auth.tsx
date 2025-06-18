@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Login successful",
-        description: `Welcome back, ${user.name}!`,
+        description: `Welcome back, ${`${user.firstName} ${user.lastName}`}!`,
       });
     },
     onError: (error: Error) => {
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Registration successful",
-        description: `Welcome to VX Academy, ${user.name}!`,
+        description: `Welcome to VX Academy, ${`${user.firstName} ${user.lastName}`}!`,
       });
     },
     onError: (error: Error) => {

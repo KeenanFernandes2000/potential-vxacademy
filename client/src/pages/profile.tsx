@@ -197,7 +197,7 @@ export default function Profile() {
                   {user?.avatar ? (
                     <img 
                       src={user.avatar} 
-                      alt={user.name} 
+                      alt={`${user.firstName} ${user.lastName}`} 
                       className="w-20 h-20 rounded-full object-cover"
                     />
                   ) : (

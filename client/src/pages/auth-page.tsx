@@ -32,7 +32,8 @@ const loginSchema = z.object({
 
 const registerSchema = z
   .object({
-    name: z.string().min(1, "Full name is required"),
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
     email: z.string().email("Please enter a valid email"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
@@ -70,7 +71,8 @@ export default function AuthPage() {
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -231,25 +233,46 @@ export default function AuthPage() {
                       onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
                       className="space-y-5"
                     >
-                      <FormField
-                        control={registerForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-white font-medium text-base">
-                              Full Name
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter your full name"
-                                {...field}
-                                className="rounded-xl bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60 focus:bg-white/20 focus:border-white/40 transition-all duration-300 py-3 lg:py-4 text-base"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-red-300" />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={registerForm.control}
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-white font-medium text-base">
+                                First Name
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your first name"
+                                  {...field}
+                                  className="rounded-xl bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60 focus:bg-white/20 focus:border-white/40 transition-all duration-300 py-3 lg:py-4 text-base"
+                                />
+                              </FormControl>
+                              <FormMessage className="text-red-300" />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={registerForm.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-white font-medium text-base">
+                                Last Name
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your last name"
+                                  {...field}
+                                  className="rounded-xl bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60 focus:bg-white/20 focus:border-white/40 transition-all duration-300 py-3 lg:py-4 text-base"
+                                />
+                              </FormControl>
+                              <FormMessage className="text-red-300" />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
                       <FormField
                         control={registerForm.control}
