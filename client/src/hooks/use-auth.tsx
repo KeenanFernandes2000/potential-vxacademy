@@ -24,7 +24,8 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  name: z.string().min(1, "Full name is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(1, "Please confirm your password"),
@@ -72,10 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
-      // Remove confirmPassword before sending to API
+      // Remove confirmPassword and add username before sending to API
       const { confirmPassword, ...data } = credentials;
-      // No username needed - the server will generate one from the email
-      const res = await apiRequest("POST", "/api/register", data);
+      const registerData = {
+        ...data,
+        username: data.email.split('@')[0], // Generate username from email
+      };
+      const res = await apiRequest("POST", "/api/register", registerData);
       return await res.json();
     },
     onSuccess: (user) => {

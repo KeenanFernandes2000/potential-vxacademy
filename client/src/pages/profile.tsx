@@ -65,7 +65,7 @@ export default function Profile() {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user?.name || "",
+      name: user ? `${user.firstName} ${user.lastName}` : "",
       email: user?.email || "",
       language: user?.language || "en",
     },
@@ -202,7 +202,7 @@ export default function Profile() {
                     />
                   ) : (
                     <div className="w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold">
-                      {user?.name?.charAt(0) || "U"}
+                      {user?.firstName?.charAt(0) || user?.username?.charAt(0) || "U"}
                     </div>
                   )}
                   <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white border-2 border-white flex items-center justify-center">
@@ -217,7 +217,7 @@ export default function Profile() {
                 </div>
                 
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-neutrals-800 mb-1">{user?.name}</h1>
+                  <h1 className="text-2xl font-bold text-neutrals-800 mb-1">{user ? `${user.firstName} ${user.lastName}` : ''}</h1>
                   <p className="text-neutrals-600 mb-2">{user?.email}</p>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
