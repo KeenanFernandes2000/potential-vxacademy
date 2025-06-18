@@ -997,38 +997,32 @@ export default function UserManagement() {
 
               <FormField
                 control={form.control}
-                name="role"
+                name="roleCategory"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>Role Category</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
+                          <SelectValue placeholder="Select role category" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {roles && roles.length > 0 ? (
-                          roles.map((role) => (
-                            <SelectItem key={role.id} value={role.name}>
-                              {role.name.charAt(0).toUpperCase() +
-                                role.name.slice(1).replace("_", " ")}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <>
-                            <SelectItem value="admin">Administrator</SelectItem>
-                            <SelectItem value="supervisor">
-                              Supervisor
-                            </SelectItem>
-                            <SelectItem value="content_creator">
-                              Content Creator
-                            </SelectItem>
-                            <SelectItem value="frontliner">
-                              Frontliner
-                            </SelectItem>
-                          </>
-                        )}
+                        <SelectItem value="customer-service">Customer Service</SelectItem>
+                        <SelectItem value="transport-staff">Transport Staff</SelectItem>
+                        <SelectItem value="welcome-staff">Welcome Staff</SelectItem>
+                        <SelectItem value="security-personnel">Security Personnel</SelectItem>
+                        <SelectItem value="cleaning-maintenance">Cleaning & Maintenance</SelectItem>
+                        <SelectItem value="food-beverage">Food & Beverage</SelectItem>
+                        <SelectItem value="retail-sales">Retail & Sales</SelectItem>
+                        <SelectItem value="cultural-guides">Cultural Guides</SelectItem>
+                        <SelectItem value="event-coordination">Event Coordination</SelectItem>
+                        <SelectItem value="technical-support">Technical Support</SelectItem>
+                        <SelectItem value="healthcare-wellness">Healthcare & Wellness</SelectItem>
+                        <SelectItem value="administrative">Administrative</SelectItem>
+                        <SelectItem value="management">Management</SelectItem>
+                        <SelectItem value="training-development">Training & Development</SelectItem>
+                        <SelectItem value="marketing-communications">Marketing & Communications</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
