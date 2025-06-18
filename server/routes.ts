@@ -444,6 +444,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all assessments for admin management
+  app.get("/api/assessments", async (req, res) => {
+    try {
+      // Get all units to fetch their assessments
+      const allUnits = await storage.getAllUnits();
+      const allAssessments = [];
+      
+      // Get assessments for each unit
+      for (const unit of allUnits) {
+        const unitAssessments = await storage.getAssessments(unit.id);
+        allAssessments.push(...unitAssessments);
+      }
+      
+      console.log("Fetched all assessments:", allAssessments.length);
+      res.json(allAssessments);
+    } catch (error) {
+      console.error("Error fetching all assessments:", error);
+      res.status(500).json({ message: "Error fetching assessments" });
+    }
+  });
+
   app.post("/api/assessments", async (req, res) => {
     try {
       console.log("Creating assessment with data:", req.body);

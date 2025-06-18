@@ -114,6 +114,14 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 18, 2025: Assessment page independent filtering implementation
+  - Separated assessment display filters from form state to match other admin pages design pattern
+  - Added independent filter controls (All/Unit/Course assessments) with proper dropdown handling
+  - Created /api/assessments GET endpoint for fetching all assessments across the platform
+  - Updated assessment table to use filteredAssessments instead of form-dependent selectedUnitId
+  - Fixed Select component errors by replacing empty string values with "all" for proper React Select handling
+  - Removed all selectedUnitId dependencies from display logic for true independence
+  - Enhanced empty state messages to reflect current filter selections
 - June 17, 2025: Comprehensive Learning Block page overhaul with advanced filtering
   - Fixed database schema issue by adding missing scorm_package_id column to learning_blocks table
   - Implemented comprehensive search functionality with real-time title-based filtering

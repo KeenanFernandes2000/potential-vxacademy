@@ -101,11 +101,15 @@ type NewUserFormValues = z.infer<typeof newUserSchema>;
 export default function UserManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [platformRoleFilter, setPlatformRoleFilter] = useState("all");
+  const [assetsFilter, setAssetsFilter] = useState("all");
+  const [roleCategoryFilter, setRoleCategoryFilter] = useState("all");
+  const [seniorityFilter, setSeniorityFilter] = useState("all");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isBulkAddDialogOpen, setIsBulkAddDialogOpen] = useState(false);
   const [isExcelUploadDialogOpen, setIsExcelUploadDialogOpen] = useState(false);
+  const [isUserDetailDialogOpen, setIsUserDetailDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<any>(null);
@@ -175,9 +179,13 @@ export default function UserManagement() {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Fetch users
-  const { data: users, isLoading } = useQuery<User[]>({
-    queryKey: ["/api/admin/users"],
+  // Fetch users with enhanced data including XP, badges, and progress
+  const { data: users, isLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/users/enhanced"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/users/enhanced");
+      return await res.json();
+    },
   });
 
   // Fetch courses for assigning to users

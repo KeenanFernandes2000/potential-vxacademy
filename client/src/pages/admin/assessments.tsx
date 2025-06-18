@@ -145,9 +145,7 @@ export default function AssessmentsManagement() {
     return true; // "all" filter
   }) || [];
 
-  console.log("Display filter:", displayFilter);
-  console.log("All assessments:", allAssessments);
-  console.log("Filtered assessments:", filteredAssessments);
+
 
   // Form setup  
   const form = useForm<AssessmentFormData>({
