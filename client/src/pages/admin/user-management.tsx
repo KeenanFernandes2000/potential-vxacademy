@@ -111,6 +111,7 @@ export default function UserManagement() {
   const [isExcelUploadDialogOpen, setIsExcelUploadDialogOpen] = useState(false);
   const [isUserDetailDialogOpen, setIsUserDetailDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<any | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<any>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -457,7 +458,7 @@ export default function UserManagement() {
     }
   };
 
-  // Filter users based on search and role filter
+  // Filter users based on search and multiple filters
   const filteredUsers = users 
     ? users.filter(user => {
         const matchesSearch = 
@@ -465,9 +466,12 @@ export default function UserManagement() {
           user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.username.toLowerCase().includes(searchQuery.toLowerCase());
         
-        const matchesRole = roleFilter === "all" || user.role === roleFilter;
+        const matchesPlatformRole = platformRoleFilter === "all" || user.role === platformRoleFilter;
+        const matchesAssets = assetsFilter === "all" || (user.assets && user.assets.includes(assetsFilter));
+        const matchesRoleCategory = roleCategoryFilter === "all" || (user.roleCategory && user.roleCategory === roleCategoryFilter);
+        const matchesSeniority = seniorityFilter === "all" || (user.seniority && user.seniority === seniorityFilter);
         
-        return matchesSearch && matchesRole;
+        return matchesSearch && matchesPlatformRole && matchesAssets && matchesRoleCategory && matchesSeniority;
       })
     : [];
 
@@ -517,20 +521,67 @@ export default function UserManagement() {
                   />
                 </div>
                 
-                <div className="flex-shrink-0">
-                  <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-full md:w-[180px]">
-                      <Filter className="mr-2 h-4 w-4" />
-                      <SelectValue placeholder="Filter by role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="admin">Administrators</SelectItem>
-                      <SelectItem value="supervisor">Supervisors</SelectItem>
-                      <SelectItem value="content_creator">Content Creators</SelectItem>
-                      <SelectItem value="frontliner">Frontliners</SelectItem>
-                    </SelectContent>
-                  </Select>
+                {/* Multi-Filter Controls */}
+                <div className="flex flex-wrap gap-2 items-center">
+                  <div className="flex-shrink-0">
+                    <Select value={platformRoleFilter} onValueChange={setPlatformRoleFilter}>
+                      <SelectTrigger className="w-full md:w-[180px]">
+                        <Filter className="mr-2 h-4 w-4" />
+                        <SelectValue placeholder="Platform role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Platform Roles</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="sub-admin">Sub-Admin</SelectItem>
+                        <SelectItem value="user">User</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex-shrink-0">
+                    <Select value={assetsFilter} onValueChange={setAssetsFilter}>
+                      <SelectTrigger className="w-full md:w-[160px]">
+                        <SelectValue placeholder="Assets" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Assets</SelectItem>
+                        <SelectItem value="hotel">Hotel</SelectItem>
+                        <SelectItem value="restaurant">Restaurant</SelectItem>
+                        <SelectItem value="spa">Spa</SelectItem>
+                        <SelectItem value="retail">Retail</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex-shrink-0">
+                    <Select value={roleCategoryFilter} onValueChange={setRoleCategoryFilter}>
+                      <SelectTrigger className="w-full md:w-[160px]">
+                        <SelectValue placeholder="Role Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="management">Management</SelectItem>
+                        <SelectItem value="supervisor">Supervisor</SelectItem>
+                        <SelectItem value="frontline">Frontline</SelectItem>
+                        <SelectItem value="support">Support</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex-shrink-0">
+                    <Select value={seniorityFilter} onValueChange={setSeniorityFilter}>
+                      <SelectTrigger className="w-full md:w-[140px]">
+                        <SelectValue placeholder="Seniority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Levels</SelectItem>
+                        <SelectItem value="junior">Junior</SelectItem>
+                        <SelectItem value="senior">Senior</SelectItem>
+                        <SelectItem value="lead">Lead</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 
                 <div className="flex gap-3">
@@ -570,7 +621,13 @@ export default function UserManagement() {
                       <TableHead>Email</TableHead>
                       <TableHead>Username</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Assets</TableHead>
+                      <TableHead>Role Category</TableHead>
+                      <TableHead>Seniority</TableHead>
                       <TableHead>XP Points</TableHead>
+                      <TableHead>Badges</TableHead>
+                      <TableHead>Mandatory Progress</TableHead>
+                      <TableHead>Language</TableHead>
                       <TableHead>Created At</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -599,7 +656,47 @@ export default function UserManagement() {
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1).replace('_', ' ')}
                             </span>
                           </TableCell>
-                          <TableCell>{user.xpPoints.toLocaleString()}</TableCell>
+                          <TableCell>
+                            <span className="px-2 py-1 rounded-md text-xs bg-blue-50 text-blue-700">
+                              {user.assets || 'Not Assigned'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="px-2 py-1 rounded-md text-xs bg-purple-50 text-purple-700">
+                              {user.roleCategory || 'Not Set'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="px-2 py-1 rounded-md text-xs bg-orange-50 text-orange-700">
+                              {user.seniority || 'Not Set'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold text-yellow-600">{user.xpPoints?.toLocaleString() || '0'}</span>
+                              <span className="text-xs text-gray-500">XP</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold text-blue-600">{user.badgesCollected || 0}</span>
+                              <span className="text-xs text-gray-500">badges</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-gradient-to-r from-teal-500 to-cyan-500 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${user.mandatoryProgress || 0}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-gray-600">{user.mandatoryProgress || 0}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">{user.language || 'English'}</span>
+                          </TableCell>
                           <TableCell>{formatDate(user.createdAt)}</TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
@@ -615,7 +712,7 @@ export default function UserManagement() {
                                   <span className="material-icons text-sm mr-2">edit</span>
                                   Edit User
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedUserForDetails(user)}>
                                   <span className="material-icons text-sm mr-2">visibility</span>
                                   View Details
                                 </DropdownMenuItem>
