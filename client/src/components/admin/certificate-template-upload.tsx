@@ -222,21 +222,21 @@ export function CertificateTemplateUpload({ value, onChange, disabled }: Certifi
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="font-mono text-sm">{{USER_NAME}}</span>
+                <span className="font-mono text-sm">{"{{USER_NAME}}"}</span>
                 <span className="text-sm text-gray-600">User's full name</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="font-mono text-sm">{{COURSE_NAME}}</span>
+                <span className="font-mono text-sm">{"{{COURSE_NAME}}"}</span>
                 <span className="text-sm text-gray-600">Course title</span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="font-mono text-sm">{{DATE}}</span>
+                <span className="font-mono text-sm">{"{{DATE}}"}</span>
                 <span className="text-sm text-gray-600">Completion date</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="font-mono text-sm">{{CERTIFICATE_ID}}</span>
+                <span className="font-mono text-sm">{"{{CERTIFICATE_ID}}"}</span>
                 <span className="text-sm text-gray-600">Unique certificate ID</span>
               </div>
             </div>

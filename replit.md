@@ -114,6 +114,15 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 18, 2025: Enhanced Certificate Template Upload and Role Management UI
+  - Added Role Management to admin sidebar navigation with Shield icon for easy access
+  - Implemented comprehensive CertificateTemplateUpload component with drag and drop functionality
+  - Created tabbed interface supporting both file upload and URL input methods
+  - Added template placeholder information showing {{USER_NAME}}, {{COURSE_NAME}}, {{DATE}}, {{CERTIFICATE_ID}}
+  - Integrated upload component into assessments form replacing basic input field
+  - Added backend API endpoint /api/upload/certificate-template for secure file handling
+  - Enhanced role management page with proper spacing (p-6) for better visual layout
+  - Fixed TypeScript errors and added react-dropzone dependency for advanced upload features
 - June 18, 2025: Updated User Schema to firstName/lastName Structure
   - Fixed runtime error by replacing deprecated user.name references throughout application
   - Updated registration page with separate firstName and lastName fields while maintaining aesthetic

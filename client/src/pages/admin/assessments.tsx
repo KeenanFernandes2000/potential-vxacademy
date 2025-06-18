@@ -795,12 +795,12 @@ export default function AssessmentsManagement() {
                       name="certificateTemplate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Certificate Template / PDF Link</FormLabel>
+                          <FormLabel>Certificate Template</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Upload template or add PDF certificate link"
-                              {...field}
+                            <CertificateTemplateUpload
                               value={field.value || ""}
+                              onChange={field.onChange}
+                              disabled={createMutation.isPending || updateMutation.isPending}
                             />
                           </FormControl>
                           <FormMessage />
