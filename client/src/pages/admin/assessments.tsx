@@ -338,7 +338,6 @@ export default function AssessmentsManagement() {
     setSelectedTrainingAreaId(null);
     setSelectedModuleId(null);
     setSelectedCourseId(null);
-    setSelectedUnitId(null);
     form.reset({
       assessmentFor: "unit",
       trainingAreaId: undefined,
@@ -407,7 +406,7 @@ export default function AssessmentsManagement() {
                             setSelectedTrainingAreaId(null);
                             setSelectedModuleId(null);
                             setSelectedCourseId(null);
-                            setSelectedUnitId(null);
+
                           }}
                           defaultValue={field.value}
                         >
@@ -564,7 +563,7 @@ export default function AssessmentsManagement() {
                           <Select
                             onValueChange={(value) => {
                               field.onChange(parseInt(value));
-                              setSelectedUnitId(parseInt(value));
+
                             }}
                             value={field.value?.toString() || ""}
                           >
@@ -855,41 +854,72 @@ export default function AssessmentsManagement() {
           {/* Assessments List */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Assessments</CardTitle>
+              <CardTitle>Existing Assessments</CardTitle>
               <CardDescription>
-                {selectedUnitId
-                  ? `Assessments for ${getUnitName(selectedUnitId)}`
-                  : "Select a unit to view its assessments"}
+                Manage all assessments across units and courses
               </CardDescription>
-              {!selectedUnitId && (
-                <div className="mt-2">
-                  <Select onValueChange={(value) => setSelectedUnitId(parseInt(value))}>
+              
+              {/* Display Filter Controls (independent of form) */}
+              <div className="flex gap-4 mt-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium">Filter by Type</label>
+                  <Select value={displayFilter} onValueChange={(value: "all" | "unit" | "course") => setDisplayFilter(value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a unit" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {unitsLoading ? (
-                        <div className="flex justify-center p-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                      ) : (
-                        units?.map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id.toString()}>
-                            {unit.name}
-                          </SelectItem>
-                        ))
-                      )}
+                      <SelectItem value="all">All Assessments</SelectItem>
+                      <SelectItem value="unit">Unit Assessments</SelectItem>
+                      <SelectItem value="course">Course Assessments</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              )}
+                
+                {displayFilter === "unit" && (
+                  <div className="flex-1">
+                    <label className="text-sm font-medium">Filter by Unit</label>
+                    <Select value={filterUnitId?.toString() || ""} onValueChange={(value) => setFilterUnitId(value ? parseInt(value) : null)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All units" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Units</SelectItem>
+                        {units?.map((unit) => (
+                          <SelectItem key={unit.id} value={unit.id.toString()}>
+                            {unit.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                {displayFilter === "course" && (
+                  <div className="flex-1">
+                    <label className="text-sm font-medium">Filter by Course</label>
+                    <Select value={filterCourseId?.toString() || ""} onValueChange={(value) => setFilterCourseId(value ? parseInt(value) : null)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All courses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Courses</SelectItem>
+                        {courses?.map((course) => (
+                          <SelectItem key={course.id} value={course.id.toString()}>
+                            {course.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {assessmentsLoading ? (
                 <div className="flex justify-center p-12">
                   <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
                 </div>
-              ) : assessments && assessments.length > 0 ? (
+              ) : filteredAssessments && filteredAssessments.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -901,7 +931,7 @@ export default function AssessmentsManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {assessments.map((assessment) => (
+                    {filteredAssessments.map((assessment) => (
                       <TableRow key={assessment.id}>
                         <TableCell>{assessment.title}</TableCell>
                         <TableCell>{assessment.passingScore}%</TableCell>
@@ -943,9 +973,9 @@ export default function AssessmentsManagement() {
                 </Table>
               ) : (
                 <div className="text-center py-8 text-abu-charcoal/60">
-                  {selectedUnitId
+                  {displayFilter === "all" 
                     ? "No assessments found. Create your first assessment!"
-                    : "Select a unit to view its assessments"}
+                    : `No ${displayFilter} assessments found with current filters.`}
                 </div>
               )}
             </CardContent>
