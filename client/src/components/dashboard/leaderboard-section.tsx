@@ -58,12 +58,12 @@ export function LeaderboardSection() {
                   {user.avatar ? (
                     <img
                       src={user.avatar}
-                      alt={user.name}
+                      alt={`${user.firstName} ${user.lastName}`}
                       className="rounded-full"
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
-                      {user.name.charAt(0)}
+                      {user.firstName?.charAt(0) || user.username?.charAt(0) || '?'}
                     </div>
                   )}
                   {index === 0 && (
@@ -76,7 +76,7 @@ export function LeaderboardSection() {
                 </div>
                 <div className="flex-1">
                   <span className="font-medium text-neutrals-800">
-                    {user.name}
+                    {user.firstName} {user.lastName}
                     {isCurrentUser && (
                       <span className="text-xs text-teal-600 ml-2">(You)</span>
                     )}
