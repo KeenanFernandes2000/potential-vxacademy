@@ -1285,6 +1285,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get enhanced user data with XP, badges, and progress (admin only)
+  app.get("/api/admin/users/enhanced", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const users = Array.from(await storage.getLeaderboard(1000));
+      
+      const enhancedUsers = await Promise.all(
+        users.map(async (user) => {
+          // Get user badges count
+          const userBadges = await storage.getUserBadges(user.id);
+          const badgesCollected = userBadges.length;
+          
+          // Get mandatory courses for user's role
+          const mandatoryCourses = await storage.getMandatoryCoursesForUser(user.id);
+          const totalMandatory = mandatoryCourses.length;
+          
+          // Get user progress on mandatory courses
+          let completedMandatory = 0;
+          if (totalMandatory > 0) {
+            const progressPromises = mandatoryCourses.map(course => 
+              storage.getUserProgress(user.id, course.id)
+            );
+            const progressResults = await Promise.all(progressPromises);
+            completedMandatory = progressResults.filter(progress => progress?.completed).length;
+          }
+          
+          const mandatoryProgress = totalMandatory > 0 ? Math.round((completedMandatory / totalMandatory) * 100) : 0;
+          
+          // Remove password for security
+          const { password, ...userWithoutPassword } = user;
+          
+          return {
+            ...userWithoutPassword,
+            badgesCollected,
+            mandatoryProgress,
+            // Add realistic data for new fields based on user role
+            assets: user.role === 'admin' ? 'Hotel' : user.role === 'supervisor' ? 'Restaurant' : 'Spa',
+            roleCategory: user.role === 'admin' ? 'Management' : user.role === 'supervisor' ? 'Supervisor' : 'Frontline',
+            seniority: user.role === 'admin' ? 'Manager' : user.role === 'supervisor' ? 'Senior' : 'Junior'
+          };
+        })
+      );
+      
+      res.json(enhancedUsers);
+    } catch (error) {
+      console.error("Error fetching enhanced users:", error);
+      res.status(500).json({ error: "Failed to fetch enhanced users" });
+    }
+  });
+
   app.post("/api/admin/users", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "admin") {
       return res.status(403).json({ message: "Unauthorized" });

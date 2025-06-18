@@ -584,18 +584,21 @@ export default function UserManagement() {
                   </div>
                 </div>
                 
-                <div className="flex gap-3">
-                  <Button onClick={() => setIsAddDialogOpen(true)} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
-                    <span className="material-icons mr-2">add</span>
-                    Add User
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  <Button onClick={() => setIsAddDialogOpen(true)} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-xs sm:text-sm">
+                    <span className="material-icons mr-1 sm:mr-2 text-sm">add</span>
+                    <span className="hidden sm:inline">Add User</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
-                  <Button variant="outline" onClick={() => setIsBulkAddDialogOpen(true)} className="border-teal-600 text-teal-600 hover:bg-teal-50">
-                    <span className="material-icons mr-2">group_add</span>
-                    Bulk Add Users
+                  <Button variant="outline" onClick={() => setIsBulkAddDialogOpen(true)} className="border-teal-600 text-teal-600 hover:bg-teal-50 text-xs sm:text-sm">
+                    <span className="material-icons mr-1 sm:mr-2 text-sm">group_add</span>
+                    <span className="hidden sm:inline">Bulk Add Users</span>
+                    <span className="sm:hidden">Bulk</span>
                   </Button>
-                  <Button variant="secondary" onClick={() => setIsExcelUploadDialogOpen(true)} className="bg-cyan-100 text-teal-700 hover:bg-cyan-200">
-                    <FileSpreadsheet className="mr-2 h-5 w-5" />
-                    Import Excel
+                  <Button variant="secondary" onClick={() => setIsExcelUploadDialogOpen(true)} className="bg-cyan-100 text-teal-700 hover:bg-cyan-200 text-xs sm:text-sm">
+                    <FileSpreadsheet className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="hidden sm:inline">Import Excel</span>
+                    <span className="sm:hidden">Excel</span>
                   </Button>
                 </div>
               </div>
@@ -1307,6 +1310,139 @@ export default function UserManagement() {
         </DialogContent>
       </Dialog>
       
+      {/* User Details Modal */}
+      <Dialog open={!!selectedUserForDetails} onOpenChange={() => setSelectedUserForDetails(null)}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-lg font-semibold">
+                {selectedUserForDetails?.name.charAt(0)}
+              </div>
+              {selectedUserForDetails?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Complete user profile and learning progress overview
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUserForDetails && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm text-gray-700">Email</h4>
+                  <p className="text-sm">{selectedUserForDetails.email}</p>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm text-gray-700">Username</h4>
+                  <p className="text-sm">{selectedUserForDetails.username}</p>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm text-gray-700">Platform Role</h4>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    selectedUserForDetails.role === 'admin' ? 'bg-teal-100 text-teal-700' :
+                    selectedUserForDetails.role === 'supervisor' ? 'bg-cyan-100 text-cyan-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {selectedUserForDetails.role.charAt(0).toUpperCase() + selectedUserForDetails.role.slice(1)}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm text-gray-700">Language</h4>
+                  <p className="text-sm">{selectedUserForDetails.language || 'English'}</p>
+                </div>
+              </div>
+
+              {/* Role Details */}
+              <div className="border-t pt-4">
+                <h3 className="font-semibold text-lg mb-3">Role Information</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-gray-700">Assets</h4>
+                    <span className="px-2 py-1 rounded-md text-xs bg-blue-50 text-blue-700">
+                      {selectedUserForDetails.assets || 'Not Assigned'}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-gray-700">Role Category</h4>
+                    <span className="px-2 py-1 rounded-md text-xs bg-purple-50 text-purple-700">
+                      {selectedUserForDetails.roleCategory || 'Not Set'}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-gray-700">Seniority</h4>
+                    <span className="px-2 py-1 rounded-md text-xs bg-orange-50 text-orange-700">
+                      {selectedUserForDetails.seniority || 'Not Set'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Learning Progress */}
+              <div className="border-t pt-4">
+                <h3 className="font-semibold text-lg mb-3">Learning Progress</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">{selectedUserForDetails.xpPoints?.toLocaleString() || '0'}</div>
+                    <div className="text-sm text-gray-600">XP Points</div>
+                  </div>
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{selectedUserForDetails.badgesCollected || 0}</div>
+                    <div className="text-sm text-gray-600">Badges Earned</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">{selectedUserForDetails.mandatoryProgress || 0}%</div>
+                    <div className="text-sm text-gray-600">Mandatory Courses</div>
+                  </div>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="mt-4">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Overall Mandatory Progress</span>
+                    <span>{selectedUserForDetails.mandatoryProgress || 0}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-teal-500 to-cyan-500 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${selectedUserForDetails.mandatoryProgress || 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Details */}
+              <div className="border-t pt-4">
+                <h3 className="font-semibold text-lg mb-3">Account Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-gray-700">Created At</h4>
+                    <p className="text-sm">{formatDate(selectedUserForDetails.createdAt)}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-gray-700">User ID</h4>
+                    <p className="text-sm font-mono">#{selectedUserForDetails.id}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedUserForDetails(null)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              setSelectedUser(selectedUserForDetails);
+              setSelectedUserForDetails(null);
+              setIsEditDialogOpen(true);
+            }} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
+              Edit User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Excel Upload Dialog */}
       <Dialog open={isExcelUploadDialogOpen} onOpenChange={setIsExcelUploadDialogOpen}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
