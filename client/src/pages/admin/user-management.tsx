@@ -29,7 +29,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -220,8 +219,8 @@ export default function UserManagement() {
     createUserMutation.mutate(data);
   };
 
-  // Redirect if not Sub-Admin
-  if (user && !user.isSubAdmin && user.id !== 1) {
+  // Redirect if not admin
+  if (user && user.role !== "admin") {
     return <Redirect to="/" />;
   }
 
@@ -325,11 +324,9 @@ export default function UserManagement() {
       });
       setIsBulkAddDialogOpen(false);
       bulkUserForm.reset({
+        defaultRole: "frontliner",
         defaultLanguage: "en",
-        defaultAssets: "",
-        defaultRoleCategory: "",
-        defaultSeniority: "",
-        users: [{ firstName: "", lastName: "", email: "", username: "", password: "" }],
+        users: [{ name: "", email: "", username: "", password: "" }],
         courseIds: [],
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -504,38 +501,20 @@ export default function UserManagement() {
   const form = useForm<UserEditFormValues>({
     resolver: zodResolver(userEditSchema),
     defaultValues: {
-      firstName: selectedUser?.firstName || "",
-      lastName: selectedUser?.lastName || "",
+      name: selectedUser?.name || "",
       email: selectedUser?.email || "",
-      username: selectedUser?.username || "",
+      role: selectedUser?.role || "frontliner",
       language: selectedUser?.language || "en",
-      nationality: selectedUser?.nationality || "",
-      yearsOfExperience: selectedUser?.yearsOfExperience || "",
-      assets: selectedUser?.assets || "",
-      roleCategory: selectedUser?.roleCategory || "",
-      subCategory: selectedUser?.subCategory || "",
-      seniority: selectedUser?.seniority || "",
-      organizationName: selectedUser?.organizationName || "",
-      isSubAdmin: selectedUser?.isSubAdmin || false,
     },
   });
 
   const openEditDialog = (user: User) => {
     setSelectedUser(user);
     form.reset({
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
+      name: user.name,
       email: user.email,
-      username: user.username,
+      role: user.role,
       language: user.language || "en",
-      nationality: user.nationality || "",
-      yearsOfExperience: user.yearsOfExperience || "",
-      assets: user.assets || "",
-      roleCategory: user.roleCategory || "",
-      subCategory: user.subCategory || "",
-      seniority: user.seniority || "",
-      organizationName: user.organizationName || "",
-      isSubAdmin: user.isSubAdmin || false,
     });
     setIsEditDialogOpen(true);
   };
@@ -952,34 +931,19 @@ export default function UserManagement() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter first name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter last name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -997,32 +961,38 @@ export default function UserManagement() {
 
               <FormField
                 control={form.control}
-                name="roleCategory"
+                name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role Category</FormLabel>
+                    <FormLabel>Role</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select role category" />
+                          <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="customer-service">Customer Service</SelectItem>
-                        <SelectItem value="transport-staff">Transport Staff</SelectItem>
-                        <SelectItem value="welcome-staff">Welcome Staff</SelectItem>
-                        <SelectItem value="security-personnel">Security Personnel</SelectItem>
-                        <SelectItem value="cleaning-maintenance">Cleaning & Maintenance</SelectItem>
-                        <SelectItem value="food-beverage">Food & Beverage</SelectItem>
-                        <SelectItem value="retail-sales">Retail & Sales</SelectItem>
-                        <SelectItem value="cultural-guides">Cultural Guides</SelectItem>
-                        <SelectItem value="event-coordination">Event Coordination</SelectItem>
-                        <SelectItem value="technical-support">Technical Support</SelectItem>
-                        <SelectItem value="healthcare-wellness">Healthcare & Wellness</SelectItem>
-                        <SelectItem value="administrative">Administrative</SelectItem>
-                        <SelectItem value="management">Management</SelectItem>
-                        <SelectItem value="training-development">Training & Development</SelectItem>
-                        <SelectItem value="marketing-communications">Marketing & Communications</SelectItem>
+                        {roles && roles.length > 0 ? (
+                          roles.map((role) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.name.charAt(0).toUpperCase() +
+                                role.name.slice(1).replace("_", " ")}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <>
+                            <SelectItem value="admin">Administrator</SelectItem>
+                            <SelectItem value="supervisor">
+                              Supervisor
+                            </SelectItem>
+                            <SelectItem value="content_creator">
+                              Content Creator
+                            </SelectItem>
+                            <SelectItem value="frontliner">
+                              Frontliner
+                            </SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1177,26 +1147,12 @@ export default function UserManagement() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={addUserForm.control}
-                  name="firstName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter first name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addUserForm.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter last name" {...field} />
+                        <Input placeholder="Enter full name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1255,6 +1211,39 @@ export default function UserManagement() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={addUserForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {roles && roles.length > 0 ? (
+                            roles.map((role) => (
+                              <SelectItem key={role.id} value={role.name}>
+                                {role.name.charAt(0).toUpperCase() +
+                                  role.name.slice(1).replace("_", " ")}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="admin">Administrator</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addUserForm.control}
                   name="language"
                   render={({ field }) => (
                     <FormItem>
@@ -1265,222 +1254,16 @@ export default function UserManagement() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select language" />
+                            <SelectValue placeholder="Select a language" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="arabic">Arabic</SelectItem>
-                          <SelectItem value="english">English</SelectItem>
-                          <SelectItem value="urdu">Urdu</SelectItem>
-                          <SelectItem value="hindi">Hindi</SelectItem>
-                          <SelectItem value="tagalog">Tagalog</SelectItem>
-                          <SelectItem value="bengali">Bengali</SelectItem>
-                          <SelectItem value="malayalam">Malayalam</SelectItem>
-                          <SelectItem value="tamil">Tamil</SelectItem>
-                          <SelectItem value="farsi">Farsi</SelectItem>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="ar">Arabic</SelectItem>
+                          <SelectItem value="ur">Urdu</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addUserForm.control}
-                  name="nationality"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nationality</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter nationality" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={addUserForm.control}
-                  name="yearsOfExperience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Years of Experience</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select experience" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="less-than-1">Less than 1 year</SelectItem>
-                          <SelectItem value="1-5">1-5 years</SelectItem>
-                          <SelectItem value="5-10">5-10 years</SelectItem>
-                          <SelectItem value="10-plus">10+ years</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addUserForm.control}
-                  name="assets"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Assets</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select assets" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="museum">Museum</SelectItem>
-                          <SelectItem value="culture-site">Culture site</SelectItem>
-                          <SelectItem value="events">Events</SelectItem>
-                          <SelectItem value="mobility-operators">Mobility operators</SelectItem>
-                          <SelectItem value="airports">Airports</SelectItem>
-                          <SelectItem value="cruise-terminals">Cruise terminals</SelectItem>
-                          <SelectItem value="hospitality">Hospitality</SelectItem>
-                          <SelectItem value="malls">Malls</SelectItem>
-                          <SelectItem value="tour-guides">Tour Guides & operators</SelectItem>
-                          <SelectItem value="visitor-centers">Visitor information centers</SelectItem>
-                          <SelectItem value="entertainment">Entertainment & Attractions</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Work Profile Section */}
-              <div className="border-t pt-4">
-                <h4 className="font-medium text-sm mb-3 text-gray-700">Work Profile</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={addUserForm.control}
-                    name="roleCategory"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role Category</FormLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select role category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="transport-parking">Transport and parking staff</SelectItem>
-                            <SelectItem value="welcome-staff">Welcome staff</SelectItem>
-                            <SelectItem value="ticketing-staff">Ticketing staff</SelectItem>
-                            <SelectItem value="information-desk">Information desk staff</SelectItem>
-                            <SelectItem value="guides">Guides</SelectItem>
-                            <SelectItem value="events-staff">Events staff</SelectItem>
-                            <SelectItem value="security">Security personnel</SelectItem>
-                            <SelectItem value="retail-staff">Retail staff</SelectItem>
-                            <SelectItem value="fnb-staff">F&B staff</SelectItem>
-                            <SelectItem value="housekeeping">Housekeeping & janitorial</SelectItem>
-                            <SelectItem value="customer-service">Customer service</SelectItem>
-                            <SelectItem value="emergency-medical">Emergency & medical services</SelectItem>
-                            <SelectItem value="media-pr">Media and public relations</SelectItem>
-                            <SelectItem value="logistics">Logistics</SelectItem>
-                            <SelectItem value="recreation">Recreation and entertainment</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={addUserForm.control}
-                    name="seniority"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Seniority</FormLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select seniority" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="manager">Manager</SelectItem>
-                            <SelectItem value="staff">Staff</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <FormField
-                    control={addUserForm.control}
-                    name="subCategory"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sub-Category</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter sub-category (optional)" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={addUserForm.control}
-                    name="organizationName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Organization Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter organization name (optional)" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* Sub-Admin Toggle */}
-              <div className="border-t pt-4">
-                <FormField
-                  control={addUserForm.control}
-                  name="isSubAdmin"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Sub-Admin Access</FormLabel>
-                        <FormDescription>
-                          Allow this user to create and manage other users
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
                     </FormItem>
                   )}
                 />
@@ -1596,34 +1379,28 @@ export default function UserManagement() {
               className="space-y-6"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Default Assets */}
+                {/* Default Role */}
                 <FormField
                   control={bulkUserForm.control}
-                  name="defaultAssets"
+                  name="defaultRole"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Default Assets</FormLabel>
+                      <FormLabel>Default Role</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select assets" />
+                            <SelectValue placeholder="Select a role" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="museum">Museum</SelectItem>
-                          <SelectItem value="culture-site">Culture site</SelectItem>
-                          <SelectItem value="events">Events</SelectItem>
-                          <SelectItem value="mobility-operators">Mobility operators</SelectItem>
-                          <SelectItem value="airports">Airports</SelectItem>
-                          <SelectItem value="cruise-terminals">Cruise terminals</SelectItem>
-                          <SelectItem value="hospitality">Hospitality</SelectItem>
-                          <SelectItem value="malls">Malls</SelectItem>
-                          <SelectItem value="tour-guides">Tour Guides & operators</SelectItem>
-                          <SelectItem value="visitor-centers">Visitor information centers</SelectItem>
-                          <SelectItem value="entertainment">Entertainment & Attractions</SelectItem>
+                          {roles?.map((role) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -1749,30 +1526,15 @@ export default function UserManagement() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* First Name */}
+                      {/* Name */}
                       <FormField
                         control={bulkUserForm.control}
-                        name={`users.${index}.firstName`}
+                        name={`users.${index}.name`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel>Full Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="John" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* Last Name */}
-                      <FormField
-                        control={bulkUserForm.control}
-                        name={`users.${index}.lastName`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Doe" {...field} />
+                              <Input placeholder="John Doe" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
