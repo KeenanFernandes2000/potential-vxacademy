@@ -731,7 +731,7 @@ export default function UserManagementPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Assets</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select asset category" />
@@ -756,7 +756,7 @@ export default function UserManagementPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Role Category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select role category" />
@@ -781,7 +781,7 @@ export default function UserManagementPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Seniority</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select seniority level" />
@@ -807,7 +807,14 @@ export default function UserManagementPage() {
                         <FormItem>
                           <FormLabel>Sub-Category</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter sub-category (optional)" {...field} />
+                            <Input 
+                              placeholder="Enter sub-category (optional)" 
+                              value={field.value || ""} 
+                              onChange={field.onChange} 
+                              onBlur={field.onBlur} 
+                              name={field.name} 
+                              ref={field.ref} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -821,7 +828,14 @@ export default function UserManagementPage() {
                         <FormItem>
                           <FormLabel>Organization Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter organization name (optional)" {...field} />
+                            <Input 
+                              placeholder="Enter organization name (optional)" 
+                              value={field.value || ""} 
+                              onChange={field.onChange} 
+                              onBlur={field.onBlur} 
+                              name={field.name} 
+                              ref={field.ref} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

@@ -114,6 +114,20 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 18, 2025: Comprehensive User Management System Overhaul
+  - Implemented hierarchical user system: Admin, Sub-Admin, and User roles with proper permissions
+  - Enhanced database schema with comprehensive user profile fields (firstName, lastName, nationality, etc.)
+  - Added 11 asset categories (Museum, Culture site, Events, Airports, Hospitality, etc.)
+  - Implemented 15 role categories (Transport staff, Welcome staff, Guides, Security, etc.)
+  - Added years of experience, seniority levels (Manager/Staff), and organization name fields
+  - Created 9 language options (Arabic, English, Urdu, Hindi, Tagalog, Bengali, etc.)
+  - Implemented worldwide nationality dropdown with 100+ countries
+  - Added Admin hierarchy: Sub-Admins can create Users, Admins can create Sub-Admins and Users
+  - Enhanced user table with XP points, badges collected, and mandatory course progress tracking
+  - Created comprehensive user profile modal with detailed view functionality
+  - Added role-based filtering system for Assets, Role Category, Seniority, and Platform Role
+  - Implemented user creation tracking (createdBy field) for Admin oversight
+  - Fixed form validation and TypeScript integration for all new profile fields
 - June 18, 2025: Assessment page independent filtering implementation
   - Separated assessment display filters from form state to match other admin pages design pattern
   - Added independent filter controls (All/Unit/Course assessments) with proper dropdown handling

@@ -1447,7 +1447,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const { defaultRole, defaultLanguage, users, courseIds = [] } = req.body;
+      const { 
+        defaultLanguage, 
+        defaultAssets, 
+        defaultRoleCategory, 
+        defaultSeniority, 
+        defaultNationality,
+        defaultYearsOfExperience,
+        defaultSubCategory,
+        defaultOrganizationName,
+        users, 
+        courseIds = [] 
+      } = req.body;
 
       if (!users || !Array.isArray(users) || users.length === 0) {
         return res
@@ -1479,12 +1490,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const hashedPassword = await hashPassword(password);
 
           const newUser = await storage.createUser({
+            firstName: userData.firstName,
+            lastName: userData.lastName,
             username: userData.username,
             password: hashedPassword,
-            name: userData.name,
             email: userData.email,
             role: defaultRole,
             language: defaultLanguage || "en",
+            nationality: defaultNationality,
+            yearsOfExperience: defaultYearsOfExperience,
+            assets: defaultAssets,
+            roleCategory: defaultRoleCategory,
+            subCategory: defaultSubCategory,
+            seniority: defaultSeniority,
+            organizationName: defaultOrganizationName,
+            createdBy: req.user?.id || null,
+            isActive: true,
           });
 
           // If course IDs were provided, assign the courses to the user
