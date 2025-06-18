@@ -37,7 +37,6 @@ export async function seedDatabase() {
         firstName: "Admin",
         lastName: "User",
         role: "admin",
-        xpPoints: 0,
         language: "English",
         nationality: "United Arab Emirates",
         yearsOfExperience: "10+ years",
@@ -46,10 +45,6 @@ export async function seedDatabase() {
         subCategory: "Manager",
         seniority: "Manager",
         organizationName: "VX Academy",
-        isSubAdmin: false,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       });
       console.log("Admin user created successfully!");
     } else {
