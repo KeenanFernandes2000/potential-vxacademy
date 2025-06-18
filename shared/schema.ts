@@ -39,24 +39,46 @@ export type RoleMandatoryCourse = typeof roleMandatoryCourses.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type Role = typeof roles.$inferSelect;
 
-// User model
+// User model with comprehensive profile fields
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  
+  // Basic Information
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  role: text("role").notNull().default("frontliner"),
+  
+  // Role and Admin System
+  role: text("role").notNull().default("user"), // admin, sub-admin, user
+  createdBy: integer("created_by"), // Who created this user - will add reference after table definition
+  
+  // Preferences
+  language: text("language").notNull().default("en"),
+  nationality: text("nationality"),
+  yearsOfExperience: text("years_of_experience"),
+  
+  // Sector/Asset Classification
+  assets: text("assets"), // Museum, Culture site, Events, etc.
+  roleCategory: text("role_category"), // Transport staff, Welcome staff, etc.
+  subCategory: text("sub_category"), // Free text field
+  seniority: text("seniority"), // Manager, Staff
+  organizationName: text("organization_name"),
+  
+  // System fields
   xpPoints: integer("xp_points").notNull().default(0),
   avatar: text("avatar"),
-  language: text("language").default("en"),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   xpPoints: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 // Training Areas
@@ -447,7 +469,7 @@ export const roleMandatoryCoursesRelations = relations(roleMandatoryCourses, ({ 
   }),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   progress: many(userProgress),
   blockCompletions: many(blockCompletions),
   badges: many(userBadges),
@@ -456,6 +478,14 @@ export const usersRelations = relations(users, ({ many }) => ({
   certificates: many(certificates),
   notifications: many(notifications),
   scormTrackingData: many(scormTrackingData),
+  // Admin hierarchy relations
+  creator: one(users, {
+    fields: [users.createdBy],
+    references: [users.id],
+  }),
+  createdUsers: many(users, {
+    relationName: "creator_created",
+  }),
 }));
 
 export const trainingAreasRelations = relations(trainingAreas, ({ many }) => ({

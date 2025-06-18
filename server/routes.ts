@@ -917,15 +917,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const userId = req.user!.id;
-      const { name, email } = req.body;
+      const { firstName, lastName, email } = req.body;
 
       // Validate required fields
-      if (!name || !email) {
-        return res.status(400).json({ message: "Name and email are required" });
+      if (!firstName || !lastName || !email) {
+        return res.status(400).json({ message: "First name, last name, and email are required" });
       }
 
       // Update user profile
-      const updatedUser = await storage.updateUser(userId, { name, email });
+      const updatedUser = await storage.updateUser(userId, { firstName, lastName, email });
 
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
