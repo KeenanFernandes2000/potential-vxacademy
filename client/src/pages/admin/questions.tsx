@@ -10,7 +10,13 @@ import AdminLayout from "@/components/layout/admin-layout";
 import { Assessment, Question, InsertQuestion } from "@shared/schema";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -67,16 +73,16 @@ type QuestionFormValues = z.infer<typeof questionFormSchema>;
 export default function QuestionsManagement() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   // Get assessment ID from URL query params
   const params = new URLSearchParams(window.location.search);
   const assessmentId = parseInt(params.get("assessmentId") || "0");
-  
+
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isAddOptionOpen, setIsAddOptionOpen] = useState(false);
   const [options, setOptions] = useState<string[]>([]);
   const [newOption, setNewOption] = useState("");
-  
+
   // Fetch assessment details
   const { data: assessment } = useQuery<Assessment>({
     queryKey: ["/api/assessments", assessmentId],
@@ -86,17 +92,22 @@ export default function QuestionsManagement() {
     },
     enabled: assessmentId > 0,
   });
-  
+
   // Fetch questions for this assessment
-  const { data: questions, isLoading: isLoadingQuestions } = useQuery<Question[]>({
+  const { data: questions, isLoading: isLoadingQuestions } = useQuery<
+    Question[]
+  >({
     queryKey: ["/api/assessments", assessmentId, "questions"],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/assessments/${assessmentId}/questions`);
+      const res = await apiRequest(
+        "GET",
+        `/api/assessments/${assessmentId}/questions`,
+      );
       return await res.json();
     },
     enabled: assessmentId > 0,
   });
-  
+
   // Question form
   const form = useForm<QuestionFormValues>({
     resolver: zodResolver(questionFormSchema),
@@ -108,22 +119,22 @@ export default function QuestionsManagement() {
       order: 1,
     },
   });
-  
+
   const watchQuestionType = form.watch("questionType");
-  
+
   useEffect(() => {
     if (editingQuestion) {
-      const optionsArray = editingQuestion.options 
-        ? (typeof editingQuestion.options === 'string' 
-            ? JSON.parse(editingQuestion.options) 
-            : editingQuestion.options) 
+      const optionsArray = editingQuestion.options
+        ? typeof editingQuestion.options === "string"
+          ? JSON.parse(editingQuestion.options)
+          : editingQuestion.options
         : [];
-        
+
       setOptions(optionsArray);
-      
+
       // Convert True/False string values to "0" or "1" for the radio buttons
       let correctAnswerValue = editingQuestion.correctAnswer || "0";
-      
+
       // For true/false questions, map "True" to "1" and "False" to "0"
       if (editingQuestion.questionType === "true_false") {
         if (editingQuestion.correctAnswer === "True") {
@@ -133,7 +144,7 @@ export default function QuestionsManagement() {
         }
         console.log("Setting True/False correctAnswer to:", correctAnswerValue);
       }
-      
+
       form.reset({
         questionText: editingQuestion.questionText,
         questionType: editingQuestion.questionType as "mcq" | "true_false",
@@ -152,7 +163,7 @@ export default function QuestionsManagement() {
       });
     }
   }, [editingQuestion, form, questions]);
-  
+
   // Create question mutation
   const createMutation = useMutation({
     mutationFn: async (data: InsertQuestion) => {
@@ -166,7 +177,9 @@ export default function QuestionsManagement() {
       });
       form.reset();
       setOptions([]);
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "questions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/assessments", assessmentId, "questions"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -176,10 +189,16 @@ export default function QuestionsManagement() {
       });
     },
   });
-  
+
   // Update question mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<Question> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<Question>;
+    }) => {
       const res = await apiRequest("PATCH", `/api/questions/${id}`, data);
       return await res.json();
     },
@@ -189,7 +208,9 @@ export default function QuestionsManagement() {
         description: "Question updated successfully.",
       });
       setEditingQuestion(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "questions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/assessments", assessmentId, "questions"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -199,7 +220,7 @@ export default function QuestionsManagement() {
       });
     },
   });
-  
+
   // Delete question mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -210,7 +231,9 @@ export default function QuestionsManagement() {
         title: "Success",
         description: "Question deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "questions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/assessments", assessmentId, "questions"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -220,7 +243,7 @@ export default function QuestionsManagement() {
       });
     },
   });
-  
+
   // Handle form submission
   const onSubmit = (values: QuestionFormValues) => {
     if (values.questionType === "mcq" && options.length < 2) {
@@ -231,13 +254,14 @@ export default function QuestionsManagement() {
       });
       return;
     }
-    
+
     console.log("Form values before processing:", values);
-    
-    const optionsJson = values.questionType === "mcq" 
-      ? JSON.stringify(options) 
-      : JSON.stringify(["False", "True"]);
-    
+
+    const optionsJson =
+      values.questionType === "mcq"
+        ? JSON.stringify(options)
+        : JSON.stringify(["False", "True"]);
+
     // For true/false questions, convert "0" to "False" and "1" to "True"
     let correctAnswer;
     if (values.questionType === "mcq") {
@@ -245,9 +269,14 @@ export default function QuestionsManagement() {
     } else {
       // Handle true/false questions
       correctAnswer = values.correctAnswer === "1" ? "True" : "False";
-      console.log("True/False question - converting value:", values.correctAnswer, "to:", correctAnswer);
+      console.log(
+        "True/False question - converting value:",
+        values.correctAnswer,
+        "to:",
+        correctAnswer,
+      );
     }
-    
+
     const questionData = {
       assessmentId,
       questionText: values.questionText,
@@ -256,65 +285,68 @@ export default function QuestionsManagement() {
       correctAnswer: correctAnswer,
       order: values.order,
     };
-    
+
     console.log("Submitting question data:", questionData);
-    
+
     if (editingQuestion) {
       updateMutation.mutate({ id: editingQuestion.id, data: questionData });
     } else {
       createMutation.mutate(questionData as InsertQuestion);
     }
   };
-  
+
   // Add new option
   const handleAddOption = () => {
     if (newOption.trim() === "") return;
-    
+
     setOptions([...options, newOption.trim()]);
     setNewOption("");
     setIsAddOptionOpen(false);
   };
-  
+
   // Remove option
   const handleRemoveOption = (index: number) => {
     const newOptions = [...options];
     newOptions.splice(index, 1);
     setOptions(newOptions);
-    
+
     // If we're removing the correct option, reset correctAnswer
     const currentCorrectAnswer = form.getValues("correctAnswer");
     if (currentCorrectAnswer && currentCorrectAnswer === index.toString()) {
       form.setValue("correctAnswer", "0");
     } else if (currentCorrectAnswer && parseInt(currentCorrectAnswer) > index) {
       // If we're removing an option before the correct one, adjust the index
-      form.setValue("correctAnswer", (parseInt(currentCorrectAnswer) - 1).toString());
+      form.setValue(
+        "correctAnswer",
+        (parseInt(currentCorrectAnswer) - 1).toString(),
+      );
     }
   };
-  
+
   // Handle edit
   const handleEdit = (question: Question) => {
     setEditingQuestion(question);
   };
-  
+
   // Handle delete
   const handleDelete = (id: number) => {
     if (confirm("Are you sure you want to delete this question?")) {
       deleteMutation.mutate(id);
     }
   };
-  
+
   // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingQuestion(null);
     form.reset();
     setOptions([]);
   };
-  
+
   // Go back to assessments
   const handleBack = () => {
     setLocation("/admin/assessments");
   };
-  
+
   if (!assessmentId || assessmentId <= 0) {
     return (
       <AdminLayout>
@@ -328,7 +360,7 @@ export default function QuestionsManagement() {
       </AdminLayout>
     );
   }
-  
+
   return (
     <AdminLayout>
       <div className="container mx-auto py-6">
@@ -338,7 +370,9 @@ export default function QuestionsManagement() {
             Back to Assessments
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-abu-charcoal">Questions Management</h1>
+            <h1 className="text-3xl font-bold text-abu-charcoal">
+              Questions Management
+            </h1>
             {assessment && (
               <p className="text-muted-foreground">
                 Assessment: {assessment.title}
@@ -346,12 +380,14 @@ export default function QuestionsManagement() {
             )}
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Question Form */}
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle>{editingQuestion ? "Edit Question" : "Add New Question"}</CardTitle>
+              <CardTitle>
+                {editingQuestion ? "Edit Question" : "Add New Question"}
+              </CardTitle>
               <CardDescription>
                 {editingQuestion
                   ? "Update the selected question"
@@ -360,7 +396,10 @@ export default function QuestionsManagement() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="questionText"
@@ -378,7 +417,7 @@ export default function QuestionsManagement() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="questionType"
@@ -392,7 +431,10 @@ export default function QuestionsManagement() {
                             // Reset options if changing question type
                             if (value === "true_false") {
                               setOptions(["False", "True"]);
-                            } else if (options.length < 2 || options.join() === "False,True") {
+                            } else if (
+                              options.length < 2 ||
+                              options.join() === "False,True"
+                            ) {
                               setOptions([]);
                             }
                           }}
@@ -404,7 +446,9 @@ export default function QuestionsManagement() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="mcq">Multiple Choice</SelectItem>
-                            <SelectItem value="true_false">True/False</SelectItem>
+                            <SelectItem value="true_false">
+                              True/False
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -419,30 +463,36 @@ export default function QuestionsManagement() {
                       <FormItem>
                         <FormLabel>Question Order</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="1" 
+                          <Input
+                            type="number"
+                            min="1"
                             {...field}
-                            onChange={e => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormDescription>
-                          The order in which this question appears in the assessment
+                          The order in which this question appears in the
+                          assessment
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   {watchQuestionType === "mcq" && (
                     <>
                       <div className="space-y-2">
                         <h3 className="text-sm font-medium">Options</h3>
-                        
+
                         {options.length > 0 ? (
                           <div className="space-y-2 mb-2">
                             {options.map((option, index) => (
-                              <div key={index} className="flex items-center gap-2">
+                              <div
+                                key={index}
+                                className="flex items-center gap-2"
+                              >
                                 <FormField
                                   control={form.control}
                                   name="correctAnswer"
@@ -451,18 +501,25 @@ export default function QuestionsManagement() {
                                       <FormControl>
                                         <RadioGroup
                                           value={field.value}
-                                          onValueChange={(value) => field.onChange(value)}
+                                          onValueChange={(value) =>
+                                            field.onChange(value)
+                                          }
                                           className="flex"
                                         >
                                           <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                                            <RadioGroupItem
+                                              value={index.toString()}
+                                              id={`option-${index}`}
+                                            />
                                           </div>
                                         </RadioGroup>
                                       </FormControl>
                                     </FormItem>
                                   )}
                                 />
-                                <span className="flex-1 border rounded p-2 text-sm">{option}</span>
+                                <span className="flex-1 border rounded p-2 text-sm">
+                                  {option}
+                                </span>
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -475,10 +532,15 @@ export default function QuestionsManagement() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-muted-foreground">No options added yet</p>
+                          <p className="text-sm text-muted-foreground">
+                            No options added yet
+                          </p>
                         )}
-                        
-                        <Dialog open={isAddOptionOpen} onOpenChange={setIsAddOptionOpen}>
+
+                        <Dialog
+                          open={isAddOptionOpen}
+                          onOpenChange={setIsAddOptionOpen}
+                        >
                           <DialogTrigger asChild>
                             <Button type="button" variant="outline" size="sm">
                               <Plus className="h-4 w-4 mr-2" />
@@ -500,17 +562,18 @@ export default function QuestionsManagement() {
                               />
                             </div>
                             <DialogFooter>
-                              <Button variant="outline" onClick={() => setIsAddOptionOpen(false)}>
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsAddOptionOpen(false)}
+                              >
                                 Cancel
                               </Button>
-                              <Button onClick={handleAddOption}>
-                                Add
-                              </Button>
+                              <Button onClick={handleAddOption}>Add</Button>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
                       </div>
-                      
+
                       {options.length > 0 && (
                         <FormField
                           control={form.control}
@@ -519,7 +582,8 @@ export default function QuestionsManagement() {
                             <FormItem>
                               <FormLabel>Correct Answer</FormLabel>
                               <FormDescription>
-                                Select the radio button next to the correct option above
+                                Select the radio button next to the correct
+                                option above
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -528,7 +592,7 @@ export default function QuestionsManagement() {
                       )}
                     </>
                   )}
-                  
+
                   {watchQuestionType === "true_false" && (
                     <FormField
                       control={form.control}
@@ -557,19 +621,26 @@ export default function QuestionsManagement() {
                       )}
                     />
                   )}
-                  
+
                   <div className="flex justify-end space-x-2 pt-4">
                     {editingQuestion && (
-                      <Button variant="outline" onClick={handleCancelEdit} type="button">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        type="button"
+                      >
                         Cancel
                       </Button>
                     )}
                     <Button
                       type="submit"
-                      disabled={createMutation.isPending || updateMutation.isPending}
-                      className="bg-abu-primary text-white hover:bg-abu-primary/90"
+                      disabled={
+                        createMutation.isPending || updateMutation.isPending
+                      }
+                      className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                     >
-                      {(createMutation.isPending || updateMutation.isPending) && (
+                      {(createMutation.isPending ||
+                        updateMutation.isPending) && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                       {editingQuestion ? "Update Question" : "Create Question"}
@@ -579,7 +650,7 @@ export default function QuestionsManagement() {
               </Form>
             </CardContent>
           </Card>
-          
+
           {/* Questions List */}
           <Card className="lg:col-span-2">
             <CardHeader>
@@ -588,8 +659,8 @@ export default function QuestionsManagement() {
                 {assessment && ` for ${assessment.title}`}
               </CardTitle>
               <CardDescription>
-                {questions?.length 
-                  ? `${questions.length} question(s) in this assessment` 
+                {questions?.length
+                  ? `${questions.length} question(s) in this assessment`
                   : "No questions yet - add your first one!"}
               </CardDescription>
             </CardHeader>
@@ -614,12 +685,12 @@ export default function QuestionsManagement() {
                       .sort((a, b) => a.order - b.order)
                       .map((question) => {
                         // Parse options for display
-                        const optionsArray = question.options 
-                          ? (typeof question.options === 'string' 
-                              ? JSON.parse(question.options) 
-                              : question.options) 
+                        const optionsArray = question.options
+                          ? typeof question.options === "string"
+                            ? JSON.parse(question.options)
+                            : question.options
                           : [];
-                          
+
                         return (
                           <TableRow key={question.id}>
                             <TableCell>{question.order}</TableCell>
@@ -627,13 +698,13 @@ export default function QuestionsManagement() {
                               {question.questionText}
                             </TableCell>
                             <TableCell>
-                              {question.questionType === "mcq" 
-                                ? "Multiple Choice" 
+                              {question.questionType === "mcq"
+                                ? "Multiple Choice"
                                 : "True/False"}
                             </TableCell>
                             <TableCell className="max-w-[200px] truncate">
-                              {optionsArray.length > 0 
-                                ? optionsArray.join(", ") 
+                              {optionsArray.length > 0
+                                ? optionsArray.join(", ")
                                 : "No options"}
                             </TableCell>
                             <TableCell className="text-right">

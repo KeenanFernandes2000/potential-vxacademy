@@ -658,6 +658,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const newXpPoints = user.xpPoints + (assessment.xpPoints || 50);
           await storage.updateUser(userId, { xpPoints: newXpPoints });
 
+          // Generate certificate if assessment has certificate enabled
+          if (assessment.hasCertificate) {
+            try {
+              // Check if user already has a certificate for this assessment's course
+              let courseId = assessment.courseId;
+              
+              // If this is a unit assessment, get the course from the unit
+              if (!courseId && assessment.unitId) {
+                const unit = await storage.getUnit(assessment.unitId);
+                if (unit) {
+                  const unitCourses = await storage.getCoursesForUnit(unit.id);
+                  if (unitCourses.length > 0) {
+                    courseId = unitCourses[0].id;
+                  }
+                }
+              }
+
+              if (courseId) {
+                const existingCertificate = await storage.getCertificateByCourseAndUser(userId, courseId);
+                
+                if (!existingCertificate) {
+                  // Generate unique certificate number
+                  const certificateNumber = `CERT-${Date.now()}-${userId}-${courseId}`;
+                  
+                  // Create certificate
+                  const certificate = await storage.createCertificate({
+                    userId,
+                    courseId,
+                    certificateNumber,
+                    status: "active"
+                  });
+
+                  // Get course details for notification
+                  const course = await storage.getCourse(courseId);
+                  const courseName = course ? course.name : "Course";
+
+                  // Send certificate notification
+                  await notificationTriggers.onCertificateEarned(userId, certificate.id, courseName);
+                }
+              }
+            } catch (certError) {
+              console.error("Error creating certificate:", certError);
+              // Don't fail the assessment submission if certificate creation fails
+            }
+          }
+
           // Check for first assessment badge
           const userBadges = await storage.getUserBadges(userId);
           const allBadges = await storage.getBadges();

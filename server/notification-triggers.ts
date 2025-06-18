@@ -43,6 +43,19 @@ export class NotificationTriggers {
     await this.storage.createNotification(notification);
   }
 
+  // Trigger when a user earns a certificate
+  async onCertificateEarned(userId: number, certificateId: number, courseName: string) {
+    const notification: InsertNotification = {
+      userId,
+      type: "certificate_earned",
+      title: "Certificate Awarded!",
+      message: `Congratulations! You have earned a certificate for completing "${courseName}".`,
+      read: false,
+      metadata: { certificateId }
+    };
+    await this.storage.createNotification(notification);
+  }
+
   // Trigger when leaderboard position changes
   async onLeaderboardUpdate(userId: number, newPosition: number, previousPosition?: number) {
     let message = "";
@@ -91,18 +104,7 @@ export class NotificationTriggers {
     await this.storage.createNotification(notification);
   }
 
-  // Trigger when user receives a certificate
-  async onCertificateEarned(userId: number, courseId: number, courseName: string) {
-    const notification: InsertNotification = {
-      userId,
-      type: "achievement",
-      title: "Certificate Earned!",
-      message: `Congratulations! You have earned a certificate for completing "${courseName}".`,
-      read: false,
-      metadata: { courseId }
-    };
-    await this.storage.createNotification(notification);
-  }
+
 
   // Trigger welcome notification for new users
   async onUserWelcome(userId: number, userName: string) {
