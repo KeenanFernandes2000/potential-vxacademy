@@ -21,6 +21,10 @@ import {
   handleImageUpload,
   serveImageFile,
 } from "./image-handler";
+import {
+  uploadCertificateTemplate,
+  handleCertificateTemplateUpload,
+} from "./certificate-handler";
 import { uploadExcel, processExcelUpload } from "./excel-upload-handler";
 import {
   uploadMedia,
@@ -2029,25 +2033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/images/upload", uploadImage, handleImageUpload);
 
   // Certificate Template Upload
-  app.post("/api/upload/certificate-template", uploadImage, async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      // Return the URL of the uploaded file
-      const fileUrl = `/uploads/images/${req.file.filename}`;
-      res.json({ 
-        url: fileUrl,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size
-      });
-    } catch (error) {
-      console.error("Certificate template upload error:", error);
-      res.status(500).json({ message: "Failed to upload certificate template" });
-    }
-  });
+  app.post("/api/upload/certificate-template", uploadCertificateTemplate, handleCertificateTemplateUpload);
 
   // Certificate Routes
   app.get("/api/certificates", async (req, res) => {
