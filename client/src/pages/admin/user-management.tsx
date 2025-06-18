@@ -506,28 +506,64 @@ export default function UserManagement() {
 
         <main className="flex-1 overflow-y-auto bg-neutrals-100 p-4 pb-16 md:pb-4">
           <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-4 md:mb-0">User Management</h1>
-              
-              <div className="w-full md:w-auto flex flex-col md:flex-row gap-3">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search users..."
-                    className="pl-8 w-full md:w-[250px]"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+            {/* Header Section */}
+            <div className="mb-8">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                {/* Title Section */}
+                <div>
+                  <h1 className="font-heading text-3xl font-bold text-neutrals-800">User Management</h1>
+                  <p className="text-neutrals-600 mt-1">Manage users, roles, and permissions across the platform</p>
                 </div>
-                
-                {/* Multi-Filter Controls */}
-                <div className="flex flex-wrap gap-2 items-center">
-                  <div className="flex-shrink-0">
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3">
+                  <Button 
+                    onClick={() => setIsAddDialogOpen(true)} 
+                    className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-md"
+                  >
+                    <span className="material-icons mr-2 text-lg">add</span>
+                    Add User
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsBulkAddDialogOpen(true)} 
+                    className="border-teal-600 text-teal-600 hover:bg-teal-50 shadow-sm"
+                  >
+                    <span className="material-icons mr-2 text-lg">group_add</span>
+                    Bulk Add
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    onClick={() => setIsExcelUploadDialogOpen(true)} 
+                    className="bg-cyan-50 text-teal-700 hover:bg-cyan-100 border border-cyan-200 shadow-sm"
+                  >
+                    <FileSpreadsheet className="mr-2 h-5 w-5" />
+                    Import Excel
+                  </Button>
+                </div>
+              </div>
+
+              {/* Search and Filters Section */}
+              <div className="mt-6 bg-slate-50/50 rounded-xl p-4 border border-slate-200/60">
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Search Bar */}
+                  <div className="relative lg:w-80">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      type="text"
+                      placeholder="Search by name, email, or username..."
+                      className="pl-10 bg-white border-slate-300 focus:border-teal-500 focus:ring-teal-500/20"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Filter Controls */}
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <Select value={platformRoleFilter} onValueChange={setPlatformRoleFilter}>
-                      <SelectTrigger className="w-full md:w-[180px]">
-                        <Filter className="mr-2 h-4 w-4" />
-                        <SelectValue placeholder="Platform role" />
+                      <SelectTrigger className="bg-white border-slate-300 focus:border-teal-500">
+                        <Filter className="mr-2 h-4 w-4 text-slate-500" />
+                        <SelectValue placeholder="Platform Role" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Platform Roles</SelectItem>
@@ -536,11 +572,9 @@ export default function UserManagement() {
                         <SelectItem value="user">User</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  
-                  <div className="flex-shrink-0">
+
                     <Select value={assetsFilter} onValueChange={setAssetsFilter}>
-                      <SelectTrigger className="w-full md:w-[160px]">
+                      <SelectTrigger className="bg-white border-slate-300 focus:border-teal-500">
                         <SelectValue placeholder="Assets" />
                       </SelectTrigger>
                       <SelectContent>
@@ -551,11 +585,9 @@ export default function UserManagement() {
                         <SelectItem value="retail">Retail</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  
-                  <div className="flex-shrink-0">
+
                     <Select value={roleCategoryFilter} onValueChange={setRoleCategoryFilter}>
-                      <SelectTrigger className="w-full md:w-[160px]">
+                      <SelectTrigger className="bg-white border-slate-300 focus:border-teal-500">
                         <SelectValue placeholder="Role Category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -566,12 +598,10 @@ export default function UserManagement() {
                         <SelectItem value="support">Support</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  
-                  <div className="flex-shrink-0">
+
                     <Select value={seniorityFilter} onValueChange={setSeniorityFilter}>
-                      <SelectTrigger className="w-full md:w-[140px]">
-                        <SelectValue placeholder="Seniority" />
+                      <SelectTrigger className="bg-white border-slate-300 focus:border-teal-500">
+                        <SelectValue placeholder="Seniority Level" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Levels</SelectItem>
@@ -582,24 +612,6 @@ export default function UserManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 sm:gap-3">
-                  <Button onClick={() => setIsAddDialogOpen(true)} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-xs sm:text-sm">
-                    <span className="material-icons mr-1 sm:mr-2 text-sm">add</span>
-                    <span className="hidden sm:inline">Add User</span>
-                    <span className="sm:hidden">Add</span>
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsBulkAddDialogOpen(true)} className="border-teal-600 text-teal-600 hover:bg-teal-50 text-xs sm:text-sm">
-                    <span className="material-icons mr-1 sm:mr-2 text-sm">group_add</span>
-                    <span className="hidden sm:inline">Bulk Add Users</span>
-                    <span className="sm:hidden">Bulk</span>
-                  </Button>
-                  <Button variant="secondary" onClick={() => setIsExcelUploadDialogOpen(true)} className="bg-cyan-100 text-teal-700 hover:bg-cyan-200 text-xs sm:text-sm">
-                    <FileSpreadsheet className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="hidden sm:inline">Import Excel</span>
-                    <span className="sm:hidden">Excel</span>
-                  </Button>
                 </div>
               </div>
             </div>
