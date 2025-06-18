@@ -195,6 +195,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Course-Units relationships
+  app.get("/api/course-units", async (req, res) => {
+    try {
+      const courseUnits = await storage.getCourseUnits();
+      res.json(courseUnits);
+    } catch (error) {
+      console.error("Error fetching course-units:", error);
+      res.status(500).json({ message: "Error fetching course-units" });
+    }
+  });
+
   app.delete("/api/units/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -1803,21 +1814,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Role not found" });
       }
 
-      // For now, we'll add units as mandatory courses associated with the role
-      // This assumes units are linked to courses
+      // Get courses linked to the selected units and add them as mandatory courses
       const assignments = [];
       for (const unitId of unitIds) {
-        const unit = await storage.getUnit(unitId);
-        if (unit && unit.courseId) {
+        const coursesForUnit = await storage.getCoursesForUnit(unitId);
+        for (const course of coursesForUnit) {
           try {
             const assignment = await storage.addMandatoryCourseToRole({
               roleId,
-              courseId: unit.courseId,
+              courseId: course.id,
             });
             assignments.push(assignment);
           } catch (error) {
             // Skip if already exists
-            console.log(`Course ${unit.courseId} already assigned to role ${roleId}`);
+            console.log(`Course ${course.id} already assigned to role ${roleId}`);
           }
         }
       }

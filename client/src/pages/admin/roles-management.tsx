@@ -103,9 +103,9 @@ export default function RolesManagement() {
   const [seniorityFilter, setSeniorityFilter] = useState("all");
 
   // Filter states for unit assignment
-  const [selectedTrainingArea, setSelectedTrainingArea] = useState<string>("");
-  const [selectedModule, setSelectedModule] = useState<string>("");
-  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [selectedTrainingArea, setSelectedTrainingArea] = useState<string>("all");
+  const [selectedModule, setSelectedModule] = useState<string>("all");
+  const [selectedCourse, setSelectedCourse] = useState<string>("all");
 
   // Forms
   const roleForm = useForm<RoleFormData>({
@@ -152,6 +152,11 @@ export default function RolesManagement() {
   const { data: units = [] } = useQuery<Unit[]>({
     queryKey: ["/api/units"],
     queryFn: () => fetch("/api/units", { credentials: "include" }).then(res => res.json()),
+  });
+
+  const { data: courseUnits = [] } = useQuery<any[]>({
+    queryKey: ["/api/course-units"],
+    queryFn: () => fetch("/api/course-units", { credentials: "include" }).then(res => res.json()),
   });
 
   // Mutations
@@ -281,18 +286,20 @@ export default function RolesManagement() {
 
   // Filter units for assignment based on selected filters
   const filteredUnits = units.filter((unit) => {
-    if (selectedCourse) {
-      const course = courses.find(c => c.id === parseInt(selectedCourse));
-      return course && unit.courseId === course.id;
+    if (selectedCourse && selectedCourse !== "all") {
+      const courseId = parseInt(selectedCourse);
+      return courseUnits.some(cu => cu.courseId === courseId && cu.unitId === unit.id);
     }
-    if (selectedModule) {
+    if (selectedModule && selectedModule !== "all") {
       const moduleCourses = courses.filter(c => c.moduleId === parseInt(selectedModule));
-      return moduleCourses.some(c => unit.courseId === c.id);
+      const moduleCourseIds = moduleCourses.map(c => c.id);
+      return courseUnits.some(cu => moduleCourseIds.includes(cu.courseId) && cu.unitId === unit.id);
     }
-    if (selectedTrainingArea) {
+    if (selectedTrainingArea && selectedTrainingArea !== "all") {
       const areaModules = modules.filter(m => m.trainingAreaId === parseInt(selectedTrainingArea));
       const areaCourses = courses.filter(c => areaModules.some(m => m.id === c.moduleId));
-      return areaCourses.some(c => unit.courseId === c.id);
+      const areaCourseIds = areaCourses.map(c => c.id);
+      return courseUnits.some(cu => areaCourseIds.includes(cu.courseId) && cu.unitId === unit.id);
     }
     return true;
   });
@@ -324,9 +331,9 @@ export default function RolesManagement() {
   const handleAssignUnits = (role: Role) => {
     setSelectedRole(role);
     unitAssignmentForm.reset();
-    setSelectedTrainingArea("");
-    setSelectedModule("");
-    setSelectedCourse("");
+    setSelectedTrainingArea("all");
+    setSelectedModule("all");
+    setSelectedCourse("all");
     setIsUnitAssignmentOpen(true);
   };
 
@@ -673,7 +680,7 @@ export default function RolesManagement() {
                             <SelectValue placeholder="Select training area" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All Training Areas</SelectItem>
+                            <SelectItem value="all">All Training Areas</SelectItem>
                             {trainingAreas.map((area) => (
                               <SelectItem key={area.id} value={area.id.toString()}>
                                 {area.name}
@@ -690,9 +697,9 @@ export default function RolesManagement() {
                             <SelectValue placeholder="Select module" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All Modules</SelectItem>
+                            <SelectItem value="all">All Modules</SelectItem>
                             {modules
-                              .filter(m => !selectedTrainingArea || m.trainingAreaId === parseInt(selectedTrainingArea))
+                              .filter(m => selectedTrainingArea === "all" || !selectedTrainingArea || m.trainingAreaId === parseInt(selectedTrainingArea))
                               .map((module) => (
                                 <SelectItem key={module.id} value={module.id.toString()}>
                                   {module.name}
@@ -709,9 +716,9 @@ export default function RolesManagement() {
                             <SelectValue placeholder="Select course" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All Courses</SelectItem>
+                            <SelectItem value="all">All Courses</SelectItem>
                             {courses
-                              .filter(c => !selectedModule || c.moduleId === parseInt(selectedModule))
+                              .filter(c => selectedModule === "all" || !selectedModule || c.moduleId === parseInt(selectedModule))
                               .map((course) => (
                                 <SelectItem key={course.id} value={course.id.toString()}>
                                   {course.name}

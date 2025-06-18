@@ -587,6 +587,19 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async getCourseUnits(): Promise<any[]> {
+    return await db
+      .select({
+        id: courseUnits.id,
+        courseId: courseUnits.courseId,
+        unitId: courseUnits.unitId,
+        order: courseUnits.order,
+        createdAt: courseUnits.createdAt,
+      })
+      .from(courseUnits)
+      .orderBy(asc(courseUnits.order));
+  }
+
   // Learning Blocks
   async getLearningBlocks(unitId: number): Promise<LearningBlock[]> {
     try {
