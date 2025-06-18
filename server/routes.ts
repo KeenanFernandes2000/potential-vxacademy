@@ -917,15 +917,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const userId = req.user!.id;
-      const { name, email } = req.body;
+      const { firstName, lastName, email } = req.body;
 
       // Validate required fields
-      if (!name || !email) {
-        return res.status(400).json({ message: "Name and email are required" });
+      if (!firstName || !lastName || !email) {
+        return res.status(400).json({ message: "First name, last name and email are required" });
       }
 
       // Update user profile
-      const updatedUser = await storage.updateUser(userId, { name, email });
+      const updatedUser = await storage.updateUser(userId, { firstName, lastName, email });
 
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
@@ -1014,7 +1014,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   // Admin Dashboard Stats
   app.get("/api/admin/stats", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1022,8 +1022,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get total users
       const allUsers = await storage.getLeaderboard(1000);
       const usersByRole = allUsers.reduce((acc, user) => {
-        const role = user.role || "user";
-        acc[role] = (acc[role] || 0) + 1;
+        const category = user.roleCategory || "unassigned";
+        acc[category] = (acc[category] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
@@ -1079,7 +1079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Course Management
   app.post("/api/courses", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1092,7 +1092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch("/api/courses/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1111,7 +1111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/courses/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1131,7 +1131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Module Management
   app.post("/api/modules", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1144,7 +1144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch("/api/modules/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1171,7 +1171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/modules/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1195,7 +1195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Training Area Management
   app.post("/api/training-areas", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1208,7 +1208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch("/api/training-areas/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1235,7 +1235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/training-areas/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1259,7 +1259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User Management
   app.get("/api/admin/users", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1287,7 +1287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get enhanced user data with XP, badges, and progress (admin only)
   app.get("/api/admin/users/enhanced", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1339,7 +1339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/admin/users", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1399,7 +1399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Upload users via Excel file (admin only)
   app.post("/api/admin/users/upload-excel", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1424,7 +1424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Create multiple users in bulk (admin only)
   app.post("/api/admin/users/bulk", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1508,7 +1508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put("/api/admin/users/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1535,7 +1535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Delete user endpoint
   app.delete("/api/admin/users/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1599,7 +1599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin role management endpoints
   app.post("/api/admin/roles", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1630,7 +1630,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch("/api/admin/roles/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1663,7 +1663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/admin/roles/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1694,7 +1694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Role Mandatory Courses Management
   app.get("/api/admin/roles/:roleId/mandatory-courses", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1714,7 +1714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/admin/roles/:roleId/mandatory-courses", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+    if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -1746,7 +1746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete(
     "/api/admin/roles/:roleId/mandatory-courses/:courseId",
     async (req, res) => {
-      if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      if (!req.isAuthenticated() || !req.user!.isSubAdmin && req.user!.id !== 1) {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
