@@ -34,6 +34,14 @@ import {
   bulkDeleteMediaFiles,
   serveMediaFile,
 } from "./media-handler";
+import {
+  requirePermission,
+  requireAdmin,
+  requireAdminOrSubAdmin,
+  hasPermission,
+  getUserPermissions,
+  canManageUser,
+} from "./permissions";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -48,9 +56,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     express.static(path.join(process.cwd(), "public/uploads"))
   );
 
+  // Add endpoint to get user permissions
+  app.get("/api/user/permissions", (req, res) => {
+    const permissions = getUserPermissions(req.user);
+    res.json(permissions);
+  });
+
   // API routes
-  // Courses
-  app.get("/api/courses", async (req, res) => {
+  // Courses - Protected for admin only
+  app.get("/api/courses", requirePermission('canManageCourses'), async (req, res) => {
     try {
       const courses = await storage.getCourses();
       res.json(courses);
@@ -59,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/courses/:id", async (req, res) => {
+  app.get("/api/courses/:id", requirePermission('canManageCourses'), async (req, res) => {
     try {
       const course = await storage.getCourse(parseInt(req.params.id));
       if (!course) {
@@ -71,8 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Training Areas
-  app.get("/api/training-areas", async (req, res) => {
+  // Training Areas - Protected for admin only
+  app.get("/api/training-areas", requirePermission('canManageTrainingAreas'), async (req, res) => {
     try {
       const areas = await storage.getTrainingAreas();
       res.json(areas);
@@ -81,8 +95,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Modules
-  app.get("/api/modules", async (req, res) => {
+  // Modules - Protected for admin only
+  app.get("/api/modules", requirePermission('canManageModules'), async (req, res) => {
     try {
       const trainingAreaId = req.query.trainingAreaId
         ? parseInt(req.query.trainingAreaId as string)
