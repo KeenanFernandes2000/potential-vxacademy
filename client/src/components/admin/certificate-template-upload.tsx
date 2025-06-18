@@ -23,7 +23,7 @@ export function CertificateTemplateUpload({ value, onChange, disabled }: Certifi
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
-    
+
     const file = acceptedFiles[0];
     setUploadedFile(file);
     setUploading(true);
@@ -116,11 +116,11 @@ export function CertificateTemplateUpload({ value, onChange, disabled }: Certifi
                 </div>
               ) : (
                 <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <File className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">
-                        {uploadedFile?.name || "Certificate template"}
+                  <div className="flex items-center min-w-0 flex-1">
+                    <File className="h-8 w-8 text-primary flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate" title={uploadedFile?.name}>
+                        {uploadedFile?.name.length > 30 ? `${uploadedFile?.name.substring(0, 30)}...` : uploadedFile?.name}
                       </p>
                       <p className="text-sm text-gray-500">
                         {uploadedFile ? `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB` : "Template uploaded"}
