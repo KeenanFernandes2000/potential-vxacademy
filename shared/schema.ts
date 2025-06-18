@@ -3,10 +3,13 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Roles
+// Roles - Enhanced with asset, role category, and seniority mapping
 export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  assets: text("assets").notNull(), // Museum, Culture site, Events, etc.
+  roleCategory: text("role_category").notNull(), // Transport staff, Welcome staff, Guides, etc.
+  seniority: text("seniority").notNull(), // Manager, Staff
   description: text("description"),
   permissions: json("permissions"), // For future permission-based access control
   createdAt: timestamp("created_at").defaultNow(),

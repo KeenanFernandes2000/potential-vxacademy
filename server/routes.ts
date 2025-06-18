@@ -1636,16 +1636,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin role management endpoints
+  // Enhanced role management endpoints
+  app.get("/api/admin/roles", async (req, res) => {
+    if (!req.isAuthenticated() || (req.user!.role !== "admin" && req.user!.role !== "sub-admin")) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const roles = await storage.getRoles();
+      
+      // Add user count for each role
+      const enhancedRoles = await Promise.all(roles.map(async (role) => {
+        const users = await storage.getUsersByRole(role.name);
+        return {
+          ...role,
+          userCount: users.length
+        };
+      }));
+
+      res.json(enhancedRoles);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      res.status(500).json({ message: "Error fetching roles" });
+    }
+  });
+
   app.post("/api/admin/roles", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "admin") {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
     try {
-      const { name, description, permissions } = req.body;
+      const { name, assets, roleCategory, seniority, description } = req.body;
 
-      if (!name || !description) {
+      if (!name || !assets || !roleCategory || !seniority) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -1657,8 +1681,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const newRole = await storage.createRole({
         name,
-        description,
-        permissions: permissions || {},
+        assets,
+        roleCategory,
+        seniority,
+        description: description || null,
+        permissions: {},
       });
 
       res.status(201).json(newRole);

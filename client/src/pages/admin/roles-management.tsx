@@ -1,592 +1,803 @@
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Book, CheckCircle, Loader2, PlusCircle, Trash2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Redirect } from "wouter";
-import { Separator } from "@/components/ui/separator";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Search, Settings, Eye, Edit, Trash2, Users, Filter } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-interface Course {
-  id: number;
-  name: string;
-  description: string;
-  moduleId: number;
-  imageUrl: string | null;
-  duration: number;
-  level: string;
-  createdAt: string;
-}
+import AdminLayout from "@/components/layout/admin-layout";
+import { type Unit, type Course, type TrainingArea, type Module } from "@shared/schema";
 
-interface MandatoryCourse {
-  id: number;
-  roleId: number;
-  courseId: number;
-  course?: Course;
-}
+// Form schemas
+const roleFormSchema = z.object({
+  name: z.string().min(1, "Role name is required"),
+  assets: z.string().min(1, "Asset is required"),
+  roleCategory: z.string().min(1, "Role category is required"),
+  seniority: z.string().min(1, "Seniority is required"),
+});
 
+const unitAssignmentSchema = z.object({
+  trainingAreaId: z.string().optional(),
+  moduleId: z.string().optional(),
+  courseId: z.string().optional(),
+  unitIds: z.array(z.number()).min(1, "At least one unit must be selected"),
+});
+
+type RoleFormData = z.infer<typeof roleFormSchema>;
+type UnitAssignmentData = z.infer<typeof unitAssignmentSchema>;
+
+// Enhanced role interface
 interface Role {
   id: number;
   name: string;
-  description: string;
-  permissions: Record<string, any>;
+  assets: string;
+  roleCategory: string;
+  seniority: string;
+  userCount: number;
   createdAt: string;
 }
 
+// Dropdown options
+const ASSETS = [
+  { value: "Museum", label: "Museum" },
+  { value: "Culture site", label: "Culture site" },
+  { value: "Events", label: "Events" },
+  { value: "Mobility operators", label: "Mobility operators" },
+  { value: "Airports", label: "Airports" },
+  { value: "Cruise terminals", label: "Cruise terminals" },
+  { value: "Hospitality", label: "Hospitality" },
+  { value: "Malls", label: "Malls" },
+  { value: "Tour Guides & operators", label: "Tour Guides & operators" },
+  { value: "Visitor information centers", label: "Visitor information centers" },
+  { value: "Entertainment & Attractions", label: "Entertainment & Attractions" },
+];
+
+const ROLE_CATEGORIES = [
+  { value: "Transport and parking staff", label: "Transport and parking staff" },
+  { value: "Welcome staff", label: "Welcome staff" },
+  { value: "Ticketing staff", label: "Ticketing staff" },
+  { value: "Information desk staff", label: "Information desk staff" },
+  { value: "Guides", label: "Guides" },
+  { value: "Events staff", label: "Events staff" },
+  { value: "Security personnel", label: "Security personnel" },
+  { value: "Retail staff", label: "Retail staff" },
+  { value: "F&B staff", label: "F&B staff" },
+  { value: "Housekeeping & janitorial", label: "Housekeeping & janitorial" },
+  { value: "Customer service", label: "Customer service" },
+  { value: "Emergency & medical services", label: "Emergency & medical services" },
+  { value: "Media and public relations", label: "Media and public relations" },
+  { value: "Logistics", label: "Logistics" },
+  { value: "Recreation and entertainment", label: "Recreation and entertainment" },
+];
+
+const SENIORITY_LEVELS = [
+  { value: "Manager", label: "Manager" },
+  { value: "Staff", label: "Staff" },
+];
+
 export default function RolesManagement() {
-  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [mandatoryCoursesDialogOpen, setMandatoryCoursesDialogOpen] = useState(false);
-  const [selectedRoleForCourses, setSelectedRoleForCourses] = useState<Role | null>(null);
+  // State management
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isUnitAssignmentOpen, setIsUnitAssignmentOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    permissions: {}
-  });
-  
-  const systemRoles = ["admin", "supervisor", "content_creator", "frontliner"];
+  const [searchTerm, setSearchTerm] = useState("");
+  const [assetFilter, setAssetFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [seniorityFilter, setSeniorityFilter] = useState("all");
 
-  const { data: roles, isLoading } = useQuery<Role[]>({
-    queryKey: ["/api/roles"],
-    queryFn: () => fetch("/api/roles").then(res => res.json()),
+  // Filter states for unit assignment
+  const [selectedTrainingArea, setSelectedTrainingArea] = useState<string>("");
+  const [selectedModule, setSelectedModule] = useState<string>("");
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+
+  // Forms
+  const roleForm = useForm<RoleFormData>({
+    resolver: zodResolver(roleFormSchema),
+    defaultValues: {
+      name: "",
+      assets: "",
+      roleCategory: "",
+      seniority: "",
+    },
   });
-  
-  const { data: courses } = useQuery<Course[]>({
+
+  const unitAssignmentForm = useForm<UnitAssignmentData>({
+    resolver: zodResolver(unitAssignmentSchema),
+    defaultValues: {
+      trainingAreaId: "",
+      moduleId: "",
+      courseId: "",
+      unitIds: [],
+    },
+  });
+
+  // Data fetching
+  const { data: roles = [], isLoading } = useQuery<Role[]>({
+    queryKey: ["/api/admin/roles"],
+    queryFn: () => fetch("/api/admin/roles", { credentials: "include" }).then(res => res.json()),
+  });
+
+  const { data: trainingAreas = [] } = useQuery<TrainingArea[]>({
+    queryKey: ["/api/training-areas"],
+    queryFn: () => fetch("/api/training-areas", { credentials: "include" }).then(res => res.json()),
+  });
+
+  const { data: modules = [] } = useQuery<Module[]>({
+    queryKey: ["/api/modules"],
+    queryFn: () => fetch("/api/modules", { credentials: "include" }).then(res => res.json()),
+  });
+
+  const { data: courses = [] } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
-    queryFn: () => fetch("/api/courses").then(res => res.json()),
-  });
-  
-  const { data: mandatoryCourses, isLoading: isLoadingMandatoryCourses } = useQuery<MandatoryCourse[]>({
-    queryKey: ["/api/admin/roles", selectedRoleForCourses?.id, "mandatory-courses"],
-    queryFn: () => {
-      if (!selectedRoleForCourses) return Promise.resolve([]);
-      return fetch(`/api/admin/roles/${selectedRoleForCourses.id}/mandatory-courses`).then(res => res.json());
-    },
-    enabled: !!selectedRoleForCourses,
+    queryFn: () => fetch("/api/courses", { credentials: "include" }).then(res => res.json()),
   });
 
+  const { data: units = [] } = useQuery<Unit[]>({
+    queryKey: ["/api/units"],
+    queryFn: () => fetch("/api/units", { credentials: "include" }).then(res => res.json()),
+  });
+
+  // Mutations
   const createRoleMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const res = await apiRequest("POST", "/api/admin/roles", data);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to create role");
-      }
-      return await res.json();
-    },
+    mutationFn: (data: RoleFormData) =>
+      fetch("/api/admin/roles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to create role");
+        return res.json();
+      }),
     onSuccess: () => {
       toast({
-        title: "Role created successfully",
-        variant: "default",
+        title: "Role created",
+        description: "New role has been created successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
-      setDialogOpen(false);
-      resetForm();
+      setIsRoleDialogOpen(false);
+      roleForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roles"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error creating role",
+        title: "Creation failed",
         description: error.message,
         variant: "destructive",
       });
-    }
+    },
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: async (data: { id: number, roleData: Partial<typeof formData> }) => {
-      const res = await apiRequest("PATCH", `/api/admin/roles/${data.id}`, data.roleData);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to update role");
-      }
-      return await res.json();
-    },
+    mutationFn: ({ id, data }: { id: number; data: RoleFormData }) =>
+      fetch(`/api/admin/roles/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to update role");
+        return res.json();
+      }),
     onSuccess: () => {
       toast({
-        title: "Role updated successfully",
-        variant: "default",
+        title: "Role updated",
+        description: "Role has been updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
-      setDialogOpen(false);
-      resetForm();
+      setIsRoleDialogOpen(false);
+      setEditingRole(null);
+      roleForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roles"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error updating role",
+        title: "Update failed",
         description: error.message,
         variant: "destructive",
       });
-    }
+    },
   });
 
   const deleteRoleMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/admin/roles/${id}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to delete role");
-      }
-      return true;
-    },
+    mutationFn: (roleId: number) =>
+      fetch(`/api/admin/roles/${roleId}`, {
+        method: "DELETE",
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to delete role");
+        return res.json();
+      }),
     onSuccess: () => {
       toast({
-        title: "Role deleted successfully",
-        variant: "default",
+        title: "Role deleted",
+        description: "Role has been deleted successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roles"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error deleting role",
+        title: "Deletion failed",
         description: error.message,
         variant: "destructive",
       });
-    }
-  });
-  
-  const addMandatoryCourseMutation = useMutation({
-    mutationFn: async ({ roleId, courseId }: { roleId: number, courseId: number }) => {
-      const res = await apiRequest("POST", `/api/admin/roles/${roleId}/mandatory-courses`, { courseId });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to add mandatory course");
-      }
-      return await res.json();
     },
+  });
+
+  const assignUnitsMutation = useMutation({
+    mutationFn: ({ roleId, unitIds }: { roleId: number; unitIds: number[] }) =>
+      fetch(`/api/admin/roles/${roleId}/units`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unitIds }),
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to assign units");
+        return res.json();
+      }),
     onSuccess: () => {
       toast({
-        title: "Course added successfully",
-        description: "The course has been added to the mandatory list for this role.",
-        variant: "default",
+        title: "Units assigned",
+        description: "Units have been assigned to the role successfully",
       });
-      if (selectedRoleForCourses) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/admin/roles", selectedRoleForCourses.id, "mandatory-courses"] 
-        });
-      }
+      setIsUnitAssignmentOpen(false);
+      setSelectedRole(null);
+      unitAssignmentForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roles"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error adding mandatory course",
+        title: "Assignment failed",
         description: error.message,
         variant: "destructive",
       });
-    }
-  });
-  
-  const removeMandatoryCourseMutation = useMutation({
-    mutationFn: async ({ roleId, courseId }: { roleId: number, courseId: number }) => {
-      const res = await apiRequest("DELETE", `/api/admin/roles/${roleId}/mandatory-courses/${courseId}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to remove mandatory course");
-      }
-      return true;
     },
-    onSuccess: () => {
-      toast({
-        title: "Course removed successfully",
-        description: "The course has been removed from the mandatory list for this role.",
-        variant: "default",
-      });
-      if (selectedRoleForCourses) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/admin/roles", selectedRoleForCourses.id, "mandatory-courses"] 
-        });
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error removing mandatory course",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
+  // Filter roles based on search and filters
+  const filteredRoles = roles.filter((role) => {
+    const matchesSearch = role.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesAsset = assetFilter === "all" || role.assets === assetFilter;
+    const matchesCategory = categoryFilter === "all" || role.roleCategory === categoryFilter;
+    const matchesSeniority = seniorityFilter === "all" || role.seniority === seniorityFilter;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingRole) {
-      updateRoleMutation.mutate({
-        id: editingRole.id,
-        roleData: formData
-      });
-    } else {
-      createRoleMutation.mutate(formData);
+    return matchesSearch && matchesAsset && matchesCategory && matchesSeniority;
+  });
+
+  // Filter units for assignment based on selected filters
+  const filteredUnits = units.filter((unit) => {
+    if (selectedCourse) {
+      const course = courses.find(c => c.id === parseInt(selectedCourse));
+      return course && unit.courseId === course.id;
     }
-  };
-
-  const openDialog = (role?: Role) => {
-    if (role) {
-      setEditingRole(role);
-      setFormData({
-        name: role.name,
-        description: role.description,
-        permissions: role.permissions || {}
-      });
-    } else {
-      setEditingRole(null);
-      resetForm();
+    if (selectedModule) {
+      const moduleCourses = courses.filter(c => c.moduleId === parseInt(selectedModule));
+      return moduleCourses.some(c => unit.courseId === c.id);
     }
-    setDialogOpen(true);
-  };
+    if (selectedTrainingArea) {
+      const areaModules = modules.filter(m => m.trainingAreaId === parseInt(selectedTrainingArea));
+      const areaCourses = courses.filter(c => areaModules.some(m => m.id === c.moduleId));
+      return areaCourses.some(c => unit.courseId === c.id);
+    }
+    return true;
+  });
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      permissions: {}
-    });
+  // Event handlers
+  const handleCreateRole = () => {
     setEditingRole(null);
+    roleForm.reset();
+    setIsRoleDialogOpen(true);
+  };
+
+  const handleEditRole = (role: Role) => {
+    setEditingRole(role);
+    roleForm.reset({
+      name: role.name,
+      assets: role.assets,
+      roleCategory: role.roleCategory,
+      seniority: role.seniority,
+    });
+    setIsRoleDialogOpen(true);
   };
 
   const handleDeleteRole = (roleId: number) => {
-    if (confirm("Are you sure you want to delete this role? This action cannot be undone.")) {
+    if (confirm("Are you sure you want to delete this role?")) {
       deleteRoleMutation.mutate(roleId);
     }
   };
-  
-  const openMandatoryCoursesDialog = (role: Role) => {
-    setSelectedRoleForCourses(role);
-    setMandatoryCoursesDialogOpen(true);
-  };
-  
-  const handleAddMandatoryCourse = (courseId: number) => {
-    if (!selectedRoleForCourses) return;
-    
-    addMandatoryCourseMutation.mutate({
-      roleId: selectedRoleForCourses.id,
-      courseId
-    });
-  };
-  
-  const handleRemoveMandatoryCourse = (courseId: number) => {
-    if (!selectedRoleForCourses) return;
-    
-    removeMandatoryCourseMutation.mutate({
-      roleId: selectedRoleForCourses.id,
-      courseId
-    });
+
+  const handleAssignUnits = (role: Role) => {
+    setSelectedRole(role);
+    unitAssignmentForm.reset();
+    setSelectedTrainingArea("");
+    setSelectedModule("");
+    setSelectedCourse("");
+    setIsUnitAssignmentOpen(true);
   };
 
-  // Redirect if not admin
-  if (user && user.role !== "admin") {
-    return <Redirect to="/dashboard" />;
-  }
+  const handleRoleFormSubmit = (data: RoleFormData) => {
+    if (editingRole) {
+      updateRoleMutation.mutate({ id: editingRole.id, data });
+    } else {
+      createRoleMutation.mutate(data);
+    }
+  };
 
-  // Loading state
-  if (!user || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const handleUnitAssignmentSubmit = (data: UnitAssignmentData) => {
+    if (selectedRole) {
+      assignUnitsMutation.mutate({ roleId: selectedRole.id, unitIds: data.unitIds });
+    }
+  };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 p-8">
-        <div className="flex justify-between items-center mb-6">
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Role Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Create and manage roles in the system
+            <h1 className="text-3xl font-bold tracking-tight">Role Management Dashboard</h1>
+            <p className="text-muted-foreground">
+              Create and manage roles with asset, category, and seniority configurations
             </p>
           </div>
-          <Button onClick={() => openDialog()} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
-            Create New Role
+          <Button onClick={handleCreateRole} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create Role
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.isArray(roles) && roles.map((role) => (
-            <Card key={role.id} className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle>{role.name}</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteRole(role.id)}
-                    className="hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <CardDescription>
-                  {systemRoles.includes(role.name) ? (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                      System Role
-                    </span>
-                  ) : (
-                    <span className="text-xs bg-secondary/10 text-secondary px-2 py-0.5 rounded-full">
-                      Custom Role
-                    </span>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {role.description}
-                </p>
-                
-                <div className="space-y-2">
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
-                    onClick={() => openMandatoryCoursesDialog(role)}
-                  >
-                    <Book className="h-4 w-4 mr-2" />
-                    Mandatory Courses
-                  </Button>
-                  
-                  {!systemRoles.includes(role.name) && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full border-teal-600 text-teal-600 hover:bg-teal-50"
-                      onClick={() => openDialog(role)}
-                    >
-                      Edit Role
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {(!Array.isArray(roles) || roles.length === 0) && (
-          <Alert className="mt-6">
-            <AlertTitle>No custom roles found</AlertTitle>
-            <AlertDescription>
-              Click the "Create New Role" button to add a new role to the system.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingRole ? `Edit Role: ${editingRole.name}` : "Create New Role"}
-              </DialogTitle>
-              <DialogDescription>
-                {editingRole 
-                  ? "Update the details for this role" 
-                  : "Add a new role to the system with specific permissions"}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Role Name</Label>
+        {/* Filters and Search */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters</CardTitle>
+            <CardDescription>
+              Search and filter roles by various criteria
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    id="name"
-                    name="name"
-                    placeholder="e.g., Manager, Trainer"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    placeholder="Describe the role's responsibilities and access level"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    required
+                    placeholder="Search roles..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
                   />
                 </div>
               </div>
-              
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit"
-                  disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
-                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
-                >
-                  {(createRoleMutation.isPending || updateRoleMutation.isPending) && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Asset</label>
+                <Select value={assetFilter} onValueChange={setAssetFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Assets</SelectItem>
+                    {ASSETS.map((asset) => (
+                      <SelectItem key={asset.value} value={asset.value}>
+                        {asset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Role Category</label>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {ROLE_CATEGORIES.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Seniority</label>
+                <Select value={seniorityFilter} onValueChange={setSeniorityFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    {SENIORITY_LEVELS.map((level) => (
+                      <SelectItem key={level.value} value={level.value}>
+                        {level.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Roles Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Roles ({filteredRoles.length})</CardTitle>
+            <CardDescription>
+              Comprehensive role management with user assignments
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="text-sm text-muted-foreground">Loading roles...</div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Role Name</TableHead>
+                      <TableHead>Asset</TableHead>
+                      <TableHead>Role Category</TableHead>
+                      <TableHead>Seniority</TableHead>
+                      <TableHead>Number of Users</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredRoles.map((role) => (
+                      <TableRow key={role.id}>
+                        <TableCell>
+                          <div className="font-medium">{role.name}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{role.assets}</Badge>
+                        </TableCell>
+                        <TableCell>{role.roleCategory}</TableCell>
+                        <TableCell>
+                          <Badge variant={role.seniority === "Manager" ? "default" : "secondary"}>
+                            {role.seniority}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-gray-500" />
+                            {role.userCount || 0}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <TooltipProvider>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <Settings className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditRole(role)}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit Role
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAssignUnits(role)}>
+                                  <Settings className="h-4 w-4 mr-2" />
+                                  Assign Units
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteRole(role.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete Role
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TooltipProvider>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Role Form Dialog */}
+        <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingRole ? "Edit Role" : "Create Role"}
+              </DialogTitle>
+            </DialogHeader>
+
+            <Form {...roleForm}>
+              <form onSubmit={roleForm.handleSubmit(handleRoleFormSubmit)} className="space-y-4">
+                <FormField
+                  control={roleForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter role name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  {editingRole ? "Save Changes" : "Create Role"}
-                </Button>
-              </DialogFooter>
-            </form>
+                />
+
+                <FormField
+                  control={roleForm.control}
+                  name="assets"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Asset *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select asset" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {ASSETS.map((asset) => (
+                            <SelectItem key={asset.value} value={asset.value}>
+                              {asset.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={roleForm.control}
+                  name="roleCategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role Category *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {ROLE_CATEGORIES.map((category) => (
+                            <SelectItem key={category.value} value={category.value}>
+                              {category.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={roleForm.control}
+                  name="seniority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Seniority *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select seniority" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {SENIORITY_LEVELS.map((level) => (
+                            <SelectItem key={level.value} value={level.value}>
+                              {level.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end space-x-4 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsRoleDialogOpen(false)}
+                    disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
+                  >
+                    {createRoleMutation.isPending || updateRoleMutation.isPending 
+                      ? "Saving..." 
+                      : editingRole ? "Update Role" : "Create Role"
+                    }
+                  </Button>
+                </div>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
 
-        <Dialog open={mandatoryCoursesDialogOpen} onOpenChange={setMandatoryCoursesDialogOpen}>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        {/* Unit Assignment Dialog */}
+        <Dialog open={isUnitAssignmentOpen} onOpenChange={setIsUnitAssignmentOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                Mandatory Courses for {selectedRoleForCourses?.name}
+                Assign Units to {selectedRole?.name}
               </DialogTitle>
-              <DialogDescription>
-                Assign courses that are mandatory for users with this role. These courses will appear in users' dashboards as required learning.
-              </DialogDescription>
             </DialogHeader>
-            
-            <div className="py-4">
-              {isLoadingMandatoryCourses ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                <>
-                  {Array.isArray(mandatoryCourses) && mandatoryCourses.length > 0 ? (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">Current Mandatory Courses</h3>
-                      <div className="grid gap-2">
-                        {mandatoryCourses.map((mandatoryCourse) => {
-                          return (
-                            <div 
-                              key={mandatoryCourse.id || `${mandatoryCourse.courseId}`} 
-                              className="flex items-center justify-between p-3 bg-secondary/10 rounded-md"
-                            >
-                              <div className="flex items-center">
-                                <CheckCircle className="h-5 w-5 text-teal-600 mr-2" />
-                                <div>
-                                  <p className="font-medium">{mandatoryCourse.name || `Course #${mandatoryCourse.courseId}`}</p>
-                                  <p className="text-sm text-muted-foreground">{mandatoryCourse.description || 'No description available'}</p>
-                                  {mandatoryCourse.level && mandatoryCourse.duration && (
-                                    <div className="flex mt-1 space-x-2">
-                                      <Badge variant="outline">{mandatoryCourse.level}</Badge>
-                                      <Badge variant="outline">{mandatoryCourse.duration} minutes</Badge>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveMandatoryCourse(mandatoryCourse.courseId)}
-                                disabled={removeMandatoryCourseMutation.isPending}
-                                className="hover:bg-red-50 hover:text-red-600"
-                              >
-                                {removeMandatoryCourseMutation.isPending && mandatoryCourse.courseId === removeMandatoryCourseMutation.variables?.courseId && (
-                                  <Loader2 className="h-4 w-4 animate-spin mr-2 text-teal-600" />
-                                )}
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          );
-                        })}
+
+            <Form {...unitAssignmentForm}>
+              <form onSubmit={unitAssignmentForm.handleSubmit(handleUnitAssignmentSubmit)} className="space-y-6">
+                {/* Filters for Unit Selection */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Filter Units</CardTitle>
+                    <CardDescription>
+                      Filter units by training area, module, and course
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Training Area</label>
+                        <Select value={selectedTrainingArea} onValueChange={setSelectedTrainingArea}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select training area" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Training Areas</SelectItem>
+                            {trainingAreas.map((area) => (
+                              <SelectItem key={area.id} value={area.id.toString()}>
+                                {area.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Module</label>
+                        <Select value={selectedModule} onValueChange={setSelectedModule}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select module" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Modules</SelectItem>
+                            {modules
+                              .filter(m => !selectedTrainingArea || m.trainingAreaId === parseInt(selectedTrainingArea))
+                              .map((module) => (
+                                <SelectItem key={module.id} value={module.id.toString()}>
+                                  {module.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Course</label>
+                        <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select course" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Courses</SelectItem>
+                            {courses
+                              .filter(c => !selectedModule || c.moduleId === parseInt(selectedModule))
+                              .map((course) => (
+                                <SelectItem key={course.id} value={course.id.toString()}>
+                                  {course.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
-                  ) : (
-                    <Alert className="mb-4">
-                      <AlertTitle>No mandatory courses assigned</AlertTitle>
-                      <AlertDescription>
-                        This role doesn't have any mandatory courses assigned yet. Add courses from the list below.
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                  </CardContent>
+                </Card>
 
-                  <Separator className="my-6" />
+                {/* Unit Selection */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Select Units</CardTitle>
+                    <CardDescription>
+                      Choose which units to assign to this role
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={unitAssignmentForm.control}
+                      name="unitIds"
+                      render={() => (
+                        <FormItem>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredUnits.map((unit) => (
+                              <FormField
+                                key={unit.id}
+                                control={unitAssignmentForm.control}
+                                name="unitIds"
+                                render={({ field }) => {
+                                  return (
+                                    <FormItem
+                                      key={unit.id}
+                                      className="flex flex-row items-start space-x-3 space-y-0"
+                                    >
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value?.includes(unit.id)}
+                                          onCheckedChange={(checked) => {
+                                            return checked
+                                              ? field.onChange([...field.value, unit.id])
+                                              : field.onChange(
+                                                  field.value?.filter(
+                                                    (value) => value !== unit.id
+                                                  )
+                                                )
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">
+                                        {unit.name}
+                                      </FormLabel>
+                                    </FormItem>
+                                  )
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
 
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Available Courses</h3>
-                    
-                    {!Array.isArray(courses) || courses.length === 0 ? (
-                      <Alert>
-                        <AlertTitle>No courses available</AlertTitle>
-                        <AlertDescription>
-                          There are no courses in the system yet. Create courses first to assign them as mandatory.
-                        </AlertDescription>
-                      </Alert>
-                    ) : (
-                      <div className="grid gap-2">
-                        {courses
-                          .filter(course => {
-                            // Only show courses that are not already mandatory
-                            return !mandatoryCourses?.some(mc => mc.courseId === course.id);
-                          })
-                          .map(course => (
-                            <div 
-                              key={course.id} 
-                              className="flex items-center justify-between p-3 bg-accent/5 rounded-md"
-                            >
-                              <div className="flex items-center">
-                                <Book className="h-5 w-5 text-teal-600 mr-2" />
-                                <div>
-                                  <p className="font-medium">{course.name}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {course.description?.substring(0, 100) || 'No description available'}
-                                    {course.description && course.description.length > 100 ? '...' : ''}
-                                  </p>
-                                  <div className="flex mt-1 space-x-2">
-                                    <Badge variant="outline">{course.level || 'No level'}</Badge>
-                                    <Badge variant="outline">{course.duration} minutes</Badge>
-                                  </div>
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleAddMandatoryCourse(course.id)}
-                                disabled={addMandatoryCourseMutation.isPending}
-                                className="hover:bg-teal-50 hover:text-teal-600"
-                              >
-                                {addMandatoryCourseMutation.isPending && course.id === addMandatoryCourseMutation.variables?.courseId && (
-                                  <Loader2 className="h-4 w-4 animate-spin mr-2 text-teal-600" />
-                                )}
-                                <PlusCircle className="h-4 w-4 text-teal-600" />
-                              </Button>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => setMandatoryCoursesDialogOpen(false)}
-              >
-                Close
-              </Button>
-            </DialogFooter>
+                <div className="flex justify-end space-x-4 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsUnitAssignmentOpen(false)}
+                    disabled={assignUnitsMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={assignUnitsMutation.isPending}>
+                    {assignUnitsMutation.isPending ? "Assigning..." : "Assign Units"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
