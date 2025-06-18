@@ -114,6 +114,19 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 18, 2025: Comprehensive Role-Based Access Control Implementation
+  - Implemented three-tier user hierarchy (Admin, Sub-Admin, User) with proper permissions
+  - Created comprehensive permission system with 17 different access controls
+  - Added Sub-Admin restrictions: can only create Users, not other Sub-Admins
+  - Implemented user filtering so Sub-Admins only see users they created (createdBy field)
+  - Updated admin navigation to conditionally render based on user permissions
+  - Created usePermissions hook for frontend permission management
+  - Added role-based API route protection with requirePermission middleware
+  - Enhanced user creation with role validation and createdBy tracking
+  - Sub-Admins restricted from accessing courses, training areas, modules, assessments, etc.
+  - Only User Management and Role Management accessible to Sub-Admins
+  - Created comprehensive UserFormModal with role selection restrictions
+  - Updated admin layout to hide unauthorized navigation items
 - June 18, 2025: Complete Certificate Generation and Management System
   - Added Role Management to admin sidebar navigation with Shield icon for easy access
   - Implemented comprehensive CertificateTemplateUpload component with drag and drop functionality

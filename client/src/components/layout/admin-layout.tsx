@@ -54,73 +54,90 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  const navItems = [
+  // Define navigation items with permission requirements
+  const allNavItems = [
     {
       name: "Dashboard",
       path: "/admin/dashboard",
       icon: <LayoutDashboard className="h-5 w-5" />,
+      permission: () => canViewDashboard,
     },
     {
       name: "Training Areas",
       path: "/admin/training-areas",
       icon: <PuzzleIcon className="h-5 w-5" />,
+      permission: () => canManageTrainingAreas,
     },
     {
       name: "Modules",
       path: "/admin/modules",
       icon: <GraduationCap className="h-5 w-5" />,
+      permission: () => canManageModules,
     },
     {
       name: "Courses",
       path: "/admin/course-management",
       icon: <BookOpen className="h-5 w-5" />,
+      permission: () => canManageCourses,
     },
     {
       name: "Units",
       path: "/admin/units",
       icon: <BookOpen className="h-5 w-5" />,
+      permission: () => canManageUnits,
     },
     {
       name: "Learning Blocks",
       path: "/admin/learning-blocks",
       icon: <FileText className="h-5 w-5" />,
+      permission: () => canManageLearningBlocks,
     },
     {
       name: "Assessments",
       path: "/admin/assessments",
       icon: <ClipboardCheck className="h-5 w-5" />,
+      permission: () => canManageAssessments,
     },
     {
       name: "SCORM Packages",
       path: "/admin/scorm",
       icon: <FileText className="h-5 w-5" />,
+      permission: () => canManageScorm,
     },
     {
       name: "Media",
       path: "/admin/media",
       icon: <FileText className="h-5 w-5" />,
+      permission: () => canManageMedia,
     },
     {
       name: "Badges",
       path: "/admin/badges",
       icon: <Award className="h-5 w-5" />,
+      permission: () => canManageBadges,
     },
     {
       name: "User Management",
       path: "/admin/users",
       icon: <Users className="h-5 w-5" />,
+      permission: () => true, // Both admin and sub-admin can access
     },
     {
       name: "Role Management",
       path: "/admin/roles",
       icon: <Shield className="h-5 w-5" />,
+      permission: () => canManageRoles,
     },
     {
       name: "Analytics",
       path: "/admin/analytics",
       icon: <BarChart className="h-5 w-5" />,
+      permission: () => canViewAnalytics,
     },
   ];
+
+  // Filter navigation items based on permissions
+  const navItems = allNavItems.filter(item => item.permission());
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
