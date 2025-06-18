@@ -359,11 +359,7 @@ export default function AssessmentsManagement() {
     });
   };
 
-  // Function to find unit name by ID
-  const getUnitName = (unitId: number) => {
-    const unit = units?.find((u) => u.id === unitId);
-    return unit ? unit.name : `Unit ${unitId}`;
-  };
+
 
   // Function to navigate to questions management
   const navigateToQuestions = (assessmentId: number) => {
