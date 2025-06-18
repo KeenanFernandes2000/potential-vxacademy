@@ -66,6 +66,9 @@ const userEditSchema = z.object({
   email: z.string().email("Valid email is required"),
   role: z.string().min(1, "Role is required"),
   language: z.string().min(1, "Language is required"),
+  assets: z.string().optional(),
+  roleCategory: z.string().optional(),
+  seniority: z.string().optional(),
 });
 
 // New user form schema
@@ -456,6 +459,25 @@ export default function UserManagement() {
         ...data,
       });
     }
+  };
+
+  // Download template CSV file
+  const downloadTemplate = () => {
+    const csvContent = [
+      ['name', 'email', 'username', 'password'],
+      ['John Doe', 'john.doe@example.com', 'johndoe', 'password123'],
+      ['Jane Smith', 'jane.smith@example.com', 'janesmith', 'password456']
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'user_import_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Filter users based on search and multiple filters
@@ -855,6 +877,90 @@ export default function UserManagement() {
                         <SelectItem value="en">English</SelectItem>
                         <SelectItem value="ar">Arabic</SelectItem>
                         <SelectItem value="ur">Urdu</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="assets"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assets</FormLabel>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select assets" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">Not Assigned</SelectItem>
+                        <SelectItem value="hotel">Hotel</SelectItem>
+                        <SelectItem value="restaurant">Restaurant</SelectItem>
+                        <SelectItem value="spa">Spa</SelectItem>
+                        <SelectItem value="retail">Retail</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="roleCategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role Category</FormLabel>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">Not Set</SelectItem>
+                        <SelectItem value="management">Management</SelectItem>
+                        <SelectItem value="supervisor">Supervisor</SelectItem>
+                        <SelectItem value="frontline">Frontline</SelectItem>
+                        <SelectItem value="support">Support</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="seniority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Seniority</FormLabel>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select seniority level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">Not Set</SelectItem>
+                        <SelectItem value="junior">Junior</SelectItem>
+                        <SelectItem value="senior">Senior</SelectItem>
+                        <SelectItem value="lead">Lead</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1573,13 +1679,28 @@ export default function UserManagement() {
                 </div>
               </div>
               
-              <div className="text-xs text-muted-foreground">
-                <p className="font-medium mb-1">Excel file should have these columns:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>name - Full name of the user</li>
-                  <li>email - Email address (used for login)</li>
-                  <li>password - (Optional) Password for the account</li>
-                </ul>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    <p className="font-medium mb-1">Excel file should have these columns:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>name - Full name of the user</li>
+                      <li>email - Email address (used for login)</li>
+                      <li>username - Unique username for the account</li>
+                      <li>password - (Optional) Password for the account</li>
+                    </ul>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadTemplate}
+                    className="border-teal-600 text-teal-600 hover:bg-teal-50"
+                  >
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Download Template
+                  </Button>
+                </div>
               </div>
             </div>
             

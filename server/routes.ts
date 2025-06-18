@@ -1467,8 +1467,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: userData.email,
             role: defaultRole,
             language: defaultLanguage || "en",
-            xpPoints: 0,
-            createdAt: new Date(),
           });
 
           // If course IDs were provided, assign the courses to the user
