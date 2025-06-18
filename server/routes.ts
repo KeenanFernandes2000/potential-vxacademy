@@ -1323,10 +1323,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...userWithoutPassword,
             badgesCollected,
             mandatoryProgress,
-            // Add realistic data for new fields based on user role
-            assets: user.role === 'admin' ? 'Hotel' : user.role === 'supervisor' ? 'Restaurant' : 'Spa',
-            roleCategory: user.role === 'admin' ? 'Management' : user.role === 'supervisor' ? 'Supervisor' : 'Frontline',
-            seniority: user.role === 'admin' ? 'Manager' : user.role === 'supervisor' ? 'Senior' : 'Junior'
+            // Use actual organizational fields from user data
+            assets: user.assets || 'hospitality',
+            roleCategory: user.roleCategory || 'customer-service',
+            seniority: user.seniority || 'staff'
           };
         })
       );
@@ -1347,14 +1347,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const {
         username,
         password,
-        name,
+        firstName,
+        lastName,
         email,
-        role = "frontliner",
         language = "en",
+        nationality = "Not specified",
+        yearsOfExperience = "1-5",
+        assets = "hospitality",
+        roleCategory = "customer-service",
+        subCategory = "",
+        seniority = "staff",
+        organizationName = "",
+        isSubAdmin = false,
         courseIds = [],
       } = req.body;
 
-      if (!username || !password || !name || !email) {
+      if (!username || !password || !firstName || !lastName || !email) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -1368,10 +1376,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         username,
         password: await hashPassword(password),
-        name,
+        firstName,
+        lastName,
         email,
-        role,
         language,
+        nationality,
+        yearsOfExperience,
+        assets,
+        roleCategory,
+        subCategory,
+        seniority,
+        organizationName,
+        isSubAdmin,
       });
 
       // If courses are specified, create user progress entries for each
@@ -1463,10 +1479,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const newUser = await storage.createUser({
             username: userData.username,
             password: hashedPassword,
-            name: userData.name,
+            firstName: userData.firstName || userData.name?.split(' ')[0] || 'User',
+            lastName: userData.lastName || userData.name?.split(' ').slice(1).join(' ') || 'Name',
             email: userData.email,
-            role: defaultRole,
             language: defaultLanguage || "en",
+            nationality: userData.nationality || "Not specified",
+            yearsOfExperience: userData.yearsOfExperience || "1-5",
+            assets: userData.assets || "hospitality",
+            roleCategory: userData.roleCategory || "customer-service",
+            subCategory: userData.subCategory || "",
+            seniority: userData.seniority || "staff",
+            organizationName: userData.organizationName || "",
+            isSubAdmin: userData.isSubAdmin || false,
           });
 
           // If course IDs were provided, assign the courses to the user
