@@ -2,6 +2,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { usePermissions } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
@@ -28,10 +29,11 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const { canAccessAdminPanel, canViewDashboard, canManageCourses, canManageTrainingAreas, canManageModules, canManageUnits, canManageAssessments, canManageLearningBlocks, canManageBadges, canManageMedia, canManageScorm, canViewAnalytics, canManageRoles } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Redirect unauthorized users (should already be handled by ProtectedRoute)
-  if (!user || user.role !== "admin") {
+  // Redirect unauthorized users
+  if (!user || !canAccessAdminPanel()) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-12 text-center">

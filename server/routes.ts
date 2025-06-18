@@ -1360,14 +1360,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get enhanced user data with XP, badges, and progress (admin only)
-  app.get("/api/admin/users/enhanced", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-
+  // Get enhanced user data with XP, badges, and progress (admin and sub-admin)
+  app.get("/api/admin/users/enhanced", requireAdminOrSubAdmin, async (req, res) => {
     try {
-      const users = Array.from(await storage.getLeaderboard(1000));
+      let users = Array.from(await storage.getLeaderboard(1000));
+      
+      // If sub-admin, filter to only show users they created
+      if (req.user!.role === "sub-admin") {
+        users = users.filter(user => user.createdBy === req.user!.id);
+      }
       
       const enhancedUsers = await Promise.all(
         users.map(async (user) => {
@@ -1413,10 +1414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/users", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
+  app.post("/api/admin/users", requireAdminOrSubAdmin, async (req, res) => {
 
     try {
       const {
@@ -1439,6 +1437,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!firstName || !lastName || !username || !password || !email) {
         return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Role-based restrictions
+      if (req.user!.role === "sub-admin") {
+        // Sub-admins can only create users, not other sub-admins
+        if (role !== "user") {
+          return res.status(403).json({ message: "Sub-admins can only create users, not sub-admins" });
+        }
+      }
+
+      // Only admins can create sub-admins
+      if (role === "sub-admin" && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Only admins can create sub-admins" });
       }
 
       // Check if username already exists
@@ -1490,11 +1501,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload users via Excel file (admin only)
-  app.post("/api/admin/users/upload-excel", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
+  // Upload users via Excel file (admin and sub-admin)
+  app.post("/api/admin/users/upload-excel", requireAdminOrSubAdmin, async (req, res) => {
 
     uploadExcel(req, res, async (err) => {
       if (err) {
@@ -1515,11 +1523,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Create multiple users in bulk (admin only)
-  app.post("/api/admin/users/bulk", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
+  // Create multiple users in bulk (admin and sub-admin)
+  app.post("/api/admin/users/bulk", requireAdminOrSubAdmin, async (req, res) => {
 
     try {
       const { 
