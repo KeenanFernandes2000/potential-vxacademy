@@ -1691,6 +1691,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(newRole);
     } catch (error) {
       console.error("Error creating role:", error);
+      res.status(500).json({ message: "Failed to create role" });
+    }
+  });
+
+  app.patch("/api/admin/roles/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const roleId = parseInt(req.params.id);
+      const { name, assets, roleCategory, seniority, description } = req.body;
+
+      if (isNaN(roleId)) {
+        return res.status(400).json({ message: "Invalid role ID" });
+      }
+
+      // Check if role exists
+      const existingRole = await storage.getRole(roleId);
+      if (!existingRole) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+
+      // Check if new name conflicts with existing role (except current role)
+      if (name && name !== existingRole.name) {
+        const nameConflict = await storage.getRoleByName(name);
+        if (nameConflict) {
+          return res.status(400).json({ message: "Role name already exists" });
+        }
+      }
+
+      const updatedRole = await storage.updateRole(roleId, {
+        name,
+        assets,
+        roleCategory,
+        seniority,
+        description,
+      });
+
+      if (!updatedRole) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+
+      res.json(updatedRole);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
+  app.delete("/api/admin/roles/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const roleId = parseInt(req.params.id);
+
+      if (isNaN(roleId)) {
+        return res.status(400).json({ message: "Invalid role ID" });
+      }
+
+      // Check if role exists
+      const existingRole = await storage.getRole(roleId);
+      if (!existingRole) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+
+      // Check if role has users assigned
+      const usersWithRole = await storage.getUsersByRole(existingRole.name);
+      if (usersWithRole.length > 0) {
+        return res.status(400).json({ 
+          message: `Cannot delete role. ${usersWithRole.length} users are assigned to this role.` 
+        });
+      }
+
+      const success = await storage.deleteRole(roleId);
+      if (!success) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      res.status(500).json({ message: "Failed to delete role" });
+    }
+  });
+
+  // Unit assignment endpoints for roles
+  app.post("/api/admin/roles/:roleId/units", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const roleId = parseInt(req.params.roleId);
+      const { unitIds } = req.body;
+
+      if (isNaN(roleId)) {
+        return res.status(400).json({ message: "Invalid role ID" });
+      }
+
+      if (!Array.isArray(unitIds) || unitIds.length === 0) {
+        return res.status(400).json({ message: "Unit IDs must be a non-empty array" });
+      }
+
+      // Check if role exists
+      const role = await storage.getRole(roleId);
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+
+      // For now, we'll add units as mandatory courses associated with the role
+      // This assumes units are linked to courses
+      const assignments = [];
+      for (const unitId of unitIds) {
+        const unit = await storage.getUnit(unitId);
+        if (unit && unit.courseId) {
+          try {
+            const assignment = await storage.addMandatoryCourseToRole({
+              roleId,
+              courseId: unit.courseId,
+            });
+            assignments.push(assignment);
+          } catch (error) {
+            // Skip if already exists
+            console.log(`Course ${unit.courseId} already assigned to role ${roleId}`);
+          }
+        }
+      }
+
+      res.status(201).json({ 
+        message: "Units assigned successfully", 
+        assignments: assignments.length 
+      });
+    } catch (error) {
+      console.error("Error assigning units to role:", error);
       res.status(500).json({ message: "Error creating role" });
     }
   });
