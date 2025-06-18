@@ -1578,19 +1578,20 @@ export default function UserManagement() {
                 <Label htmlFor="defaultRole">Default Role</Label>
                 <Select name="defaultRole" defaultValue="frontliner" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
+                    <SelectValue placeholder="Frontliner (Default)" />
                   </SelectTrigger>
                   <SelectContent>
                     {roles ? roles.map(role => (
                       <SelectItem key={role.name} value={role.name}>
                         {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
+                        {role.name === "frontliner" && " (Lowest Privilege)"}
                       </SelectItem>
                     )) : (
                       <>
-                        <SelectItem value="admin">Administrator</SelectItem>
-                        <SelectItem value="supervisor">Supervisor</SelectItem>
+                        <SelectItem value="frontliner">Frontliner (Lowest Privilege)</SelectItem>
                         <SelectItem value="content_creator">Content Creator</SelectItem>
-                        <SelectItem value="frontliner">Frontliner</SelectItem>
+                        <SelectItem value="supervisor">Supervisor</SelectItem>
+                        <SelectItem value="admin">Administrator</SelectItem>
                       </>
                     )}
                   </SelectContent>
