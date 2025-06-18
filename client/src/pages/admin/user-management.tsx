@@ -368,10 +368,18 @@ export default function UserManagementPage() {
 
   // Mutations
   const createUserMutation = useMutation({
-    mutationFn: (userData: CreateUserForm) => apiRequest("/api/admin/users", {
-      method: "POST",
-      body: JSON.stringify(userData),
-    }),
+    mutationFn: (userData: CreateUserForm) => 
+      fetch("/api/admin/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to create user");
+        return res.json();
+      }),
     onSuccess: () => {
       toast({
         title: "User created",
@@ -391,10 +399,18 @@ export default function UserManagementPage() {
   });
 
   const bulkCreateMutation = useMutation({
-    mutationFn: (bulkData: BulkUserForm) => apiRequest("/api/admin/users/bulk", {
-      method: "POST",
-      body: JSON.stringify(bulkData),
-    }),
+    mutationFn: (bulkData: BulkUserForm) =>
+      fetch("/api/admin/users/bulk", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bulkData),
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to create users");
+        return res.json();
+      }),
     onSuccess: () => {
       toast({
         title: "Users created",
@@ -414,9 +430,14 @@ export default function UserManagementPage() {
   });
 
   const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => apiRequest(`/api/admin/users/${userId}`, {
-      method: "DELETE",
-    }),
+    mutationFn: (userId: number) =>
+      fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to delete user");
+        return res.json();
+      }),
     onSuccess: () => {
       toast({
         title: "User deleted",
@@ -659,7 +680,7 @@ export default function UserManagementPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nationality</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select nationality" />
@@ -684,7 +705,7 @@ export default function UserManagementPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Years of Experience</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select experience level" />

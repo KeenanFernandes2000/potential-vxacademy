@@ -1345,16 +1345,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const {
+        firstName,
+        lastName,
         username,
         password,
-        name,
         email,
-        role = "frontliner",
+        role = "user",
         language = "en",
+        nationality,
+        yearsOfExperience,
+        assets,
+        roleCategory,
+        subCategory,
+        seniority,
+        organizationName,
         courseIds = [],
       } = req.body;
 
-      if (!username || !password || !name || !email) {
+      if (!firstName || !lastName || !username || !password || !email) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -1366,12 +1374,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create the user
       const user = await storage.createUser({
+        firstName,
+        lastName,
         username,
         password: await hashPassword(password),
-        name,
         email,
         role,
         language,
+        nationality,
+        yearsOfExperience,
+        assets,
+        roleCategory,
+        subCategory,
+        seniority,
+        organizationName,
+        createdBy: req.user?.id || null,
+        isActive: true,
       });
 
       // If courses are specified, create user progress entries for each
