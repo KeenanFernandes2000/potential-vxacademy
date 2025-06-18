@@ -1,0 +1,63 @@
+We have Admins, Sub-Admins, and we have Users.
+Users follow a certain mapping: Asset  Role Category  Sub-Category  Seniority
+Sub-Admins are also users but have the option to upload users to the platform and enroll them. They can view the details and progress of their own users (the ones they enroll)
+Admins can create Sub-Admins and Users, Sub-Admins can create users, and only Potential.com can create Admins.
+As discussed, based on the above mapping, we will assign courses and units to users.
+
+
+User profiles of users should include:
+First name
+Last name
+Email Address
+Username
+Password
+Language (Drop down with: Arabic, English, Urdu, Hindi, Tagalog, Bengali, Malayalam, Tamil, Farsi)
+Nationality (Drop down with search to include all nationalities worldwide)
+Years of Experience (Drop down with: Less than 1 year, 1-5 years, 5-10 years, 10+ years)
+Assets
+Museum
+Culture site
+Events
+Mobility operators
+Airports
+Cruise terminals
+Hospitality
+Malls
+Tour Guides & operators
+Visitor information centers
+Entertainment & Attractions
+Role Category
+Transport and parking staff
+Welcome staff
+Ticketing staff
+Information desk staff
+Guides
+Events staff
+Security personnel
+Retail staff
+F&B staff
+Housekeeping & janitorial
+Customer service
+Emergency & medical services
+Media and public relations
+Logistics
+Recreation and entertainment
+Sub-Category (this doesn't affect the role and we have 100+ so keep as free text and we can add later as a drop-down if needed)
+Seniority
+Manager
+Staff
+Organization Name (Free text)
+
+
+
+
+Role Management Dashboard
+We need the view to be a table view and not cards because we will have a lot of them
+When clicking on Create Role, we should fill up the following fields:
+Role Name
+Asset (Drop-down as above)
+Role Category (Drop-down as above)
+Seniority (Drop-down as above)
+Once the Role is created, we can assign Units through the other button. In this pop-up, we should be able to filter by Training Area, Module, and then course, so we select Units as check boxes and then save.
+The table view should include the following columns: Role Name / Asset / Role Category / Seniority / Number of users
+Users registered with specific Asset, Role Category, and Seniority will have access to the courses with these units linked to them.

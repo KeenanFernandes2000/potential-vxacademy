@@ -9,14 +9,21 @@ import { User } from "@shared/schema";
 import type { Course } from "@shared/schema";
 import type { roles as RoleType } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, Filter, MoreVertical, Upload, FileSpreadsheet } from "lucide-react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Loader2,
+  Search,
+  Filter,
+  MoreVertical,
+  Upload,
+  FileSpreadsheet,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -62,38 +69,60 @@ import { Redirect } from "wouter";
 
 // User edit form schema
 const userEditSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
-  role: z.string().min(1, "Role is required"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   language: z.string().min(1, "Language is required"),
-  assets: z.string().optional(),
-  roleCategory: z.string().optional(),
-  seniority: z.string().optional(),
+  nationality: z.string().min(1, "Nationality is required"),
+  yearsOfExperience: z.string().min(1, "Years of experience is required"),
+  assets: z.string().min(1, "Assets is required"),
+  roleCategory: z.string().min(1, "Role category is required"),
+  subCategory: z.string().optional(),
+  seniority: z.string().min(1, "Seniority is required"),
+  organizationName: z.string().optional(),
+  isSubAdmin: z.boolean().optional(),
 });
 
 // New user form schema
 const newUserSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.string().min(1, "Role is required"),
   language: z.string().min(1, "Language is required"),
+  nationality: z.string().min(1, "Nationality is required"),
+  yearsOfExperience: z.string().min(1, "Years of experience is required"),
+  assets: z.string().min(1, "Assets is required"),
+  roleCategory: z.string().min(1, "Role category is required"),
+  subCategory: z.string().optional(),
+  seniority: z.string().min(1, "Seniority is required"),
+  organizationName: z.string().optional(),
+  isSubAdmin: z.boolean().optional(),
   courseIds: z.array(z.string()).optional(),
 });
 
 // Bulk user creation schema
 const bulkUserSchema = z.object({
-  defaultRole: z.string().min(1, "Role is required"),
   defaultLanguage: z.string().min(1, "Language is required"),
-  users: z.array(
-    z.object({
-      name: z.string().min(1, "Name is required"),
-      email: z.string().email("Valid email is required"),
-      username: z.string().min(3, "Username must be at least 3 characters"),
-      password: z.string().min(6, "Password must be at least 6 characters").optional(),
-    })
-  ).min(1, "At least one user is required"),
+  defaultAssets: z.string().min(1, "Assets is required"),
+  defaultRoleCategory: z.string().min(1, "Role category is required"),
+  defaultSeniority: z.string().min(1, "Seniority is required"),
+  users: z
+    .array(
+      z.object({
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"),
+        email: z.string().email("Valid email is required"),
+        username: z.string().min(3, "Username must be at least 3 characters"),
+        password: z
+          .string()
+          .min(6, "Password must be at least 6 characters")
+          .optional(),
+      }),
+    )
+    .min(1, "At least one user is required"),
   courseIds: z.array(z.string()).optional(),
 });
 
@@ -114,7 +143,9 @@ export default function UserManagement() {
   const [isExcelUploadDialogOpen, setIsExcelUploadDialogOpen] = useState(false);
   const [isUserDetailDialogOpen, setIsUserDetailDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedUserForDetails, setSelectedUserForDetails] = useState<any | null>(null);
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<
+    any | null
+  >(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<any>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -122,53 +153,67 @@ export default function UserManagement() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   // Add New User Form
   const addUserForm = useForm<NewUserFormValues>({
     resolver: zodResolver(newUserSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       username: "",
       password: "",
-      role: "frontliner",
       language: "en",
+      nationality: "",
+      yearsOfExperience: "",
+      assets: "",
+      roleCategory: "",
+      subCategory: "",
+      seniority: "",
+      organizationName: "",
+      isSubAdmin: false,
       courseIds: [],
-    }
+    },
   });
-  
+
   // Bulk Add Users Form
   const bulkUserForm = useForm<BulkUserData>({
     resolver: zodResolver(bulkUserSchema),
     defaultValues: {
-      defaultRole: "frontliner",
       defaultLanguage: "en",
-      users: [{ name: "", email: "", username: "", password: "" }],
+      defaultAssets: "",
+      defaultRoleCategory: "",
+      defaultSeniority: "",
+      users: [{ firstName: "", lastName: "", email: "", username: "", password: "" }],
       courseIds: [],
-    }
+    },
   });
-  
+
   // Setup field array for bulk user creation
-  const { fields: userFields, append: appendUser, remove: removeUser } = useFieldArray({
+  const {
+    fields: userFields,
+    append: appendUser,
+    remove: removeUser,
+  } = useFieldArray({
     name: "users",
     control: bulkUserForm.control,
   });
-  
+
   // Function to add a new user field in bulk creation
   const addUserField = () => {
-    appendUser({ name: "", email: "", username: "", password: "" });
+    appendUser({ firstName: "", lastName: "", email: "", username: "", password: "" });
   };
-  
+
   // Function to remove a user field
   const removeUserField = (index: number) => {
     removeUser(index);
   };
-  
+
   // Handle bulk user submission
   const onBulkAddSubmit = (data: BulkUserData) => {
     createBulkUsersMutation.mutate(data);
   };
-  
+
   // Handle single user submission
   const onAddUserSubmit = (data: NewUserFormValues) => {
     createUserMutation.mutate(data);
@@ -196,9 +241,9 @@ export default function UserManagement() {
   const { data: courses } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
   });
-  
+
   // Fetch available roles
-  const { data: roles } = useQuery<typeof RoleType.$inferSelect[]>({
+  const { data: roles } = useQuery<(typeof RoleType.$inferSelect)[]>({
     queryKey: ["/api/roles"],
   });
 
@@ -225,7 +270,7 @@ export default function UserManagement() {
       });
     },
   });
-  
+
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: NewUserFormValues) => {
@@ -239,12 +284,20 @@ export default function UserManagement() {
       });
       setIsAddDialogOpen(false);
       addUserForm.reset({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
         username: "",
         password: "",
-        role: "frontliner",
         language: "en",
+        nationality: "",
+        yearsOfExperience: "",
+        assets: "",
+        roleCategory: "",
+        subCategory: "",
+        seniority: "",
+        organizationName: "",
+        isSubAdmin: false,
         courseIds: [],
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -257,7 +310,7 @@ export default function UserManagement() {
       });
     },
   });
-  
+
   // Create bulk users mutation
   const createBulkUsersMutation = useMutation({
     mutationFn: async (usersData: BulkUserData) => {
@@ -286,7 +339,7 @@ export default function UserManagement() {
       });
     },
   });
-  
+
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -311,11 +364,15 @@ export default function UserManagement() {
 
   // Function to handle user deletion
   const handleDeleteUser = (userId: number) => {
-    if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this user? This action cannot be undone.",
+      )
+    ) {
       deleteUserMutation.mutate(userId);
     }
   };
-  
+
   // Excel upload mutation
   const uploadExcelMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -340,13 +397,14 @@ export default function UserManagement() {
       setIsUploading(false);
       toast({
         title: "Excel import failed",
-        description: "There was an error importing users. Please check your file format.",
+        description:
+          "There was an error importing users. Please check your file format.",
         variant: "destructive",
       });
       console.error("Excel upload error:", error);
-    }
+    },
   });
-  
+
   // Handle drag and drop events
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -360,47 +418,56 @@ export default function UserManagement() {
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
 
-    const files = e.dataTransfer.files;
-    if (files?.length > 0) {
-      const file = files[0];
-      if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
-          file.type === 'application/vnd.ms-excel' || 
-          file.type === 'text/csv' ||
-          file.name.endsWith('.xlsx') || 
-          file.name.endsWith('.xls') || 
-          file.name.endsWith('.csv')) {
-        setSelectedFile(file);
-        if (fileInputRef.current) {
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          fileInputRef.current.files = dt.files;
+      const files = e.dataTransfer.files;
+      if (files?.length > 0) {
+        const file = files[0];
+        if (
+          file.type ===
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          file.type === "application/vnd.ms-excel" ||
+          file.type === "text/csv" ||
+          file.name.endsWith(".xlsx") ||
+          file.name.endsWith(".xls") ||
+          file.name.endsWith(".csv")
+        ) {
+          setSelectedFile(file);
+          if (fileInputRef.current) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInputRef.current.files = dt.files;
+          }
+        } else {
+          toast({
+            title: "Invalid file type",
+            description: "Please upload an Excel (.xlsx, .xls) or CSV file.",
+            variant: "destructive",
+          });
         }
-      } else {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload an Excel (.xlsx, .xls) or CSV file.",
-          variant: "destructive",
-        });
       }
-    }
-  }, [toast]);
+    },
+    [toast],
+  );
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  }, []);
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        setSelectedFile(file);
+      }
+    },
+    [],
+  );
 
   // Handle file upload
   const handleFileUpload = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!selectedFile && !fileInputRef.current?.files?.length) {
       toast({
         title: "No file selected",
@@ -409,14 +476,14 @@ export default function UserManagement() {
       });
       return;
     }
-    
+
     // Get form data
     const formData = new FormData(e.currentTarget);
-    
+
     // Validate required fields
     const defaultRole = formData.get("defaultRole") as string;
     const defaultLanguage = formData.get("defaultLanguage") as string;
-    
+
     if (!defaultRole || !defaultLanguage) {
       toast({
         title: "Missing required fields",
@@ -425,7 +492,7 @@ export default function UserManagement() {
       });
       return;
     }
-    
+
     setIsUploading(true);
     uploadExcelMutation.mutate(formData);
   };
@@ -464,36 +531,51 @@ export default function UserManagement() {
   // Download template CSV file
   const downloadTemplate = () => {
     const csvContent = [
-      ['name', 'email', 'username', 'password'],
-      ['John Doe', 'john.doe@example.com', 'johndoe', 'password123'],
-      ['Jane Smith', 'jane.smith@example.com', 'janesmith', 'password456']
-    ].map(row => row.join(',')).join('\n');
+      ["name", "email", "username", "password"],
+      ["John Doe", "john.doe@example.com", "johndoe", "password123"],
+      ["Jane Smith", "jane.smith@example.com", "janesmith", "password456"],
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'user_import_template.csv');
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute("download", "user_import_template.csv");
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   // Filter users based on search and multiple filters
-  const filteredUsers = users 
-    ? users.filter(user => {
-        const matchesSearch = 
-          user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredUsers = users
+    ? users.filter((user) => {
+        const matchesSearch =
+          user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.username.toLowerCase().includes(searchQuery.toLowerCase());
-        
-        const matchesPlatformRole = platformRoleFilter === "all" || user.role === platformRoleFilter;
-        const matchesAssets = assetsFilter === "all" || (user.assets && user.assets.includes(assetsFilter));
-        const matchesRoleCategory = roleCategoryFilter === "all" || (user.roleCategory && user.roleCategory === roleCategoryFilter);
-        const matchesSeniority = seniorityFilter === "all" || (user.seniority && user.seniority === seniorityFilter);
-        
-        return matchesSearch && matchesPlatformRole && matchesAssets && matchesRoleCategory && matchesSeniority;
+
+        const matchesPlatformRole =
+          platformRoleFilter === "all" || user.role === platformRoleFilter;
+        const matchesAssets =
+          assetsFilter === "all" ||
+          (user.assets && user.assets.includes(assetsFilter));
+        const matchesRoleCategory =
+          roleCategoryFilter === "all" ||
+          (user.roleCategory && user.roleCategory === roleCategoryFilter);
+        const matchesSeniority =
+          seniorityFilter === "all" ||
+          (user.seniority && user.seniority === seniorityFilter);
+
+        return (
+          matchesSearch &&
+          matchesPlatformRole &&
+          matchesAssets &&
+          matchesRoleCategory &&
+          matchesSeniority
+        );
       })
     : [];
 
@@ -501,10 +583,10 @@ export default function UserManagement() {
   const formatDate = (dateString: string | Date | null) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     }).format(date);
   };
 
@@ -512,8 +594,14 @@ export default function UserManagement() {
     <div className="h-screen flex flex-col md:flex-row">
       {/* Mobile sidebar (shown when toggled) */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={toggleSidebar}>
-          <div className="absolute top-0 left-0 bottom-0 w-64 bg-primary" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={toggleSidebar}
+        >
+          <div
+            className="absolute top-0 left-0 bottom-0 w-64 bg-primary"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Sidebar />
           </div>
         </div>
@@ -533,30 +621,36 @@ export default function UserManagement() {
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                 {/* Title Section */}
                 <div>
-                  <h1 className="font-heading text-3xl font-bold text-neutrals-800">User Management</h1>
-                  <p className="text-neutrals-600 mt-1">Manage users, roles, and permissions across the platform</p>
+                  <h1 className="font-heading text-3xl font-bold text-neutrals-800">
+                    User Management
+                  </h1>
+                  <p className="text-neutrals-600 mt-1">
+                    Manage users, roles, and permissions across the platform
+                  </p>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-3">
-                  <Button 
-                    onClick={() => setIsAddDialogOpen(true)} 
+                  <Button
+                    onClick={() => setIsAddDialogOpen(true)}
                     className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-md"
                   >
                     <span className="material-icons mr-2 text-lg">add</span>
                     Add User
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsBulkAddDialogOpen(true)} 
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsBulkAddDialogOpen(true)}
                     className="border-teal-600 text-teal-600 hover:bg-teal-50 shadow-sm"
                   >
-                    <span className="material-icons mr-2 text-lg">group_add</span>
+                    <span className="material-icons mr-2 text-lg">
+                      group_add
+                    </span>
                     Bulk Add
                   </Button>
-                  <Button 
-                    variant="secondary" 
-                    onClick={() => setIsExcelUploadDialogOpen(true)} 
+                  <Button
+                    variant="secondary"
+                    onClick={() => setIsExcelUploadDialogOpen(true)}
                     className="bg-cyan-50 text-teal-700 hover:bg-cyan-100 border border-cyan-200 shadow-sm"
                   >
                     <FileSpreadsheet className="mr-2 h-5 w-5" />
@@ -582,7 +676,10 @@ export default function UserManagement() {
 
                   {/* Filter Controls */}
                   <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <Select value={platformRoleFilter} onValueChange={setPlatformRoleFilter}>
+                    <Select
+                      value={platformRoleFilter}
+                      onValueChange={setPlatformRoleFilter}
+                    >
                       <SelectTrigger className="bg-white border-slate-300 focus:border-teal-500">
                         <Filter className="mr-2 h-4 w-4 text-slate-500" />
                         <SelectValue placeholder="Platform Role" />
@@ -595,7 +692,10 @@ export default function UserManagement() {
                       </SelectContent>
                     </Select>
 
-                    <Select value={assetsFilter} onValueChange={setAssetsFilter}>
+                    <Select
+                      value={assetsFilter}
+                      onValueChange={setAssetsFilter}
+                    >
                       <SelectTrigger className="bg-white border-slate-300 focus:border-teal-500">
                         <SelectValue placeholder="Assets" />
                       </SelectTrigger>
@@ -608,7 +708,10 @@ export default function UserManagement() {
                       </SelectContent>
                     </Select>
 
-                    <Select value={roleCategoryFilter} onValueChange={setRoleCategoryFilter}>
+                    <Select
+                      value={roleCategoryFilter}
+                      onValueChange={setRoleCategoryFilter}
+                    >
                       <SelectTrigger className="bg-white border-slate-300 focus:border-teal-500">
                         <SelectValue placeholder="Role Category" />
                       </SelectTrigger>
@@ -621,7 +724,10 @@ export default function UserManagement() {
                       </SelectContent>
                     </Select>
 
-                    <Select value={seniorityFilter} onValueChange={setSeniorityFilter}>
+                    <Select
+                      value={seniorityFilter}
+                      onValueChange={setSeniorityFilter}
+                    >
                       <SelectTrigger className="bg-white border-slate-300 focus:border-teal-500">
                         <SelectValue placeholder="Seniority Level" />
                       </SelectTrigger>
@@ -637,15 +743,17 @@ export default function UserManagement() {
                 </div>
               </div>
             </div>
-            
+
             {isLoading ? (
               <div className="rounded-md border">
                 <div className="p-4">
                   <Skeleton className="h-8 w-full mb-4" />
                   <div className="space-y-2">
-                    {Array(5).fill(0).map((_, i) => (
-                      <Skeleton key={i} className="h-12 w-full" />
-                    ))}
+                    {Array(5)
+                      .fill(0)
+                      .map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                      ))}
                   </div>
                 </div>
               </div>
@@ -684,55 +792,73 @@ export default function UserManagement() {
                           <TableCell>{user.email}</TableCell>
                           <TableCell>{user.username}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              user.role === 'admin' ? 'bg-teal-100 text-teal-700' :
-                              user.role === 'supervisor' ? 'bg-cyan-100 text-cyan-700' :
-                              user.role === 'content_creator' ? 'bg-teal-50 text-teal-600' :
-                              'bg-neutrals-200 text-neutrals-700'
-                            }`}>
-                              {user.role.charAt(0).toUpperCase() + user.role.slice(1).replace('_', ' ')}
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                user.role === "admin"
+                                  ? "bg-teal-100 text-teal-700"
+                                  : user.role === "supervisor"
+                                    ? "bg-cyan-100 text-cyan-700"
+                                    : user.role === "content_creator"
+                                      ? "bg-teal-50 text-teal-600"
+                                      : "bg-neutrals-200 text-neutrals-700"
+                              }`}
+                            >
+                              {user.role.charAt(0).toUpperCase() +
+                                user.role.slice(1).replace("_", " ")}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span className="px-2 py-1 rounded-md text-xs bg-blue-50 text-blue-700">
-                              {user.assets || 'Not Assigned'}
+                              {user.assets || "Not Assigned"}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span className="px-2 py-1 rounded-md text-xs bg-purple-50 text-purple-700">
-                              {user.roleCategory || 'Not Set'}
+                              {user.roleCategory || "Not Set"}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span className="px-2 py-1 rounded-md text-xs bg-orange-50 text-orange-700">
-                              {user.seniority || 'Not Set'}
+                              {user.seniority || "Not Set"}
                             </span>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <span className="font-semibold text-yellow-600">{user.xpPoints?.toLocaleString() || '0'}</span>
+                              <span className="font-semibold text-yellow-600">
+                                {user.xpPoints?.toLocaleString() || "0"}
+                              </span>
                               <span className="text-xs text-gray-500">XP</span>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <span className="font-semibold text-blue-600">{user.badgesCollected || 0}</span>
-                              <span className="text-xs text-gray-500">badges</span>
+                              <span className="font-semibold text-blue-600">
+                                {user.badgesCollected || 0}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                badges
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="w-16 bg-gray-200 rounded-full h-2">
-                                <div 
+                                <div
                                   className="bg-gradient-to-r from-teal-500 to-cyan-500 h-2 rounded-full transition-all duration-300"
-                                  style={{ width: `${user.mandatoryProgress || 0}%` }}
+                                  style={{
+                                    width: `${user.mandatoryProgress || 0}%`,
+                                  }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-gray-600">{user.mandatoryProgress || 0}%</span>
+                              <span className="text-xs text-gray-600">
+                                {user.mandatoryProgress || 0}%
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="text-xs text-gray-600">{user.language || 'English'}</span>
+                            <span className="text-xs text-gray-600">
+                              {user.language || "English"}
+                            </span>
                           </TableCell>
                           <TableCell>{formatDate(user.createdAt)}</TableCell>
                           <TableCell className="text-right">
@@ -745,20 +871,32 @@ export default function UserManagement() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => openEditDialog(user)}>
-                                  <span className="material-icons text-sm mr-2">edit</span>
+                                <DropdownMenuItem
+                                  onClick={() => openEditDialog(user)}
+                                >
+                                  <span className="material-icons text-sm mr-2">
+                                    edit
+                                  </span>
                                   Edit User
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSelectedUserForDetails(user)}>
-                                  <span className="material-icons text-sm mr-2">visibility</span>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setSelectedUserForDetails(user)
+                                  }
+                                >
+                                  <span className="material-icons text-sm mr-2">
+                                    visibility
+                                  </span>
                                   View Details
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="text-danger"
                                   onClick={() => handleDeleteUser(user.id)}
                                 >
-                                  <span className="material-icons text-sm mr-2">delete</span>
+                                  <span className="material-icons text-sm mr-2">
+                                    delete
+                                  </span>
                                   Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -790,7 +928,7 @@ export default function UserManagement() {
               Update the user details below. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -806,7 +944,7 @@ export default function UserManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -820,17 +958,14 @@ export default function UserManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="role"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -838,17 +973,24 @@ export default function UserManagement() {
                       </FormControl>
                       <SelectContent>
                         {roles && roles.length > 0 ? (
-                          roles.map(role => (
+                          roles.map((role) => (
                             <SelectItem key={role.id} value={role.name}>
-                              {role.name.charAt(0).toUpperCase() + role.name.slice(1).replace('_', ' ')}
+                              {role.name.charAt(0).toUpperCase() +
+                                role.name.slice(1).replace("_", " ")}
                             </SelectItem>
                           ))
                         ) : (
                           <>
                             <SelectItem value="admin">Administrator</SelectItem>
-                            <SelectItem value="supervisor">Supervisor</SelectItem>
-                            <SelectItem value="content_creator">Content Creator</SelectItem>
-                            <SelectItem value="frontliner">Frontliner</SelectItem>
+                            <SelectItem value="supervisor">
+                              Supervisor
+                            </SelectItem>
+                            <SelectItem value="content_creator">
+                              Content Creator
+                            </SelectItem>
+                            <SelectItem value="frontliner">
+                              Frontliner
+                            </SelectItem>
                           </>
                         )}
                       </SelectContent>
@@ -857,17 +999,14 @@ export default function UserManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="language"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Language</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a language" />
@@ -967,15 +1106,21 @@ export default function UserManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button type="submit" disabled={updateUserMutation.isPending} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
+                <Button
+                  type="submit"
+                  disabled={updateUserMutation.isPending}
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
+                >
                   {updateUserMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving...
                     </>
-                  ) : "Save Changes"}
+                  ) : (
+                    "Save Changes"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -989,12 +1134,16 @@ export default function UserManagement() {
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>
-              Create a new user account and assign courses. Fill in all required fields.
+              Create a new user account and assign courses. Fill in all required
+              fields.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...addUserForm}>
-            <form onSubmit={addUserForm.handleSubmit(onAddUserSubmit)} className="space-y-4">
+            <form
+              onSubmit={addUserForm.handleSubmit(onAddUserSubmit)}
+              className="space-y-4"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={addUserForm.control}
@@ -1009,7 +1158,7 @@ export default function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={addUserForm.control}
                   name="email"
@@ -1024,7 +1173,7 @@ export default function UserManagement() {
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={addUserForm.control}
@@ -1039,7 +1188,7 @@ export default function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={addUserForm.control}
                   name="password"
@@ -1047,10 +1196,10 @@ export default function UserManagement() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="Enter password" 
-                          {...field} 
+                        <Input
+                          type="password"
+                          placeholder="Enter password"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1058,7 +1207,7 @@ export default function UserManagement() {
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={addUserForm.control}
@@ -1077,9 +1226,10 @@ export default function UserManagement() {
                         </FormControl>
                         <SelectContent>
                           {roles && roles.length > 0 ? (
-                            roles.map(role => (
+                            roles.map((role) => (
                               <SelectItem key={role.id} value={role.name}>
-                                {role.name.charAt(0).toUpperCase() + role.name.slice(1).replace('_', ' ')}
+                                {role.name.charAt(0).toUpperCase() +
+                                  role.name.slice(1).replace("_", " ")}
                               </SelectItem>
                             ))
                           ) : (
@@ -1091,7 +1241,7 @@ export default function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={addUserForm.control}
                   name="language"
@@ -1118,7 +1268,7 @@ export default function UserManagement() {
                   )}
                 />
               </div>
-              
+
               {/* Course Assignment - only show if courses are available */}
               {courses && courses.length > 0 && (
                 <FormField
@@ -1146,13 +1296,20 @@ export default function UserManagement() {
                                 >
                                   <FormControl>
                                     <Checkbox
-                                      checked={field.value?.includes(course.id.toString())}
+                                      checked={field.value?.includes(
+                                        course.id.toString(),
+                                      )}
                                       onCheckedChange={(checked) => {
                                         const courseId = course.id.toString();
                                         return checked
-                                          ? field.onChange([...(field.value || []), courseId])
+                                          ? field.onChange([
+                                              ...(field.value || []),
+                                              courseId,
+                                            ])
                                           : field.onChange(
-                                              field.value?.filter((id) => id !== courseId) || []
+                                              field.value?.filter(
+                                                (id) => id !== courseId,
+                                              ) || [],
                                             );
                                       }}
                                     />
@@ -1163,7 +1320,10 @@ export default function UserManagement() {
                                     </FormLabel>
                                     {course.description && (
                                       <FormDescription className="text-xs">
-                                        {course.description.substring(0, 80)}{course.description.length > 80 ? "..." : ""}
+                                        {course.description.substring(0, 80)}
+                                        {course.description.length > 80
+                                          ? "..."
+                                          : ""}
                                       </FormDescription>
                                     )}
                                   </div>
@@ -1178,10 +1338,10 @@ export default function UserManagement() {
                   )}
                 />
               )}
-              
+
               <DialogFooter>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={createUserMutation.isPending}
                   className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
                 >
@@ -1190,7 +1350,9 @@ export default function UserManagement() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating User...
                     </>
-                  ) : "Create User"}
+                  ) : (
+                    "Create User"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -1202,14 +1364,20 @@ export default function UserManagement() {
       <Dialog open={isBulkAddDialogOpen} onOpenChange={setIsBulkAddDialogOpen}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Bulk Add Users</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">
+              Bulk Add Users
+            </DialogTitle>
             <DialogDescription>
-              Add multiple users at once. Each user requires a name, email, and username.
+              Add multiple users at once. Each user requires a name, email, and
+              username.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...bulkUserForm}>
-            <form onSubmit={bulkUserForm.handleSubmit(onBulkAddSubmit)} className="space-y-6">
+            <form
+              onSubmit={bulkUserForm.handleSubmit(onBulkAddSubmit)}
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Default Role */}
                 <FormField
@@ -1218,8 +1386,8 @@ export default function UserManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Default Role</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+                      <Select
+                        onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -1228,8 +1396,10 @@ export default function UserManagement() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {roles?.map(role => (
-                            <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
+                          {roles?.map((role) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.name}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -1237,7 +1407,7 @@ export default function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Default Language */}
                 <FormField
                   control={bulkUserForm.control}
@@ -1245,8 +1415,8 @@ export default function UserManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Default Language</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+                      <Select
+                        onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -1265,7 +1435,7 @@ export default function UserManagement() {
                   )}
                 />
               </div>
-              
+
               {/* Course Assignment - only show if courses are available */}
               {courses && courses.length > 0 && (
                 <FormField
@@ -1281,16 +1451,26 @@ export default function UserManagement() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {courses.map((course) => (
-                          <div key={course.id} className="flex items-center space-x-2">
+                          <div
+                            key={course.id}
+                            className="flex items-center space-x-2"
+                          >
                             <Checkbox
                               id={`bulk-course-${course.id}`}
-                              checked={field.value?.includes(course.id.toString())}
+                              checked={field.value?.includes(
+                                course.id.toString(),
+                              )}
                               onCheckedChange={(checked) => {
                                 const courseId = course.id.toString();
                                 return checked
-                                  ? field.onChange([...(field.value || []), courseId])
+                                  ? field.onChange([
+                                      ...(field.value || []),
+                                      courseId,
+                                    ])
                                   : field.onChange(
-                                      field.value?.filter((id) => id !== courseId) || []
+                                      field.value?.filter(
+                                        (id) => id !== courseId,
+                                      ) || [],
                                     );
                               }}
                             />
@@ -1308,14 +1488,14 @@ export default function UserManagement() {
                   )}
                 />
               )}
-              
+
               {/* Users List */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium">Users</h3>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="sm"
                     onClick={addUserField}
                   >
@@ -1323,23 +1503,28 @@ export default function UserManagement() {
                     Add Another User
                   </Button>
                 </div>
-                
+
                 {userFields.map((field, index) => (
-                  <div key={field.id} className="border rounded-md p-4 relative">
+                  <div
+                    key={field.id}
+                    className="border rounded-md p-4 relative"
+                  >
                     <div className="absolute right-2 top-2">
                       {index > 0 && (
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => removeUserField(index)}
                           className="h-8 w-8 p-0"
                         >
-                          <span className="material-icons text-red-500">close</span>
+                          <span className="material-icons text-red-500">
+                            close
+                          </span>
                         </Button>
                       )}
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Name */}
                       <FormField
@@ -1355,7 +1540,7 @@ export default function UserManagement() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {/* Email */}
                       <FormField
                         control={bulkUserForm.control}
@@ -1364,13 +1549,16 @@ export default function UserManagement() {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="john@example.com" {...field} />
+                              <Input
+                                placeholder="john@example.com"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
+
                       {/* Username */}
                       <FormField
                         control={bulkUserForm.control}
@@ -1385,7 +1573,7 @@ export default function UserManagement() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {/* Password */}
                       <FormField
                         control={bulkUserForm.control}
@@ -1411,12 +1599,20 @@ export default function UserManagement() {
                   </div>
                 ))}
               </div>
-              
+
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsBulkAddDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsBulkAddDialogOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createBulkUsersMutation.isPending} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
+                <Button
+                  type="submit"
+                  disabled={createBulkUsersMutation.isPending}
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
+                >
                   {createBulkUsersMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
@@ -1427,9 +1623,12 @@ export default function UserManagement() {
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* User Details Modal */}
-      <Dialog open={!!selectedUserForDetails} onOpenChange={() => setSelectedUserForDetails(null)}>
+      <Dialog
+        open={!!selectedUserForDetails}
+        onOpenChange={() => setSelectedUserForDetails(null)}
+      >
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
@@ -1442,7 +1641,7 @@ export default function UserManagement() {
               Complete user profile and learning progress overview
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedUserForDetails && (
             <div className="space-y-6">
               {/* Basic Information */}
@@ -1452,22 +1651,35 @@ export default function UserManagement() {
                   <p className="text-sm">{selectedUserForDetails.email}</p>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm text-gray-700">Username</h4>
+                  <h4 className="font-semibold text-sm text-gray-700">
+                    Username
+                  </h4>
                   <p className="text-sm">{selectedUserForDetails.username}</p>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm text-gray-700">Platform Role</h4>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    selectedUserForDetails.role === 'admin' ? 'bg-teal-100 text-teal-700' :
-                    selectedUserForDetails.role === 'supervisor' ? 'bg-cyan-100 text-cyan-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {selectedUserForDetails.role.charAt(0).toUpperCase() + selectedUserForDetails.role.slice(1)}
+                  <h4 className="font-semibold text-sm text-gray-700">
+                    Platform Role
+                  </h4>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedUserForDetails.role === "admin"
+                        ? "bg-teal-100 text-teal-700"
+                        : selectedUserForDetails.role === "supervisor"
+                          ? "bg-cyan-100 text-cyan-700"
+                          : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {selectedUserForDetails.role.charAt(0).toUpperCase() +
+                      selectedUserForDetails.role.slice(1)}
                   </span>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm text-gray-700">Language</h4>
-                  <p className="text-sm">{selectedUserForDetails.language || 'English'}</p>
+                  <h4 className="font-semibold text-sm text-gray-700">
+                    Language
+                  </h4>
+                  <p className="text-sm">
+                    {selectedUserForDetails.language || "English"}
+                  </p>
                 </div>
               </div>
 
@@ -1476,21 +1688,27 @@ export default function UserManagement() {
                 <h3 className="font-semibold text-lg mb-3">Role Information</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm text-gray-700">Assets</h4>
+                    <h4 className="font-semibold text-sm text-gray-700">
+                      Assets
+                    </h4>
                     <span className="px-2 py-1 rounded-md text-xs bg-blue-50 text-blue-700">
-                      {selectedUserForDetails.assets || 'Not Assigned'}
+                      {selectedUserForDetails.assets || "Not Assigned"}
                     </span>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm text-gray-700">Role Category</h4>
+                    <h4 className="font-semibold text-sm text-gray-700">
+                      Role Category
+                    </h4>
                     <span className="px-2 py-1 rounded-md text-xs bg-purple-50 text-purple-700">
-                      {selectedUserForDetails.roleCategory || 'Not Set'}
+                      {selectedUserForDetails.roleCategory || "Not Set"}
                     </span>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm text-gray-700">Seniority</h4>
+                    <h4 className="font-semibold text-sm text-gray-700">
+                      Seniority
+                    </h4>
                     <span className="px-2 py-1 rounded-md text-xs bg-orange-50 text-orange-700">
-                      {selectedUserForDetails.seniority || 'Not Set'}
+                      {selectedUserForDetails.seniority || "Not Set"}
                     </span>
                   </div>
                 </div>
@@ -1498,32 +1716,46 @@ export default function UserManagement() {
 
               {/* Learning Progress */}
               <div className="border-t pt-4">
-                <h3 className="font-semibold text-lg mb-3">Learning Progress</h3>
+                <h3 className="font-semibold text-lg mb-3">
+                  Learning Progress
+                </h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">{selectedUserForDetails.xpPoints?.toLocaleString() || '0'}</div>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {selectedUserForDetails.xpPoints?.toLocaleString() || "0"}
+                    </div>
                     <div className="text-sm text-gray-600">XP Points</div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{selectedUserForDetails.badgesCollected || 0}</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {selectedUserForDetails.badgesCollected || 0}
+                    </div>
                     <div className="text-sm text-gray-600">Badges Earned</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{selectedUserForDetails.mandatoryProgress || 0}%</div>
-                    <div className="text-sm text-gray-600">Mandatory Courses</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {selectedUserForDetails.mandatoryProgress || 0}%
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Mandatory Courses
+                    </div>
                   </div>
                 </div>
-                
+
                 {/* Progress Bar */}
                 <div className="mt-4">
                   <div className="flex justify-between text-sm text-gray-600 mb-2">
                     <span>Overall Mandatory Progress</span>
-                    <span>{selectedUserForDetails.mandatoryProgress || 0}%</span>
+                    <span>
+                      {selectedUserForDetails.mandatoryProgress || 0}%
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-teal-500 to-cyan-500 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${selectedUserForDetails.mandatoryProgress || 0}%` }}
+                      style={{
+                        width: `${selectedUserForDetails.mandatoryProgress || 0}%`,
+                      }}
                     ></div>
                   </div>
                 </div>
@@ -1534,27 +1766,41 @@ export default function UserManagement() {
                 <h3 className="font-semibold text-lg mb-3">Account Details</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm text-gray-700">Created At</h4>
-                    <p className="text-sm">{formatDate(selectedUserForDetails.createdAt)}</p>
+                    <h4 className="font-semibold text-sm text-gray-700">
+                      Created At
+                    </h4>
+                    <p className="text-sm">
+                      {formatDate(selectedUserForDetails.createdAt)}
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm text-gray-700">User ID</h4>
-                    <p className="text-sm font-mono">#{selectedUserForDetails.id}</p>
+                    <h4 className="font-semibold text-sm text-gray-700">
+                      User ID
+                    </h4>
+                    <p className="text-sm font-mono">
+                      #{selectedUserForDetails.id}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedUserForDetails(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedUserForDetails(null)}
+            >
               Close
             </Button>
-            <Button onClick={() => {
-              setSelectedUser(selectedUserForDetails);
-              setSelectedUserForDetails(null);
-              setIsEditDialogOpen(true);
-            }} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
+            <Button
+              onClick={() => {
+                setSelectedUser(selectedUserForDetails);
+                setSelectedUserForDetails(null);
+                setIsEditDialogOpen(true);
+              }}
+              className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
+            >
               Edit User
             </Button>
           </DialogFooter>
@@ -1562,34 +1808,44 @@ export default function UserManagement() {
       </Dialog>
 
       {/* Excel Upload Dialog */}
-      <Dialog open={isExcelUploadDialogOpen} onOpenChange={setIsExcelUploadDialogOpen}>
+      <Dialog
+        open={isExcelUploadDialogOpen}
+        onOpenChange={setIsExcelUploadDialogOpen}
+      >
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Import Users from Excel</DialogTitle>
             <DialogDescription>
-              Upload an Excel file with user details. The file should have columns for name and email.
-              Email addresses are used for login. Passwords are optional - if not provided, they will be generated automatically.
+              Upload an Excel file with user details using the template provided
+              below.
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={handleFileUpload} className="space-y-4">
             <div className="grid gap-4">
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="defaultRole">Default Role</Label>
-                <Select name="defaultRole" defaultValue="frontliner" required>
+                <Select name="defaultRole" defaultValue="frontliner">
                   <SelectTrigger>
                     <SelectValue placeholder="Frontliner (Default)" />
                   </SelectTrigger>
                   <SelectContent>
-                    {roles ? roles.map(role => (
-                      <SelectItem key={role.name} value={role.name}>
-                        {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
-                        {role.name === "frontliner" && " (Lowest Privilege)"}
-                      </SelectItem>
-                    )) : (
+                    {roles ? (
+                      roles.map((role) => (
+                        <SelectItem key={role.name} value={role.name}>
+                          {role.name.charAt(0).toUpperCase() +
+                            role.name.slice(1)}
+                          {role.name === "frontliner"}
+                        </SelectItem>
+                      ))
+                    ) : (
                       <>
-                        <SelectItem value="frontliner">Frontliner (Lowest Privilege)</SelectItem>
-                        <SelectItem value="content_creator">Content Creator</SelectItem>
+                        <SelectItem value="frontliner">
+                          Frontliner (Lowest Privilege)
+                        </SelectItem>
+                        <SelectItem value="content_creator">
+                          Content Creator
+                        </SelectItem>
                         <SelectItem value="supervisor">Supervisor</SelectItem>
                         <SelectItem value="admin">Administrator</SelectItem>
                       </>
@@ -1597,7 +1853,7 @@ export default function UserManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="defaultLanguage">Default Language</Label>
                 <Select name="defaultLanguage" defaultValue="en" required>
@@ -1610,15 +1866,25 @@ export default function UserManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {courses && courses.length > 0 && (
                 <div className="flex flex-col space-y-1.5">
                   <Label>Assign Courses (Optional)</Label>
                   <div className="border rounded-md p-3 space-y-2 max-h-32 overflow-y-auto">
-                    {courses.map(course => (
-                      <div key={course.id} className="flex items-center space-x-2">
-                        <Checkbox id={`course-${course.id}`} name="courseIds" value={course.id.toString()} />
-                        <Label htmlFor={`course-${course.id}`} className="text-sm font-normal cursor-pointer">
+                    {courses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`course-${course.id}`}
+                          name="courseIds"
+                          value={course.id.toString()}
+                        />
+                        <Label
+                          htmlFor={`course-${course.id}`}
+                          className="text-sm font-normal cursor-pointer"
+                        >
                           {course.name}
                         </Label>
                       </div>
@@ -1626,22 +1892,22 @@ export default function UserManagement() {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="excelFile">Excel File</Label>
-                <div 
+                <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    isDragOver 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-gray-300 hover:border-gray-400'
+                    isDragOver
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
-                  <input 
-                    type="file" 
-                    name="excelFile" 
+                  <input
+                    type="file"
+                    name="excelFile"
                     id="excelFile"
                     ref={fileInputRef}
                     accept=".xlsx,.xls,.csv"
@@ -1650,8 +1916,12 @@ export default function UserManagement() {
                     required
                   />
                   <div className="flex flex-col items-center justify-center space-y-3">
-                    <div className={`p-3 rounded-full ${isDragOver ? 'bg-primary/10' : 'bg-gray-100'}`}>
-                      <FileSpreadsheet className={`h-8 w-8 ${isDragOver ? 'text-primary' : 'text-gray-500'}`} />
+                    <div
+                      className={`p-3 rounded-full ${isDragOver ? "bg-primary/10" : "bg-gray-100"}`}
+                    >
+                      <FileSpreadsheet
+                        className={`h-8 w-8 ${isDragOver ? "text-primary" : "text-gray-500"}`}
+                      />
                     </div>
                     {selectedFile ? (
                       <div className="space-y-2">
@@ -1665,11 +1935,16 @@ export default function UserManagement() {
                     ) : (
                       <>
                         <div className="text-sm text-gray-600">
-                          <label htmlFor="excelFile" className="cursor-pointer font-medium text-primary hover:text-primary/80 transition-colors">
+                          <label
+                            htmlFor="excelFile"
+                            className="cursor-pointer font-medium text-primary hover:text-primary/80 transition-colors"
+                          >
                             Click to upload
                           </label>
                           <span className="mx-1">or</span>
-                          <span className="font-medium">drag and drop your file here</span>
+                          <span className="font-medium">
+                            drag and drop your file here
+                          </span>
                         </div>
                         <div className="text-xs text-gray-500">
                           Excel (.xlsx, .xls) or CSV file (max 5MB)
@@ -1679,42 +1954,48 @@ export default function UserManagement() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground">
-                    <p className="font-medium mb-1">Excel file should have these columns:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>name - Full name of the user</li>
-                      <li>email - Email address (used for login)</li>
-                      <li>username - Unique username for the account</li>
-                      <li>password - (Optional) Password for the account</li>
-                    </ul>
-                  </div>
+                <div className="flex flex-col justify-between">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={downloadTemplate}
-                    className="border-teal-600 text-teal-600 hover:bg-teal-50"
+                    className="border-teal-600 text-teal-600"
                   >
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
                     Download Template
                   </Button>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    <p className="font-medium mb-1">
+                      Excel file should have these columns:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>name - Full name of the user</li>
+                      <li>email - Email address (used for login)</li>
+                      <li>username - Unique username for the account</li>
+                      <li>password - Password for the account</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
-            
+
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => setIsExcelUploadDialogOpen(false)}
                 disabled={isUploading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isUploading} className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700">
+              <Button
+                type="submit"
+                disabled={isUploading}
+                className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
+              >
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
