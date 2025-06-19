@@ -54,90 +54,106 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  // Define navigation items with permission requirements
+  // Define navigation items with role-based filtering
   const allNavItems = [
     {
       name: "Dashboard",
       path: "/admin/dashboard",
       icon: <LayoutDashboard className="h-5 w-5" />,
       permission: () => canViewDashboard,
-    },
-    {
-      name: "Training Areas",
-      path: "/admin/training-areas",
-      icon: <PuzzleIcon className="h-5 w-5" />,
-      permission: () => canManageTrainingAreas,
-    },
-    {
-      name: "Modules",
-      path: "/admin/modules",
-      icon: <GraduationCap className="h-5 w-5" />,
-      permission: () => canManageModules,
-    },
-    {
-      name: "Courses",
-      path: "/admin/course-management",
-      icon: <BookOpen className="h-5 w-5" />,
-      permission: () => canManageCourses,
-    },
-    {
-      name: "Units",
-      path: "/admin/units",
-      icon: <BookOpen className="h-5 w-5" />,
-      permission: () => canManageUnits,
-    },
-    {
-      name: "Learning Blocks",
-      path: "/admin/learning-blocks",
-      icon: <FileText className="h-5 w-5" />,
-      permission: () => canManageLearningBlocks,
-    },
-    {
-      name: "Assessments",
-      path: "/admin/assessments",
-      icon: <ClipboardCheck className="h-5 w-5" />,
-      permission: () => canManageAssessments,
-    },
-    {
-      name: "SCORM Packages",
-      path: "/admin/scorm",
-      icon: <FileText className="h-5 w-5" />,
-      permission: () => canManageScorm,
-    },
-    {
-      name: "Media",
-      path: "/admin/media",
-      icon: <FileText className="h-5 w-5" />,
-      permission: () => canManageMedia,
-    },
-    {
-      name: "Badges",
-      path: "/admin/badges",
-      icon: <Award className="h-5 w-5" />,
-      permission: () => canManageBadges,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
     },
     {
       name: "User Management",
       path: "/admin/users",
       icon: <Users className="h-5 w-5" />,
-      permission: () => true, // Both admin and sub-admin can access
+      permission: () => true,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
     },
     {
       name: "Role Management",
       path: "/admin/roles",
       icon: <Shield className="h-5 w-5" />,
       permission: () => canManageRoles,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
     },
     {
       name: "Analytics",
       path: "/admin/analytics",
       icon: <BarChart className="h-5 w-5" />,
       permission: () => canViewAnalytics,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
+    },
+    // Admin-only sections
+    {
+      name: "Training Areas",
+      path: "/admin/training-areas",
+      icon: <PuzzleIcon className="h-5 w-5" />,
+      permission: () => canManageTrainingAreas,
+      roles: ["admin"], // Admin only
+    },
+    {
+      name: "Modules",
+      path: "/admin/modules",
+      icon: <GraduationCap className="h-5 w-5" />,
+      permission: () => canManageModules,
+      roles: ["admin"], // Admin only
+    },
+    {
+      name: "Courses",
+      path: "/admin/course-management",
+      icon: <BookOpen className="h-5 w-5" />,
+      permission: () => canManageCourses,
+      roles: ["admin"], // Admin only
+    },
+    {
+      name: "Units",
+      path: "/admin/units",
+      icon: <BookOpen className="h-5 w-5" />,
+      permission: () => canManageUnits,
+      roles: ["admin"], // Admin only
+    },
+    {
+      name: "Learning Blocks",
+      path: "/admin/learning-blocks",
+      icon: <FileText className="h-5 w-5" />,
+      permission: () => canManageLearningBlocks,
+      roles: ["admin"], // Admin only
+    },
+    {
+      name: "Assessments",
+      path: "/admin/assessments",
+      icon: <ClipboardCheck className="h-5 w-5" />,
+      permission: () => canManageAssessments,
+      roles: ["admin"], // Admin only
+    },
+    {
+      name: "SCORM Packages",
+      path: "/admin/scorm",
+      icon: <FileText className="h-5 w-5" />,
+      permission: () => canManageScorm,
+      roles: ["admin"], // Admin only
+    },
+    {
+      name: "Media",
+      path: "/admin/media",
+      icon: <FileText className="h-5 w-5" />,
+      permission: () => canManageMedia,
+      roles: ["admin"], // Admin only
+    },
+    {
+      name: "Badges",
+      path: "/admin/badges",
+      icon: <Award className="h-5 w-5" />,
+      permission: () => canManageBadges,
+      roles: ["admin"], // Admin only
     },
   ];
 
-  // Filter navigation items based on permissions
-  const navItems = allNavItems.filter(item => item.permission());
+  // Filter navigation items based on permissions and user role
+  const navItems = allNavItems.filter(item => 
+    item.permission() && item.roles.includes(user?.role || "")
+  );
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
@@ -212,9 +228,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <div className="font-medium text-white">{user.firstName} {user.lastName}</div>
               <div className="text-xs text-slate-400">
                 {user.role === "admin" ? "Administrator" : 
-                 user.role === "supervisor" ? "Supervisor" : 
-                 user.role === "content_creator" ? "Content Creator" : 
-                 "Healthcare Staff"}
+                 user.role === "sub-admin" ? "Sub Administrator" : 
+                 "User"}
               </div>
             </div>
           </div>

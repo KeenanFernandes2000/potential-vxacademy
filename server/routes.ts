@@ -972,8 +972,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
       const leaderboard = await storage.getLeaderboard(limit);
 
+      // Filter out admin and sub-admin users - only show regular users
+      const filteredLeaderboard = leaderboard.filter(user => user.role === "user");
+
       // Remove sensitive data
-      const sanitizedLeaderboard = leaderboard.map((user) => {
+      const sanitizedLeaderboard = filteredLeaderboard.map((user) => {
         const { password, email, ...userWithoutSensitiveData } = user;
         return userWithoutSensitiveData;
       });
