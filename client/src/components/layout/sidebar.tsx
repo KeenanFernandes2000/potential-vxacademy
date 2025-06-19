@@ -83,7 +83,7 @@ export function Sidebar() {
           </Link>
           
           {/* Admin-specific menu items */}
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.role === "sub-admin") && (
             <>
               <div className="px-6 py-2 mt-6 text-slate-400 uppercase text-xs font-semibold tracking-wider">Admin</div>
               

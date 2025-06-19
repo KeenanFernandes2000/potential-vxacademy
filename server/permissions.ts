@@ -24,14 +24,14 @@ export const ROLE_PERMISSIONS = {
     canViewDashboard: true,
   },
   "sub-admin": {
-    // Limited access - only user management and roles
+    // Limited access - user management, roles, dashboard, analytics, and courses
     canCreateUsers: true,
     canCreateSubAdmins: false,
     canViewAllUsers: false, // Only users they created
     canEditAllUsers: false, // Only users they created
     canDeleteAllUsers: false, // Only users they created
     canManageRoles: true,
-    canManageCourses: false,
+    canManageCourses: true,
     canManageTrainingAreas: false,
     canManageModules: false,
     canManageUnits: false,
@@ -40,8 +40,8 @@ export const ROLE_PERMISSIONS = {
     canManageBadges: false,
     canManageMedia: false,
     canManageScorm: false,
-    canViewAnalytics: false,
-    canViewDashboard: false,
+    canViewAnalytics: true,
+    canViewDashboard: true,
   },
   user: {
     // No admin access

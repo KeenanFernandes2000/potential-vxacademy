@@ -84,6 +84,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       permission: () => canViewAnalytics,
       roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
     },
+    {
+      name: "Courses",
+      path: "/admin/course-management",
+      icon: <BookOpen className="h-5 w-5" />,
+      permission: () => canManageCourses,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
+    },
     // Admin-only sections
     {
       name: "Training Areas",
