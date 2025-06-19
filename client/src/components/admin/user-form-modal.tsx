@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -67,28 +67,72 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
   const form = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
-      firstName: editingUser?.firstName || "",
-      lastName: editingUser?.lastName || "",
-      email: editingUser?.email || "",
-      username: editingUser?.username || "",
-      password: "", // Always require password for new users
-      role: editingUser?.role || (isAdmin() ? "user" : "user"), // Default to user
-      language: editingUser?.language || "en",
-      nationality: editingUser?.nationality || "",
-      yearsOfExperience: editingUser?.yearsOfExperience || "",
-      assets: editingUser?.assets || "",
-      roleCategory: editingUser?.roleCategory || "",
-      subCategory: editingUser?.subCategory || "",
-      seniority: editingUser?.seniority || "",
-      organizationName: editingUser?.organizationName || "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      username: "",
+      password: "",
+      role: "user",
+      language: "en",
+      nationality: "",
+      yearsOfExperience: "",
+      assets: "",
+      roleCategory: "",
+      subCategory: "",
+      seniority: "",
+      organizationName: "",
     },
   });
 
+  // Update form when editingUser changes
+  React.useEffect(() => {
+    if (editingUser) {
+      form.reset({
+        firstName: editingUser.firstName || "",
+        lastName: editingUser.lastName || "",
+        email: editingUser.email || "",
+        username: editingUser.username || "",
+        password: "", // Don't pre-fill password for security
+        role: editingUser.role || "user",
+        language: editingUser.language || "en",
+        nationality: editingUser.nationality || "",
+        yearsOfExperience: editingUser.yearsOfExperience || "",
+        assets: editingUser.assets || "",
+        roleCategory: editingUser.roleCategory || "",
+        subCategory: editingUser.subCategory || "",
+        seniority: editingUser.seniority || "",
+        organizationName: editingUser.organizationName || "",
+      });
+    } else {
+      form.reset({
+        firstName: "",
+        lastName: "",
+        email: "",
+        username: "",
+        password: "",
+        role: "user",
+        language: "en",
+        nationality: "",
+        yearsOfExperience: "",
+        assets: "",
+        roleCategory: "",
+        subCategory: "",
+        seniority: "",
+        organizationName: "",
+      });
+    }
+  }, [editingUser, form]);
+
   const createUserMutation = useMutation({
     mutationFn: (userData: UserFormData) => 
-      apiRequest("/api/admin/users", {
+      fetch("/api/admin/users", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to create user");
+        return res.json();
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
@@ -108,10 +152,43 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
     },
   });
 
+  const updateUserMutation = useMutation({
+    mutationFn: (userData: UserFormData) => 
+      fetch(`/api/admin/users/${editingUser?.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+        credentials: "include",
+      }).then(res => {
+        if (!res.ok) throw new Error("Failed to update user");
+        return res.json();
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
+      toast({
+        title: "Success",
+        description: "User updated successfully",
+      });
+      onOpenChange(false);
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = async (data: UserFormData) => {
     setIsSubmitting(true);
     try {
-      await createUserMutation.mutateAsync(data);
+      if (editingUser) {
+        await updateUserMutation.mutateAsync(data);
+      } else {
+        await createUserMutation.mutateAsync(data);
+      }
     } finally {
       setIsSubmitting(false);
     }
