@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, X } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,8 +126,10 @@ export function UserFormDialog({
   onSubmit,
   isLoading = false,
 }: UserFormDialogProps) {
+  const { user: currentUser } = useAuth();
   const [isSubAdmin, setIsSubAdmin] = useState(false);
   const isEditing = !!user;
+  const isCurrentUserSubAdmin = currentUser?.role === "sub-admin";
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
@@ -153,7 +156,9 @@ export function UserFormDialog({
   // Update form values when user changes
   useEffect(() => {
     if (user) {
-      setIsSubAdmin(user.role === "sub-admin");
+      // Only allow setting sub-admin if current user is admin and editing a sub-admin
+      const canSetSubAdmin = !isCurrentUserSubAdmin && user.role === "sub-admin";
+      setIsSubAdmin(canSetSubAdmin);
       form.reset({
         id: user.id, // Include the user ID for updates
         firstName: user.firstName,
@@ -161,7 +166,7 @@ export function UserFormDialog({
         email: user.email,
         username: user.username,
         password: "", // Don't pre-fill password for security
-        role: user.role === "sub-admin" ? "sub-admin" : "user",
+        role: canSetSubAdmin ? "sub-admin" : "user",
         language: user.language || "English",
         nationality: user.nationality || "",
         yearsOfExperience: user.yearsOfExperience || "",
@@ -174,6 +179,8 @@ export function UserFormDialog({
         courseIds: [],
       });
     } else {
+      // For new users, sub-admins can only create regular users
+      setIsSubAdmin(false);
       form.reset({
         firstName: "",
         lastName: "",
@@ -193,12 +200,17 @@ export function UserFormDialog({
         courseIds: [],
       });
     }
-  }, [user, form]);
+  }, [user, form, isCurrentUserSubAdmin]);
 
-  // Update role when toggle changes
+  // Update role when toggle changes (only if current user is admin)
   useEffect(() => {
-    form.setValue("role", isSubAdmin ? "sub-admin" : "user");
-  }, [isSubAdmin, form]);
+    if (!isCurrentUserSubAdmin) {
+      form.setValue("role", isSubAdmin ? "sub-admin" : "user");
+    } else {
+      // Sub-admins can only create users
+      form.setValue("role", "user");
+    }
+  }, [isSubAdmin, form, isCurrentUserSubAdmin]);
 
   const handleSubmit = (data: UserFormData) => {
     if (isEditing && user) {
@@ -221,20 +233,22 @@ export function UserFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Role Toggle */}
-            <div className="flex items-center space-x-2 p-4 bg-gray-50 rounded-lg">
-              <Switch
-                id="role-toggle"
-                checked={isSubAdmin}
-                onCheckedChange={setIsSubAdmin}
-              />
-              <Label htmlFor="role-toggle" className="font-medium">
-                {isSubAdmin ? "Sub-Admin" : "User"}
-              </Label>
-              <span className="text-sm text-gray-600">
-                {isSubAdmin ? "Can create and manage users" : "Standard user access"}
-              </span>
-            </div>
+            {/* Role Toggle - Only visible to admin users */}
+            {!isCurrentUserSubAdmin && (
+              <div className="flex items-center space-x-2 p-4 bg-gray-50 rounded-lg">
+                <Switch
+                  id="role-toggle"
+                  checked={isSubAdmin}
+                  onCheckedChange={setIsSubAdmin}
+                />
+                <Label htmlFor="role-toggle" className="font-medium">
+                  {isSubAdmin ? "Sub-Admin" : "User"}
+                </Label>
+                <span className="text-sm text-gray-600">
+                  {isSubAdmin ? "Can create and manage users" : "Standard user access"}
+                </span>
+              </div>
+            )}
 
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
