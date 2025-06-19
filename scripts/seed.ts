@@ -65,7 +65,7 @@ export async function seedDatabase() {
           subCategory: "Manager",
           seniority: "Manager",
           organizationName: "VX Academy",
-          isSubAdmin: false,
+
           isActive: true,
           updatedAt: new Date(),
         })

@@ -399,7 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (updateError) {
           console.error("Error updating progress:", updateError);
           // Fall back to creating a new record if update fails
-          progress = null;
+          progress = undefined;
         }
       }
 
@@ -675,6 +675,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const user = await storage.getUser(userId);
         if (user) {
           // Get the unit this assessment belongs to
+          if (!assessment.unitId) {
+            return res.status(400).json({ message: "Assessment is not associated with a unit" });
+          }
           const unit = await storage.getUnit(assessment.unitId);
           if (!unit) {
             return res.status(404).json({ message: "Unit not found" });

@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import XLSX from 'xlsx';
 import { Request, Response } from 'express';
-import { hashPassword } from './seed';
+import { hashPassword } from '../scripts/seed';
 import { IStorage } from './storage';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -101,16 +101,28 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         const row = rowData as any;
         
         // Check if required fields exist and consider different column name formats
-        const name = row.name || row.Name || row['Full Name'] || row['Name'];
+        const firstName = row.firstName || row.FirstName || row['First Name'] || row['first_name'];
+        const lastName = row.lastName || row.LastName || row['Last Name'] || row['last_name'];
+        const fullName = row.name || row.Name || row['Full Name'] || row['Name'];
         const email = row.email || row.Email || row['Email Address'] || row['E-mail'];
         
-        console.log("Processing user row:", { originalRow: row, extractedName: name, extractedEmail: email });
+        // If we have a full name but no first/last, try to split it
+        let finalFirstName = firstName;
+        let finalLastName = lastName;
         
-        if (!name || !email) {
+        if (!firstName && !lastName && fullName) {
+          const nameParts = fullName.trim().split(' ');
+          finalFirstName = nameParts[0] || '';
+          finalLastName = nameParts.slice(1).join(' ') || '';
+        }
+        
+        console.log("Processing user row:", { originalRow: row, extractedFirstName: finalFirstName, extractedLastName: finalLastName, extractedEmail: email });
+        
+        if (!finalFirstName || !email) {
           failedUsers.push({
-            name: name || '',
+            name: `${finalFirstName} ${finalLastName}`.trim(),
             email: email || '',
-            error: `Missing required fields (name or email). Found columns: ${Object.keys(row).join(', ')}`
+            error: `Missing required fields (firstName or email). Found columns: ${Object.keys(row).join(', ')}`
           });
           continue;
         }
@@ -124,7 +136,7 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         
         if (usersByEmail.length > 0) {
           failedUsers.push({
-            name: name,
+            name: `${finalFirstName} ${finalLastName}`.trim(),
             email: email,
             error: "Email already exists"
           });
@@ -139,7 +151,8 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         const newUser = await storage.createUser({
           username: email, // Use email as username since we're using email-based login
           password: hashedPassword,
-          name: name,
+          firstName: finalFirstName,
+          lastName: finalLastName || '',
           email: email,
           role: defaultRole,
           language: defaultLanguage || "en",
@@ -166,9 +179,13 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
       } catch (error) {
         console.error("Error creating user from Excel:", error);
         const rowDataAny = rowData as any;
+        const errorFirstName = rowDataAny.firstName || rowDataAny.FirstName || rowDataAny['First Name'] || '';
+        const errorLastName = rowDataAny.lastName || rowDataAny.LastName || rowDataAny['Last Name'] || '';
+        const errorFullName = rowDataAny.name || rowDataAny.Name || rowDataAny['Full Name'] || '';
+        
         failedUsers.push({
-          name: rowDataAny.name || '',
-          email: rowDataAny.email || '',
+          name: errorFirstName && errorLastName ? `${errorFirstName} ${errorLastName}` : errorFullName,
+          email: rowDataAny.email || rowDataAny.Email || '',
           username: rowDataAny.username || '',
           error: "Failed to create user"
         });
