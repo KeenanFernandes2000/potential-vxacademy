@@ -1412,10 +1412,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...userWithoutPassword,
             badgesCollected,
             mandatoryProgress,
-            // Add realistic data for new fields based on user role
-            assets: user.role === 'admin' ? 'Hotel' : user.role === 'supervisor' ? 'Restaurant' : 'Spa',
-            roleCategory: user.role === 'admin' ? 'Management' : user.role === 'supervisor' ? 'Supervisor' : 'Frontline',
-            seniority: user.role === 'admin' ? 'Manager' : user.role === 'supervisor' ? 'Senior' : 'Junior'
           };
         })
       );

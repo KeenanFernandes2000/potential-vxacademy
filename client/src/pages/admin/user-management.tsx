@@ -556,11 +556,23 @@ export default function UserManagementPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Assets</label>
-                    <p className="text-sm">{selectedUser.assets || "—"}</p>
+                    <p className="text-sm">
+                      {selectedUser.assets ? (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {selectedUser.assets}
+                        </Badge>
+                      ) : "—"}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Role Category</label>
-                    <p className="text-sm">{selectedUser.roleCategory || "—"}</p>
+                    <p className="text-sm">
+                      {selectedUser.roleCategory ? (
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          {selectedUser.roleCategory}
+                        </Badge>
+                      ) : "—"}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Sub Category</label>
@@ -568,7 +580,17 @@ export default function UserManagementPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Seniority</label>
-                    <p className="text-sm">{selectedUser.seniority || "—"}</p>
+                    <p className="text-sm">
+                      {selectedUser.seniority ? (
+                        <Badge variant="outline" className={
+                          selectedUser.seniority === "Manager" 
+                            ? "bg-purple-50 text-purple-700 border-purple-200"
+                            : "bg-gray-50 text-gray-700 border-gray-200"
+                        }>
+                          {selectedUser.seniority}
+                        </Badge>
+                      ) : "—"}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Organization</label>
