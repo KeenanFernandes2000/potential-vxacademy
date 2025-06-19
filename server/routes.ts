@@ -64,7 +64,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // API routes
   // Courses - Protected for admin only
-  app.get("/api/courses", requirePermission('canManageCourses'), async (req, res) => {
+  app.get("/api/courses", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
     try {
       const courses = await storage.getCourses();
       res.json(courses);
@@ -73,7 +76,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/courses/:id", requirePermission('canManageCourses'), async (req, res) => {
+  app.get("/api/courses/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
     try {
       const course = await storage.getCourse(parseInt(req.params.id));
       if (!course) {
@@ -86,7 +92,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Training Areas - Protected for admin only
-  app.get("/api/training-areas", requirePermission('canManageTrainingAreas'), async (req, res) => {
+  app.get("/api/training-areas", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
     try {
       const areas = await storage.getTrainingAreas();
       res.json(areas);
@@ -96,7 +105,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Modules - Protected for admin only
-  app.get("/api/modules", requirePermission('canManageModules'), async (req, res) => {
+  app.get("/api/modules", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
     try {
       const trainingAreaId = req.query.trainingAreaId
         ? parseInt(req.query.trainingAreaId as string)
