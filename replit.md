@@ -124,6 +124,7 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
   - Resolved user creation/login issues for admin-created accounts
   - Enabled sub-admin access to courses API and admin section navigation
   - Added Admin section to main sidebar for both admin and sub-admin users
+  - Fixed route protection to allow sub-admin access to /admin routes
 - June 18, 2025: Comprehensive Role-Based Access Control Implementation
   - Implemented three-tier user hierarchy (Admin, Sub-Admin, User) with proper permissions
   - Created comprehensive permission system with 17 different access controls

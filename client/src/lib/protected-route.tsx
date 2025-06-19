@@ -29,8 +29,8 @@ export function ProtectedRoute({
     );
   }
 
-  // Admin routes check
-  if (path.startsWith("/admin") && user.role !== "admin") {
+  // Admin routes check - allow both admin and sub-admin
+  if (path.startsWith("/admin") && user.role !== "admin" && user.role !== "sub-admin") {
     return (
       <Route path={path}>
         <Redirect to="/" />
