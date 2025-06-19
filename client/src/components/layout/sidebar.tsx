@@ -149,15 +149,14 @@ export function Sidebar() {
       <div className="p-6 border-t border-white/10">
         <div className="flex items-center">
           <div className="h-12 w-12 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-lg font-bold mr-4 shadow-lg">
-            {user?.name?.charAt(0) || "U"}
+            {user?.firstName?.charAt(0) || user?.username?.charAt(0) || "U"}
           </div>
           <div>
-            <div className="font-medium text-white">{user?.name || "User"}</div>
+            <div className="font-medium text-white">{user?.firstName} {user?.lastName}</div>
             <div className="text-xs text-slate-400">
               {user?.role === "admin" ? "Administrator" : 
-               user?.role === "supervisor" ? "Supervisor" : 
-               user?.role === "content_creator" ? "Content Creator" : 
-               "Healthcare Staff"}
+               user?.role === "sub-admin" ? "Sub Administrator" : 
+               "User"}
             </div>
           </div>
         </div>

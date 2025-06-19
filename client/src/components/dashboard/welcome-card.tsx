@@ -5,7 +5,7 @@ import { Link } from "wouter";
 export function WelcomeCard() {
   const { user } = useAuth();
 
-  const firstName = user?.name?.split(' ')[0] || 'User';
+  const firstName = user?.firstName || 'User';
 
   // Determine if user is new (has no XP points)
   const isNewUser = !user?.xpPoints || user.xpPoints === 0;
