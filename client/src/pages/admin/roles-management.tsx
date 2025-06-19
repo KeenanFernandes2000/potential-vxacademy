@@ -298,21 +298,21 @@ export default function RolesManagement() {
   });
 
   // Filter units for assignment based on selected filters
-  const filteredUnits = units.filter((unit) => {
+  const filteredUnits = (Array.isArray(units) ? units : []).filter((unit) => {
     if (selectedCourse && selectedCourse !== "all") {
       const courseId = parseInt(selectedCourse);
-      return courseUnits.some(cu => cu.courseId === courseId && cu.unitId === unit.id);
+      return Array.isArray(courseUnits) && courseUnits.some(cu => cu.courseId === courseId && cu.unitId === unit.id);
     }
     if (selectedModule && selectedModule !== "all") {
-      const moduleCourses = courses.filter(c => c.moduleId === parseInt(selectedModule));
+      const moduleCourses = Array.isArray(courses) ? courses.filter(c => c.moduleId === parseInt(selectedModule)) : [];
       const moduleCourseIds = moduleCourses.map(c => c.id);
-      return courseUnits.some(cu => moduleCourseIds.includes(cu.courseId) && cu.unitId === unit.id);
+      return Array.isArray(courseUnits) && courseUnits.some(cu => moduleCourseIds.includes(cu.courseId) && cu.unitId === unit.id);
     }
     if (selectedTrainingArea && selectedTrainingArea !== "all") {
-      const areaModules = modules.filter(m => m.trainingAreaId === parseInt(selectedTrainingArea));
-      const areaCourses = courses.filter(c => areaModules.some(m => m.id === c.moduleId));
+      const areaModules = Array.isArray(modules) ? modules.filter(m => m.trainingAreaId === parseInt(selectedTrainingArea)) : [];
+      const areaCourses = Array.isArray(courses) ? courses.filter(c => areaModules.some(m => m.id === c.moduleId)) : [];
       const areaCourseIds = areaCourses.map(c => c.id);
-      return courseUnits.some(cu => areaCourseIds.includes(cu.courseId) && cu.unitId === unit.id);
+      return Array.isArray(courseUnits) && courseUnits.some(cu => areaCourseIds.includes(cu.courseId) && cu.unitId === unit.id);
     }
     return true;
   });
