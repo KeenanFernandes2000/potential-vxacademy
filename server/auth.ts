@@ -117,6 +117,16 @@ export function setupAuth(app: Express) {
     done(null, user);
   });
 
+  // Authentication check endpoint
+  app.get("/api/auth/check", (req, res) => {
+    if (req.isAuthenticated()) {
+      const { password, ...userWithoutPassword } = req.user!;
+      res.json({ user: userWithoutPassword, authenticated: true });
+    } else {
+      res.json({ user: null, authenticated: false });
+    }
+  });
+
   app.post("/api/register", async (req, res, next) => {
     try {
       const { password, firstName, lastName, email, role = "user" } = req.body;
