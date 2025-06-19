@@ -150,7 +150,7 @@ export function CertificateSection() {
                 {/* Logo */}
                 <div className="mb-2">
                   <img
-                    src="/images/Logo-EHC-1.svg"
+                    src="/public/images/vx-academy-logo.svg"
                     alt="Eastern Health Cluster Logo"
                     className="h-16 mx-auto"
                   />
@@ -158,7 +158,7 @@ export function CertificateSection() {
 
                 <div className="certificate-header border-b-2 border-primary pb-4 mb-6 w-full">
                   <h1 className="text-2xl font-bold text-primary mb-1">
-                    Eastern Health Cluster
+                    VX Academy Certificate
                   </h1>
                   <p className="text-lg text-neutrals-800">
                     Certificate of Completion
@@ -168,7 +168,8 @@ export function CertificateSection() {
                 <div className="certificate-body mb-8">
                   <p className="text-lg mb-2">This is to certify that</p>
                   <h2 className="text-3xl font-semibold mb-4 text-primary">
-                    {selectedCertificate.user?.name || "User"}
+                    {selectedCertificate.user?.firstName || "User"}
+                    {selectedCertificate.user?.lastName || ""}
                   </h2>
                   <p className="text-lg mb-1">has successfully completed</p>
                   <h3 className="text-xl font-bold mb-4">
@@ -182,7 +183,7 @@ export function CertificateSection() {
                     {selectedCertificate.createdAt
                       ? format(
                           new Date(selectedCertificate.createdAt),
-                          "MMMM d, yyyy"
+                          "MMMM d, yyyy",
                         )
                       : "N/A"}
                   </p>
