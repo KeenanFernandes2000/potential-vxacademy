@@ -107,13 +107,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       roles: ["admin"], // Admin only
     },
     {
-      name: "Courses",
-      path: "/admin/course-management",
-      icon: <BookOpen className="h-5 w-5" />,
-      permission: () => canManageCourses,
-      roles: ["admin"], // Admin only
-    },
-    {
       name: "Units",
       path: "/admin/units",
       icon: <BookOpen className="h-5 w-5" />,
