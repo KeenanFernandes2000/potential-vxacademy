@@ -151,7 +151,7 @@ export function CertificateSection() {
                 <div className="mb-2">
                   <img
                     src="/public/images/vx-academy-logo.svg"
-                    alt="Eastern Health Cluster Logo"
+                    alt="VX Academy Logo"
                     className="h-16 mx-auto"
                   />
                 </div>
@@ -168,8 +168,7 @@ export function CertificateSection() {
                 <div className="certificate-body mb-8">
                   <p className="text-lg mb-2">This is to certify that</p>
                   <h2 className="text-3xl font-semibold mb-4 text-primary">
-                    {selectedCertificate.user?.firstName || "User"}
-                    {selectedCertificate.user?.lastName || ""}
+                    {selectedCertificate.user?.firstName || "User"} {selectedCertificate.user?.lastName || ""}
                   </h2>
                   <p className="text-lg mb-1">has successfully completed</p>
                   <h3 className="text-xl font-bold mb-4">
@@ -192,7 +191,7 @@ export function CertificateSection() {
                 {/* Signature Line */}
                 <div className="w-48 border-t border-gray-400 mt-6 pt-2">
                   <p className="text-sm text-neutrals-600">
-                    Director, EHC Academy
+                    Director, VX Academy
                   </p>
                 </div>
               </div>
