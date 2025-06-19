@@ -250,13 +250,18 @@ export function UserFormDialog({
   }, [isSubAdmin, form, isCurrentUserSubAdmin]);
 
   const handleSubmit = (data: UserFormData) => {
-    console.log(isEditing, user);
+    console.log("handleSubmit called with data:", data);
+    console.log("isEditing:", isEditing, "user:", user);
+    
     if (isEditing && user) {
       // For updates, include the user ID
       console.log("Submitting update for user:", user.id);
-      onSubmit({ ...data, id: user.id });
+      const updateData = { ...data, id: user.id };
+      console.log("Final update data:", updateData);
+      onSubmit(updateData);
     } else {
       // For new users, just pass the data
+      console.log("Submitting new user data:", data);
       onSubmit(data);
     }
   };
@@ -270,7 +275,12 @@ export function UserFormDialog({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(handleSubmit)}
+            onSubmit={(e) => {
+              console.log("Form submit event triggered");
+              console.log("Form errors:", form.formState.errors);
+              console.log("Form is valid:", form.formState.isValid);
+              return form.handleSubmit(handleSubmit)(e);
+            }}
             className="space-y-6"
           >
             {/* Role Toggle - Only visible to admin users */}
@@ -570,7 +580,11 @@ export function UserFormDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                onClick={() => console.log("Submit button clicked")}
+              >
                 {isLoading
                   ? "Saving..."
                   : isEditing
