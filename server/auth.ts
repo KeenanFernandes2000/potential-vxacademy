@@ -64,7 +64,7 @@ export function setupAuth(app: Express) {
       async (email, password, done) => {
         try {
           // Check all user roles to find user by email
-          const allRoles = ["admin", "manager", "frontliner"];
+          const allRoles = ["admin", "sub-admin", "user"];
           let user = null;
           
           for (const role of allRoles) {
@@ -97,18 +97,18 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { password, name, email, role = "frontliner" } = req.body;
+      const { password, firstName, lastName, email, role = "user" } = req.body;
 
-      if (!password || !name || !email) {
+      if (!password || !firstName || !lastName || !email) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
       // Check if email already exists
       // Since we don't have a direct getUserByEmail function, we need to check across all roles
       const allUsers = [
-        ...await storage.getUsersByRole("frontliner"),
+        ...await storage.getUsersByRole("user"),
         ...await storage.getUsersByRole("admin"),
-        ...await storage.getUsersByRole("manager")
+        ...await storage.getUsersByRole("sub-admin")
       ];
       
       const emailExists = allUsers.some(user => user.email === email);
@@ -120,11 +120,14 @@ export function setupAuth(app: Express) {
       const username = email.split('@')[0] + '_' + Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
+        firstName,
+        lastName,
         username,
         password: await hashPassword(password),
-        name,
         email,
         role,
+        language: "en",
+        isActive: true,
       });
 
       // Remove password from response
