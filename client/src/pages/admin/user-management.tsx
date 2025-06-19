@@ -264,7 +264,7 @@ export default function UserManagementPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 m-6 p-2">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">User Management</h1>

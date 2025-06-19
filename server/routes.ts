@@ -992,15 +992,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const userId = req.user!.id;
-      const { firstName, lastName, email } = req.body;
+      const { firstName, lastName, email, language } = req.body;
 
-      // Validate required fields
-      if (!firstName || !lastName || !email) {
-        return res.status(400).json({ message: "First name, last name, and email are required" });
+      // Validate required fields for basic profile update
+      if (!firstName || !lastName) {
+        return res.status(400).json({ message: "First name and last name are required" });
+      }
+
+      // Prepare update data - only allow basic users to update limited fields
+      const updateData: any = { firstName, lastName };
+      if (language) {
+        updateData.language = language;
+      }
+      // Only include email if provided (admin might update it)
+      if (email) {
+        updateData.email = email;
       }
 
       // Update user profile
-      const updatedUser = await storage.updateUser(userId, { firstName, lastName, email });
+      const updatedUser = await storage.updateUser(userId, updateData);
 
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });

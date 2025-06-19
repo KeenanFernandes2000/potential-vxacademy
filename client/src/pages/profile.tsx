@@ -21,10 +21,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-// Form schemas
+// Form schemas - limited editing for basic users
 const profileSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
   language: z.string().min(1, "Please select a language"),
 });
 
@@ -65,8 +65,8 @@ export default function Profile() {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user ? `${user.firstName} ${user.lastName}` : "",
-      email: user?.email || "",
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
       language: user?.language || "en",
     },
   });
@@ -379,77 +379,234 @@ export default function Profile() {
 
               {/* User Details Tab */}
               <TabsContent value="details">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Update your personal details and preferences</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Form {...profileForm}>
-                      <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                        <FormField
-                          control={profileForm.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Full Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter your full name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                <div className="space-y-6">
+                  {/* Editable Information Card */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Editable Information</CardTitle>
+                      <CardDescription>Information you can update</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Form {...profileForm}>
+                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={profileForm.control}
+                              name="firstName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>First Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Enter your first name" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
 
-                        <FormField
-                          control={profileForm.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email Address</FormLabel>
-                              <FormControl>
-                                <Input type="email" placeholder="Enter your email address" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                            <FormField
+                              control={profileForm.control}
+                              name="lastName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Last Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Enter your last name" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
 
-                        <FormField
-                          control={profileForm.control}
-                          name="language"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Preferred Language</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select your preferred language" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="en">English</SelectItem>
-                                  <SelectItem value="ar">العربية (Arabic)</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                          <FormField
+                            control={profileForm.control}
+                            name="language"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Preferred Language</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select your preferred language" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="en">English</SelectItem>
+                                    <SelectItem value="ar">العربية (Arabic)</SelectItem>
+                                    <SelectItem value="ur">اردو (Urdu)</SelectItem>
+                                    <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
+                                    <SelectItem value="tl">Tagalog</SelectItem>
+                                    <SelectItem value="bn">বাংলা (Bengali)</SelectItem>
+                                    <SelectItem value="ta">தமிழ் (Tamil)</SelectItem>
+                                    <SelectItem value="ml">മലയാളം (Malayalam)</SelectItem>
+                                    <SelectItem value="te">తెలుగు (Telugu)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                        <div className="flex justify-end">
-                          <Button 
-                            type="submit" 
-                            disabled={updateProfileMutation.isPending}
-                            className="min-w-[120px]"
-                          >
-                            {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
-                          </Button>
+                          <div className="flex justify-end">
+                            <Button 
+                              type="submit" 
+                              disabled={updateProfileMutation.isPending}
+                              className="min-w-[120px]"
+                            >
+                              {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
+
+                  {/* Profile Information (Read-Only) */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Profile Information</CardTitle>
+                      <CardDescription>Your account and profile details</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Email Address</Label>
+                            <p className="text-sm font-medium">{user?.email || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Username</Label>
+                            <p className="text-sm font-medium">{user?.username || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Platform Role</Label>
+                            <p className="text-sm font-medium capitalize">{user?.role || "User"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Account Status</Label>
+                            <p className="text-sm font-medium text-green-600">Active</p>
+                          </div>
                         </div>
-                      </form>
-                    </Form>
-                  </CardContent>
-                </Card>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">XP Points</Label>
+                            <p className="text-sm font-medium">{user?.xpPoints?.toLocaleString() || 0}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Badges Collected</Label>
+                            <p className="text-sm font-medium">{userBadges?.length || 0}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Certificates Earned</Label>
+                            <p className="text-sm font-medium">{userCertificates?.length || 0}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Account Created</Label>
+                            <p className="text-sm font-medium">
+                              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Work Information (Read-Only) */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Work Information</CardTitle>
+                      <CardDescription>Your professional details</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Organization</Label>
+                            <p className="text-sm font-medium">{user?.organizationName || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Role Category</Label>
+                            <p className="text-sm font-medium">{user?.roleCategory || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Sub Category</Label>
+                            <p className="text-sm font-medium">{user?.subCategory || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Seniority Level</Label>
+                            <p className="text-sm font-medium">{user?.seniority || "—"}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Assets</Label>
+                            <p className="text-sm font-medium">{user?.assets || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Years of Experience</Label>
+                            <p className="text-sm font-medium">{user?.yearsOfExperience || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Nationality</Label>
+                            <p className="text-sm font-medium">{user?.nationality || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Account Status</Label>
+                            <p className="text-sm font-medium">{user?.isActive ? "Active" : "Inactive"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Additional Information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Additional Information</CardTitle>
+                      <CardDescription>Other profile details</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">User ID</Label>
+                            <p className="text-sm font-medium">{user?.id || "—"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Avatar</Label>
+                            <p className="text-sm font-medium">{user?.avatar ? "Custom" : "Default"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Sub Category</Label>
+                            <p className="text-sm font-medium">{user?.subCategory || "—"}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Join Date</Label>
+                            <p className="text-sm font-medium">
+                              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Last Updated</Label>
+                            <p className="text-sm font-medium">
+                              {user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "—"}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Time Zone</Label>
+                            <p className="text-sm font-medium">UAE Standard Time (GMT+4)</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               {/* Security Tab */}
