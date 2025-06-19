@@ -116,12 +116,14 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 ## Recent Changes
 - June 19, 2025: Dashboard, Leaderboard, and Role-Based Access Updates
   - Updated leaderboard API to filter out admin and sub-admin users, showing only regular users
-  - Implemented role-based admin dashboard access - sub-admins now only see Dashboard, User Management, Role Management, and Analytics
+  - Implemented role-based admin dashboard access - sub-admins now see Dashboard, User Management, Role Management, Analytics, and Courses
   - Fixed user name display throughout interface to use firstName/lastName fields correctly
   - Enhanced admin sidebar navigation with role-specific filtering
   - Updated role labels to properly display "Sub Administrator" for sub-admin users
   - Fixed authentication system password encryption mismatch between bcrypt and scrypt
   - Resolved user creation/login issues for admin-created accounts
+  - Enabled sub-admin access to courses API and admin section navigation
+  - Added Admin section to main sidebar for both admin and sub-admin users
 - June 18, 2025: Comprehensive Role-Based Access Control Implementation
   - Implemented three-tier user hierarchy (Admin, Sub-Admin, User) with proper permissions
   - Created comprehensive permission system with 17 different access controls
