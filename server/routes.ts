@@ -678,7 +678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!assessment.unitId) {
             return res.status(400).json({ message: "Assessment is not associated with a unit" });
           }
-          const unit = await storage.getUnit(assessment.unitId);
+          const unit = await storage.getUnit(assessment.unitId as number);
           if (!unit) {
             return res.status(404).json({ message: "Unit not found" });
           }
@@ -1541,7 +1541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error processing Excel upload:", error);
         return res.status(500).json({
           message: "Failed to process Excel file",
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     });
@@ -2061,7 +2061,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(entry);
     } catch (error) {
       console.error("Error adding mandatory course to role:", error);
-      if (error.message === "Role or course not found") {
+      if (error instanceof Error && error.message === "Role or course not found") {
         return res.status(404).json({ message: error.message });
       }
       res

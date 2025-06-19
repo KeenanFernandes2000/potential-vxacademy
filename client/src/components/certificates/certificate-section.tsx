@@ -21,10 +21,11 @@ import {
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { Certificate, Course } from "@shared/schema";
+import { GraduationCap } from "lucide-react";
 
 type CertificateWithCourse = Certificate & {
   course?: Course;
-  user?: { id: number; name: string };
+  user?: { id: number; firstName: string; lastName: string };
 };
 
 export function CertificateSection() {
@@ -116,9 +117,7 @@ export function CertificateSection() {
       ) : (
         // Empty state
         <div className="flex flex-col items-center justify-center p-8 text-center bg-neutrals-50 rounded-lg">
-          <span className="material-icons text-4xl text-neutrals-400 mb-3">
-            school
-          </span>
+          <GraduationCap className="h-12 w-12 text-neutrals-400 mb-3" />
           <h3 className="font-medium text-neutrals-800 mb-2">
             No certificates yet
           </h3>
