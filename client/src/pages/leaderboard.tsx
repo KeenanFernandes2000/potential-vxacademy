@@ -817,16 +817,16 @@ export default function Leaderboard() {
                     {leaderboard[0].avatar ? (
                       <img
                         src={leaderboard[0].avatar}
-                        alt={leaderboard[0].name}
+                        alt={`${leaderboard[0].firstName} ${leaderboard[0].lastName}`}
                         className="w-10 h-10 rounded-full mr-3"
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold mr-3">
-                        {leaderboard[0].name.charAt(0)}
+                        {leaderboard[0].firstName?.charAt(0) || '?'}
                       </div>
                     )}
                     <div>
-                      <div className="font-medium">{leaderboard[0].name}</div>
+                      <div className="font-medium">{`${leaderboard[0].firstName} ${leaderboard[0].lastName}`}</div>
                       <div className="text-sm text-primary font-medium">
                         {leaderboard[0].xpPoints?.toLocaleString() || 0} XP
                       </div>
