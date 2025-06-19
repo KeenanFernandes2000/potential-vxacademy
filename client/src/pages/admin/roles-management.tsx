@@ -137,12 +137,24 @@ export default function RolesManagement() {
 
   const { data: trainingAreas = [] } = useQuery<TrainingArea[]>({
     queryKey: ["/api/training-areas"],
-    queryFn: () => fetch("/api/training-areas", { credentials: "include" }).then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch("/api/training-areas", { credentials: "include" });
+      if (!res.ok) {
+        return []; // Return empty array if request fails
+      }
+      return res.json();
+    },
   });
 
   const { data: modules = [] } = useQuery<Module[]>({
     queryKey: ["/api/modules"],
-    queryFn: () => fetch("/api/modules", { credentials: "include" }).then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch("/api/modules", { credentials: "include" });
+      if (!res.ok) {
+        return []; // Return empty array if request fails
+      }
+      return res.json();
+    },
   });
 
   const { data: courses = [] } = useQuery<Course[]>({
@@ -682,7 +694,7 @@ export default function RolesManagement() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Training Areas</SelectItem>
-                            {trainingAreas.map((area) => (
+                            {Array.isArray(trainingAreas) && trainingAreas.map((area) => (
                               <SelectItem key={area.id} value={area.id.toString()}>
                                 {area.name}
                               </SelectItem>
@@ -699,7 +711,7 @@ export default function RolesManagement() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Modules</SelectItem>
-                            {modules
+                            {Array.isArray(modules) && modules
                               .filter(m => selectedTrainingArea === "all" || !selectedTrainingArea || m.trainingAreaId === parseInt(selectedTrainingArea))
                               .map((module) => (
                                 <SelectItem key={module.id} value={module.id.toString()}>
@@ -718,7 +730,7 @@ export default function RolesManagement() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Courses</SelectItem>
-                            {courses
+                            {Array.isArray(courses) && courses
                               .filter(c => selectedModule === "all" || !selectedModule || c.moduleId === parseInt(selectedModule))
                               .map((course) => (
                                 <SelectItem key={course.id} value={course.id.toString()}>
