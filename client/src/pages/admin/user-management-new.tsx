@@ -4,7 +4,7 @@ import { Plus, Search, Users, FileSpreadsheet, MoreHorizontal, Eye, Edit, Trash2
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -200,9 +200,14 @@ export default function UserManagementPage() {
   };
 
   const handleUserFormSubmit = (data: any) => {
+    console.log('Form submission data:', data);
+    console.log('Editing user:', editingUser);
+    
     if (editingUser) {
+      console.log('Updating user with ID:', editingUser.id);
       updateUserMutation.mutate({ id: editingUser.id, userData: data });
     } else {
+      console.log('Creating new user');
       createUserMutation.mutate(data);
     }
   };
