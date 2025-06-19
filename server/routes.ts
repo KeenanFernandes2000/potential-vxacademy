@@ -1648,7 +1648,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put("/api/admin/users/:id", requireAdminOrSubAdmin, async (req, res) => {
-
     try {
       const userId = parseInt(req.params.id);
 
@@ -1666,6 +1665,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(userWithoutPassword);
     } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Error updating user" });
+    }
+  });
+
+  // Also support PATCH for user updates
+  app.patch("/api/admin/users/:id", requireAdminOrSubAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+
+      // Don't allow password changes through this endpoint
+      const { password, ...updateData } = req.body;
+
+      const updatedUser = await storage.updateUser(userId, updateData);
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = updatedUser;
+
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error updating user:", error);
       res.status(500).json({ message: "Error updating user" });
     }
   });

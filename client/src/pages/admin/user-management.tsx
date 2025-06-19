@@ -88,8 +88,12 @@ export default function UserManagementPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
         credentials: "include",
-      }).then(res => {
-        if (!res.ok) throw new Error("Failed to update user");
+      }).then(async res => {
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Update user error response:", errorText);
+          throw new Error(`Failed to update user: ${res.status} ${res.statusText}`);
+        }
         return res.json();
       }),
     onSuccess: () => {
@@ -230,7 +234,10 @@ export default function UserManagementPage() {
 
   const handleUserFormSubmit = (data: any) => {
     if (editingUser) {
-      updateUserMutation.mutate({ id: editingUser.id, userData: data });
+      // For updates, the user-form-dialog already includes the ID in the data
+      // Extract the id from data and pass it properly to the mutation
+      const { id, ...userData } = data;
+      updateUserMutation.mutate({ id: id || editingUser.id, userData });
     } else {
       createUserMutation.mutate(data);
     }
