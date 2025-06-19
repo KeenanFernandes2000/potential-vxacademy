@@ -16,6 +16,7 @@ import { type User, type Course } from "@shared/schema";
 
 // Form schema for user creation/editing
 const userFormSchema = z.object({
+  id: z.number().optional(), // Add ID for updates
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
@@ -154,6 +155,7 @@ export function UserFormDialog({
     if (user) {
       setIsSubAdmin(user.role === "sub-admin");
       form.reset({
+        id: user.id, // Include the user ID for updates
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
@@ -199,7 +201,13 @@ export function UserFormDialog({
   }, [isSubAdmin, form]);
 
   const handleSubmit = (data: UserFormData) => {
-    onSubmit(data);
+    if (isEditing && user) {
+      // For updates, include the user ID
+      onSubmit({ ...data, id: user.id });
+    } else {
+      // For new users, just pass the data
+      onSubmit(data);
+    }
   };
 
   return (
