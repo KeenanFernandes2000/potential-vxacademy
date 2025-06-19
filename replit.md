@@ -114,6 +114,15 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 19, 2025: Critical Permission System Overhaul and Error Fixes
+  - Fixed major permission issues preventing sub-admins from accessing core content endpoints
+  - Removed overly restrictive permissions from courses, modules, and training areas GET endpoints
+  - Changed content API endpoints to allow all authenticated users (not just admins) to view content
+  - Added missing /api/auth/check endpoint to resolve API routing issues with Vite development server
+  - Fixed deprecated 'name' property references in leaderboard component (now uses firstName/lastName)
+  - Resolved "Cannot read properties of undefined (reading 'charAt')" error in leaderboard
+  - Maintained proper authentication checks while enabling role-based content access
+  - All content viewing endpoints now accessible to sub-admins and regular users as intended
 - June 19, 2025: Dashboard, Leaderboard, and Role-Based Access Updates
   - Updated leaderboard API to filter out admin and sub-admin users, showing only regular users
   - Implemented role-based admin dashboard access - sub-admins now see Dashboard, User Management, Role Management, Analytics, and Courses
