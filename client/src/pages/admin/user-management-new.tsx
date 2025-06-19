@@ -56,10 +56,7 @@ export default function UserManagementPage() {
   // Mutations
   const createUserMutation = useMutation({
     mutationFn: (userData: any) => 
-      apiRequest("/api/admin/users", {
-        method: "POST",
-        body: JSON.stringify(userData),
-      }),
+      apiRequest("POST", "/api/admin/users", userData),
     onSuccess: () => {
       toast({
         title: "User created",
@@ -79,10 +76,7 @@ export default function UserManagementPage() {
 
   const updateUserMutation = useMutation({
     mutationFn: ({ id, userData }: { id: number; userData: any }) => 
-      apiRequest(`/api/admin/users/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(userData),
-      }),
+      apiRequest("PUT", `/api/admin/users/${id}`, userData),
     onSuccess: () => {
       toast({
         title: "User updated",
@@ -103,10 +97,7 @@ export default function UserManagementPage() {
 
   const bulkCreateUsersMutation = useMutation({
     mutationFn: (data: any) => 
-      apiRequest("/api/admin/users/bulk", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("POST", "/api/admin/users/bulk", data),
     onSuccess: (result: any) => {
       toast({
         title: "Users created",
@@ -153,9 +144,7 @@ export default function UserManagementPage() {
 
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => 
-      apiRequest(`/api/admin/users/${userId}`, {
-        method: "DELETE",
-      }),
+      apiRequest("DELETE", `/api/admin/users/${userId}`),
     onSuccess: () => {
       toast({
         title: "User deleted",

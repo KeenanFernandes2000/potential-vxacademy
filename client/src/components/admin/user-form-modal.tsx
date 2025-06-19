@@ -155,7 +155,7 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
   const updateUserMutation = useMutation({
     mutationFn: (userData: UserFormData) => 
       fetch(`/api/admin/users/${editingUser?.id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
         credentials: "include",

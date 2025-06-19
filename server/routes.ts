@@ -1635,10 +1635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/users/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
+  app.put("/api/admin/users/:id", requireAdminOrSubAdmin, async (req, res) => {
 
     try {
       const userId = parseInt(req.params.id);
