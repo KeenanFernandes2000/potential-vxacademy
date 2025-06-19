@@ -7,9 +7,27 @@ import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
@@ -22,7 +40,10 @@ const userFormSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
   username: z.string().min(1, "Username is required"),
-  password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .optional(),
   role: z.enum(["user", "sub-admin"]),
   language: z.string().min(1, "Language is required"),
   nationality: z.string().optional(),
@@ -68,12 +89,21 @@ const ASSETS = [
   { value: "Hospitality", label: "Hospitality" },
   { value: "Malls", label: "Malls" },
   { value: "Tour Guides & operators", label: "Tour Guides & operators" },
-  { value: "Visitor information centers", label: "Visitor information centers" },
-  { value: "Entertainment & Attractions", label: "Entertainment & Attractions" },
+  {
+    value: "Visitor information centers",
+    label: "Visitor information centers",
+  },
+  {
+    value: "Entertainment & Attractions",
+    label: "Entertainment & Attractions",
+  },
 ];
 
 const ROLE_CATEGORIES = [
-  { value: "Transport and parking staff", label: "Transport and parking staff" },
+  {
+    value: "Transport and parking staff",
+    label: "Transport and parking staff",
+  },
   { value: "Welcome staff", label: "Welcome staff" },
   { value: "Ticketing staff", label: "Ticketing staff" },
   { value: "Information desk staff", label: "Information desk staff" },
@@ -84,10 +114,16 @@ const ROLE_CATEGORIES = [
   { value: "F&B staff", label: "F&B staff" },
   { value: "Housekeeping & janitorial", label: "Housekeeping & janitorial" },
   { value: "Customer service", label: "Customer service" },
-  { value: "Emergency & medical services", label: "Emergency & medical services" },
+  {
+    value: "Emergency & medical services",
+    label: "Emergency & medical services",
+  },
   { value: "Media and public relations", label: "Media and public relations" },
   { value: "Logistics", label: "Logistics" },
-  { value: "Recreation and entertainment", label: "Recreation and entertainment" },
+  {
+    value: "Recreation and entertainment",
+    label: "Recreation and entertainment",
+  },
 ];
 
 const SENIORITY_LEVELS = [
@@ -157,7 +193,8 @@ export function UserFormDialog({
   useEffect(() => {
     if (user) {
       // Only allow setting sub-admin if current user is admin and editing a sub-admin
-      const canSetSubAdmin = !isCurrentUserSubAdmin && user.role === "sub-admin";
+      const canSetSubAdmin =
+        !isCurrentUserSubAdmin && user.role === "sub-admin";
       setIsSubAdmin(canSetSubAdmin);
       form.reset({
         id: user.id, // Include the user ID for updates
@@ -213,8 +250,10 @@ export function UserFormDialog({
   }, [isSubAdmin, form, isCurrentUserSubAdmin]);
 
   const handleSubmit = (data: UserFormData) => {
+    console.log(isEditing, user);
     if (isEditing && user) {
       // For updates, include the user ID
+      console.log("Submitting update for user:", user.id);
       onSubmit({ ...data, id: user.id });
     } else {
       // For new users, just pass the data
@@ -226,13 +265,14 @@ export function UserFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "Edit User" : "Add New User"}
-          </DialogTitle>
+          <DialogTitle>{isEditing ? "Edit User" : "Add New User"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Role Toggle - Only visible to admin users */}
             {!isCurrentUserSubAdmin && (
               <div className="flex items-center space-x-2 p-4 bg-gray-50 rounded-lg">
@@ -245,7 +285,9 @@ export function UserFormDialog({
                   {isSubAdmin ? "Sub-Admin" : "User"}
                 </Label>
                 <span className="text-sm text-gray-600">
-                  {isSubAdmin ? "Can create and manage users" : "Standard user access"}
+                  {isSubAdmin
+                    ? "Can create and manage users"
+                    : "Standard user access"}
                 </span>
               </div>
             )}
@@ -287,7 +329,11 @@ export function UserFormDialog({
                   <FormItem>
                     <FormLabel>Email *</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter email" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="Enter email"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -316,10 +362,14 @@ export function UserFormDialog({
                     <FormItem>
                       <FormLabel>Password {!isEditing && "*"}</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder={isEditing ? "Leave blank to keep current password" : "Enter password"} 
-                          {...field} 
+                        <Input
+                          type="password"
+                          placeholder={
+                            isEditing
+                              ? "Leave blank to keep current password"
+                              : "Enter password"
+                          }
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -521,7 +571,11 @@ export function UserFormDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Saving..." : isEditing ? "Update User" : "Create User"}
+                {isLoading
+                  ? "Saving..."
+                  : isEditing
+                    ? "Update User"
+                    : "Create User"}
               </Button>
             </div>
           </form>
