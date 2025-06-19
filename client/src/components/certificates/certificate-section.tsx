@@ -20,12 +20,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { Certificate, Course } from "@shared/schema";
+import { Certificate, Course, User } from "@shared/schema";
 import { GraduationCap } from "lucide-react";
 
 type CertificateWithCourse = Certificate & {
   course?: Course;
-  user?: { id: number; firstName: string; lastName: string };
+  user?: User;
 };
 
 export function CertificateSection() {

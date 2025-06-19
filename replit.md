@@ -114,6 +114,15 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 19, 2025: Application Crash Resolution and Stability Fixes
+  - Fixed critical server startup crash caused by missing import path in excel-upload-handler.ts
+  - Removed invalid isSubAdmin field reference from seed script that was causing database errors
+  - Updated excel upload handler to use new firstName/lastName user schema structure
+  - Fixed TypeScript compilation errors in routes.ts with proper error handling
+  - Replaced deprecated material-icons with Lucide React icons in certificate component
+  - Updated certificate component type definitions to match actual API response structure
+  - Resolved all TypeScript errors preventing hot module reload functionality
+  - Server now starts successfully and serves application on port 5000
 - June 19, 2025: Critical Permission System Overhaul and Error Fixes
   - Fixed major permission issues preventing sub-admins from accessing core content endpoints
   - Removed overly restrictive permissions from courses, modules, and training areas GET endpoints
