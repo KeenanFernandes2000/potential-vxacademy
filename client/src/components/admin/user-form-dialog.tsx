@@ -33,17 +33,13 @@ import { Label } from "@/components/ui/label";
 
 import { type User, type Course } from "@shared/schema";
 
-// Form schema for user creation/editing
-const userFormSchema = z.object({
-  id: z.number().optional(), // Add ID for updates
+// Create different schemas for create and edit modes
+const baseUserSchema = z.object({
+  id: z.number().optional(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
   username: z.string().min(1, "Username is required"),
-  password: z
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .optional(),
   role: z.enum(["user", "sub-admin"]),
   language: z.string().min(1, "Language is required"),
   nationality: z.string().optional(),
@@ -57,7 +53,19 @@ const userFormSchema = z.object({
   courseIds: z.array(z.number()).default([]),
 });
 
-type UserFormData = z.infer<typeof userFormSchema>;
+const createUserSchema = baseUserSchema.extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const editUserSchema = baseUserSchema.extend({
+  password: z.string().optional(),
+});
+
+// Dynamic schema based on edit mode
+const getUserFormSchema = (isEditing: boolean) => 
+  isEditing ? editUserSchema : createUserSchema;
+
+type UserFormData = z.infer<typeof baseUserSchema> & { password?: string };
 
 // Dropdown options
 const LANGUAGES = [
@@ -168,7 +176,7 @@ export function UserFormDialog({
   const isCurrentUserSubAdmin = currentUser?.role === "sub-admin";
 
   const form = useForm<UserFormData>({
-    resolver: zodResolver(userFormSchema),
+    resolver: zodResolver(getUserFormSchema(isEditing)),
     defaultValues: {
       firstName: "",
       lastName: "",
