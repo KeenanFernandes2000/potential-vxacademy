@@ -4,6 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
+import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
@@ -16,9 +17,7 @@ declare global {
 const scryptAsync = promisify(scrypt);
 
 async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+  return await bcrypt.hash(password, 10);
 }
 
 async function comparePasswords(supplied: string, stored: string) {
@@ -28,11 +27,34 @@ async function comparePasswords(supplied: string, stored: string) {
       return true;
     }
     
-    // Normal case
-    const [hashed, salt] = stored.split(".");
-    const hashedBuf = Buffer.from(hashed, "hex");
-    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-    return timingSafeEqual(hashedBuf, suppliedBuf);
+    // Check if stored password is in bcrypt format (starts with $2b$)
+    if (stored.startsWith("$2b$")) {
+      return await bcrypt.compare(supplied, stored);
+    }
+    
+    // Legacy scrypt format (hash.salt)
+    if (stored.includes(".")) {
+      const [hashed, salt] = stored.split(".");
+      
+      if (!hashed || !salt) {
+        console.error("Invalid stored password format - missing hash or salt");
+        return false;
+      }
+      
+      const hashedBuf = Buffer.from(hashed, "hex");
+      const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+      
+      // Ensure both buffers have the same length before comparison
+      if (hashedBuf.length !== suppliedBuf.length) {
+        console.error(`Password buffer length mismatch: stored=${hashedBuf.length}, supplied=${suppliedBuf.length}`);
+        return false;
+      }
+      
+      return timingSafeEqual(hashedBuf, suppliedBuf);
+    }
+    
+    console.error("Unknown password format:", stored.substring(0, 10) + "...");
+    return false;
   } catch (error) {
     console.error("Password comparison error:", error);
     return false;
