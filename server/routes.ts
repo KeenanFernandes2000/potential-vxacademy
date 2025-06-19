@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { handleTutorMessage } from "./ai-tutor";
 import { NotificationTriggers } from "./notification-triggers";
-import { hashPassword } from "./seed";
+import { hashPassword } from "../scripts/seed";
 import {
   uploadScormPackage,
   handleScormUpload,
