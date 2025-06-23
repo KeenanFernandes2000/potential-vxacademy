@@ -146,6 +146,15 @@ export default function LearningBlocksManagement() {
     },
   });
 
+  // Fetch course-unit relationships for proper filtering
+  const { data: courseUnits } = useQuery({
+    queryKey: ["/api/course-units"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/course-units");
+      return await res.json();
+    },
+  });
+
   // Filter blocks based on search and filter criteria with live updates
   const filteredBlocks = allBlocks?.filter((block) => {
     // Search filter
@@ -161,10 +170,6 @@ export default function LearningBlocksManagement() {
     if (!unit) return false;
 
     // Apply hierarchical filtering based on current selections
-    // Note: Units don't have direct course relationships in the new schema
-    // For proper filtering, we'd need to fetch course-unit junction data
-    // For now, implementing basic unit-level filtering
-
     // Unit filter - direct filter on selected unit
     if (selectedFilterUnitId !== "all") {
       if (unit.id.toString() !== selectedFilterUnitId) {
@@ -172,8 +177,31 @@ export default function LearningBlocksManagement() {
       }
     }
 
-    // Course/Module/Training Area filters would need course-unit junction data
-    // Simplified implementation for now - showing all blocks when hierarchical filters are applied
+    // Get courses that contain this unit
+    const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId as number) || [];
+    
+    // If no courses contain this unit, show it in "all" view only
+    if (unitCourses.length === 0) {
+      return selectedTrainingAreaId === "all" && selectedModuleId === "all" && selectedCourseId === "all";
+    }
+
+    // Course filter - direct filter
+    if (selectedCourseId !== "all") {
+      return unitCourses.includes(parseInt(selectedCourseId));
+    }
+
+    // Module filter - check if unit belongs to any course in the selected module
+    if (selectedModuleId !== "all") {
+      const moduleCourses = courses?.filter(c => c.moduleId.toString() === selectedModuleId).map(c => c.id) || [];
+      return unitCourses.some((courseId: number) => moduleCourses.includes(courseId));
+    }
+
+    // Training Area filter - check if unit belongs to any course in modules within the training area
+    if (selectedTrainingAreaId !== "all") {
+      const trainingAreaModules = modules?.filter(m => m.trainingAreaId.toString() === selectedTrainingAreaId).map(m => m.id) || [];
+      const trainingAreaCourses = courses?.filter(c => trainingAreaModules.includes(c.moduleId)).map(c => c.id) || [];
+      return unitCourses.some((courseId: number) => trainingAreaCourses.includes(courseId));
+    }
 
     // Unit filter - updates display immediately when selected
     if (
@@ -196,11 +224,10 @@ export default function LearningBlocksManagement() {
   ) || [];
 
   const filteredUnitsForBlocks = units?.filter(unit => {
-    // Filter units based on selected course (if any)
+    // Filter units based on selected course - updates display immediately
     if (selectedCourseId !== "all") {
-      // Note: Need course-unit junction data for proper filtering
-      // For now, showing all units when course is selected
-      return true;
+      const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId as number) || [];
+      return unitCourses.includes(parseInt(selectedCourseId));
     }
     return true;
   }) || [];

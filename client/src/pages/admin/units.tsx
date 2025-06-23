@@ -160,7 +160,7 @@ export default function UnitsManagement() {
     if (!matchesSearch) return false;
 
     // Get courses that contain this unit
-    const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId) || [];
+    const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId as number) || [];
     
     // If no courses contain this unit, show it in "all" view only
     if (unitCourses.length === 0) {
@@ -175,14 +175,14 @@ export default function UnitsManagement() {
     // Module filter - check if unit belongs to any course in the selected module
     if (selectedModuleId !== "all") {
       const moduleCourses = courses?.filter(c => c.moduleId.toString() === selectedModuleId).map(c => c.id) || [];
-      return unitCourses.some(courseId => moduleCourses.includes(courseId));
+      return unitCourses.some((courseId: number) => moduleCourses.includes(courseId));
     }
 
     // Training Area filter - check if unit belongs to any course in modules within the training area
     if (selectedTrainingAreaId !== "all") {
       const trainingAreaModules = modules?.filter(m => m.trainingAreaId.toString() === selectedTrainingAreaId).map(m => m.id) || [];
       const trainingAreaCourses = courses?.filter(c => trainingAreaModules.includes(c.moduleId)).map(c => c.id) || [];
-      return unitCourses.some(courseId => trainingAreaCourses.includes(courseId));
+      return unitCourses.some((courseId: number) => trainingAreaCourses.includes(courseId));
     }
 
     return true;

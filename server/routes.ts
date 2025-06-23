@@ -249,6 +249,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Course-Units relationships
+  app.get("/api/course-units", async (req, res) => {
+    try {
+      const courseUnits = await storage.getCourseUnits();
+      res.json(courseUnits);
+    } catch (error) {
+      console.error("Error fetching course-units:", error);
+      res.status(500).json({
+        message: "Error fetching course-units",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+
   // Learning Blocks
   // Get all learning blocks (for admin filtering)
   app.get("/api/learning-blocks", async (req, res) => {
