@@ -38,7 +38,9 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trophy, AlertCircle, Clock, Award } from "lucide-react";
+import { AssessmentFlow } from "@/components/assessment/AssessmentFlow";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function CourseDetail() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

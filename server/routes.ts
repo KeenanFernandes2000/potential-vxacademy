@@ -2403,6 +2403,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/media/bulk-delete", bulkDeleteMediaFiles);
   app.get("/api/media/files/:filename", serveMediaFile);
 
+  // Assessment Attempts and Submission APIs
+  app.get("/api/assessments/:assessmentId/attempts/:userId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const assessmentId = parseInt(req.params.assessmentId);
+      const userId = parseInt(req.params.userId);
+      
+      // Ensure user can only access their own attempts (unless admin)
+      if (req.user!.id !== userId && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const attempts = await storage.getAssessmentAttempts(userId, assessmentId);
+      res.json(attempts);
+    } catch (error) {
+      console.error("Error fetching assessment attempts:", error);
+      res.status(500).json({ message: "Error fetching assessment attempts" });
+    }
+  });
+
+  app.post("/api/assessments/:assessmentId/submit", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const assessmentId = parseInt(req.params.assessmentId);
+      const userId = req.user!.id;
+      const { answers, timeExpired, startedAt } = req.body;
+
+      // Get assessment details
+      const assessment = await storage.getAssessment(assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Check if user has remaining attempts
+      const previousAttempts = await storage.getAssessmentAttempts(userId, assessmentId);
+      if (previousAttempts.length >= assessment.maxRetakes) {
+        return res.status(400).json({ message: "No attempts remaining" });
+      }
+
+      // Get questions for scoring
+      const questions = await storage.getQuestions(assessmentId);
+      if (!questions || questions.length === 0) {
+        return res.status(400).json({ message: "No questions found for assessment" });
+      }
+
+      // Calculate score
+      let correctAnswers = 0;
+      const totalQuestions = questions.length;
+
+      questions.forEach(question => {
+        const userAnswer = answers[question.id.toString()];
+        if (userAnswer === question.correctAnswer) {
+          correctAnswers++;
+        }
+      });
+
+      const score = Math.round((correctAnswers / totalQuestions) * 100);
+      const passed = assessment.isGraded ? (assessment.passingScore ? score >= assessment.passingScore : score >= 70) : true;
+
+      // Create assessment attempt record
+      const attempt = await storage.createAssessmentAttempt({
+        userId,
+        assessmentId,
+        score,
+        passed,
+        answers: answers,
+        completedAt: new Date()
+      });
+
+      let certificateGenerated = false;
+
+      // Award XP points if passed
+      if (passed) {
+        const user = await storage.getUser(userId);
+        if (user) {
+          await storage.updateUser(userId, { 
+            xpPoints: (user.xpPoints || 0) + assessment.xpPoints 
+          });
+        }
+
+        // Generate certificate if enabled and user passed
+        if (assessment.hasCertificate && assessment.certificateTemplate) {
+          try {
+            // Get course information for certificate
+            let courseId = assessment.courseId;
+            if (!courseId && assessment.unitId) {
+              // Get course from unit if assessment is unit-level
+              const courses = await storage.getCoursesForUnit(assessment.unitId);
+              courseId = courses[0]?.id;
+            }
+
+            if (courseId) {
+              // Check if certificate already exists
+              const existingCertificate = await storage.getCertificateByCourseAndUser(userId, courseId);
+              
+              if (!existingCertificate) {
+                const course = await storage.getCourse(courseId);
+                const user = await storage.getUser(userId);
+                
+                if (course && user) {
+                  const certificate = await storage.createCertificate({
+                    userId,
+                    courseId,
+                    certificateNumber: `CERT-${Date.now()}-${userId}`,
+                    status: "active",
+                    expiryDate: null
+                  });
+
+                  certificateGenerated = true;
+
+                  // Create notification for certificate
+                  await storage.createNotification({
+                    userId,
+                    type: "certificate-earned",
+                    title: "Certificate Earned!",
+                    message: `Congratulations! You've earned a certificate for completing "${course.name}".`,
+                    read: false
+                  });
+                }
+              }
+            }
+          } catch (certError) {
+            console.error("Error generating certificate:", certError);
+            // Don't fail the assessment submission if certificate generation fails
+          }
+        }
+
+        // Create success notification
+        await storage.createNotification({
+          userId,
+          type: "assessment-passed",
+          title: "Assessment Passed!",
+          message: `You successfully passed "${assessment.title}" with a score of ${score}%.`,
+          read: false
+        });
+      } else {
+        // Create notification for failed attempt
+        const attemptsRemaining = assessment.maxRetakes - previousAttempts.length - 1;
+        await storage.createNotification({
+          userId,
+          type: "assessment-failed",
+          title: "Assessment Not Passed",
+          message: `You scored ${score}% on "${assessment.title}". ${attemptsRemaining > 0 ? `You have ${attemptsRemaining} attempts remaining.` : 'No attempts remaining.'}`,
+          read: false
+        });
+      }
+
+      res.json({
+        success: true,
+        score,
+        passed,
+        correctAnswers,
+        totalQuestions,
+        certificateGenerated,
+        attemptsRemaining: assessment.maxRetakes - previousAttempts.length - 1
+      });
+
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      res.status(500).json({ message: "Error submitting assessment" });
+    }
+  });
+
+  // Get assessments by placement for course flow
+  app.get("/api/courses/:courseId/assessments", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const courseId = parseInt(req.params.courseId);
+      const placement = req.query.placement as string;
+
+      // Get course-level assessments
+      const courseAssessments = await storage.getAssessments(courseId);
+      
+      // Get unit-level assessments for this course
+      const units = await storage.getUnitsForCourse(courseId);
+      let unitAssessments: any[] = [];
+      
+      for (const unit of units) {
+        const assessments = await storage.getAssessments(unit.id);
+        unitAssessments.push(...assessments);
+      }
+
+      let allAssessments = [...courseAssessments, ...unitAssessments];
+
+      // Filter by placement if specified
+      if (placement) {
+        allAssessments = allAssessments.filter(assessment => assessment.placement === placement);
+      }
+
+      res.json(allAssessments);
+    } catch (error) {
+      console.error("Error fetching course assessments:", error);
+      res.status(500).json({ message: "Error fetching course assessments" });
+    }
+  });
+
   // Notification Management
   app.get("/api/notifications", async (req, res) => {
     if (!req.isAuthenticated()) {
