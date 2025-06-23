@@ -77,7 +77,7 @@ export function BulkUploadDialog({
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Step 1: Download Template</CardTitle>
               <CardDescription>
-                Download the VX Academy Import Format template. Required fields: First Name, Email. Optional: Last Name, Username, Password, Role, Language, Assets, Role Category, Seniority, Organization, Nationality, Years of Experience.
+                Download the VX Academy Import Format template. Required fields: First Name, Email. Optional: Last Name, Username, Password (if not provided, email will be used as password), Role, Language, Assets, Role Category, Seniority, Organization, Nationality, Years of Experience.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -136,11 +136,13 @@ export function BulkUploadDialog({
                     <AlertDescription>
                       <div className="space-y-2">
                         <p><strong>Required fields:</strong> First Name (or Full Name), Email</p>
+                        <p><strong>Password:</strong> If no password field is provided, the email address will be used as the password.</p>
                         <p><strong>Supported field names include:</strong></p>
                         <ul className="text-xs space-y-1 ml-4 list-disc">
                           <li>Names: First Name, Last Name, Full Name, Employee Name</li>
                           <li>Contact: Email, Email Address, Work Email</li>
                           <li>Login: Username, Login ID, Employee ID</li>
+                          <li>Security: Password, Initial Password, Temp Password</li>
                           <li>Profile: Role, Assets, Role Category, Seniority, Organization, Nationality, Years of Experience</li>
                         </ul>
                         <p className="text-xs text-muted-foreground">Field names are case-insensitive and support various formats.</p>

@@ -141,8 +141,8 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
           continue;
         }
         
-        // Enhanced password field mapping
-        const password = row.password || row.Password || row['Password'] || row['Initial Password'] || row['Temp Password'] || Math.random().toString(36).slice(2, 10);
+        // Enhanced password field mapping - use email as password if no password provided
+        const password = row.password || row.Password || row['Password'] || row['Initial Password'] || row['Temp Password'] || email;
         const hashedPassword = await hashPassword(password);
         
         // Enhanced field mapping for VX Academy Import Format
@@ -172,10 +172,11 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
           yearsOfExperience: String(yearsOfExperience || ''),
         });
         
-        // Include generated password in response if auto-generated
+        // Include password in response if it was auto-generated or using email
+        const isPasswordFromEmail = !row.password && !row.Password && !row['Password'] && !row['Initial Password'] && !row['Temp Password'];
         createdUsers.push({
           ...newUser,
-          generatedPassword: !row.password ? password : undefined // Include the generated password in the response only if it was auto-generated
+          generatedPassword: isPasswordFromEmail ? `${password} (using email as password)` : (!row.password ? password : undefined)
         });
       } catch (error) {
         console.error("Error creating user from Excel:", error);
