@@ -152,7 +152,7 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         const seniority = row.seniority || row.Seniority || row['Seniority Level'] || '';
         const organization = row.organization || row.Organization || row['Organization Name'] || '';
         const nationality = row.nationality || row.Nationality || '';
-        const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || 0;
+        const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || '';
 
         // Create the user with all data from Excel template
         const newUser = await storage.createUser({
@@ -166,9 +166,9 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
           assets: assets,
           roleCategory: roleCategory,
           seniority: seniority,
-          organization: organization,
+          organizationName: organization,
           nationality: nationality,
-          yearsOfExperience: parseInt(String(yearsOfExperience)) || 0,
+          yearsOfExperience: String(yearsOfExperience || ''),
         });
         
         // Include generated password in response if auto-generated
