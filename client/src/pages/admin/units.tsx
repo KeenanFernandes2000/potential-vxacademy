@@ -53,6 +53,8 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Pencil, Plus, Trash, FileText, School, ChevronRight, Search, Filter, Eye, EyeOff } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -258,11 +260,12 @@ export default function UnitsManagement() {
   // Delete unit mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/units/${id}`);
-      return await res.json();
+      await apiRequest("DELETE", `/api/units/${id}`);
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (deletedId) => {
       queryClient.invalidateQueries({ queryKey: ["/api/units"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/course-units"] });
       toast({
         title: "Unit deleted",
         description: "The unit has been deleted successfully.",
@@ -278,17 +281,53 @@ export default function UnitsManagement() {
   });
 
   // Form submission handler
-  const onSubmit = (data: InsertUnit) => {
+  const onSubmit = (data: any) => {
+    // Transform form data to proper unit data
+    const unitData = {
+      name: data.name,
+      description: data.description || null,
+      internalNote: data.internalNote || null,
+      order: data.order,
+      duration: data.duration,
+      showDuration: data.showDuration,
+      xpPoints: data.xpPoints,
+    };
+
     if (editingUnit) {
-      updateMutation.mutate({ id: editingUnit.id, unit: data });
+      updateMutation.mutate({ 
+        id: editingUnit.id, 
+        unit: unitData,
+        courseIds: data.courseIds || []
+      });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate({
+        ...unitData,
+        courseIds: data.courseIds || []
+      });
     }
   };
 
   // Function to handle editing a unit
   const handleEdit = (unit: Unit) => {
     setEditingUnit(unit);
+    
+    // Get courses associated with this unit
+    const unitCourseIds = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId.toString()) || [];
+    
+    // Populate the form with unit data
+    form.reset({
+      name: unit.name,
+      description: unit.description || "",
+      internalNote: unit.internalNote || "",
+      trainingAreaId: "",
+      moduleId: "",
+      courseIds: unitCourseIds,
+      order: unit.order,
+      duration: unit.duration,
+      showDuration: unit.showDuration,
+      xpPoints: unit.xpPoints,
+    });
+    
     setIsEditModalOpen(true);
   };
 
@@ -434,12 +473,42 @@ export default function UnitsManagement() {
                         <FormDescription>
                           Select one or more courses for this unit
                         </FormDescription>
+                        
+                        {/* Selected Courses Display */}
+                        {field.value && field.value.length > 0 && (
+                          <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md border">
+                            {field.value.map((courseId) => {
+                              const course = courses?.find(c => c.id.toString() === courseId);
+                              return course ? (
+                                <Badge 
+                                  key={courseId} 
+                                  variant="secondary" 
+                                  className="flex items-center gap-1 px-2 py-1"
+                                >
+                                  {course.name}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const currentValue = field.value ?? [];
+                                      field.onChange(currentValue.filter((id) => id !== courseId));
+                                    }}
+                                    className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                                  >
+                                    ×
+                                  </button>
+                                </Badge>
+                              ) : null;
+                            })}
+                          </div>
+                        )}
+                        
+                        {/* Available Courses Selection */}
                         <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
                           {courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No courses available for selected module</p>
                           ) : (
                             courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.map((course) => (
-                              <div key={course.id} className="flex items-center space-x-2">
+                              <div key={course.id} className="flex items-center space-x-2 hover:bg-muted/30 p-2 rounded">
                                 <Checkbox
                                   id={`course-${course.id}`}
                                   checked={field.value?.includes(course.id.toString()) ?? false}
@@ -456,7 +525,7 @@ export default function UnitsManagement() {
                                 />
                                 <label
                                   htmlFor={`course-${course.id}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
                                 >
                                   {course.name}
                                 </label>
@@ -551,19 +620,19 @@ export default function UnitsManagement() {
                       control={form.control}
                       name="showDuration"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Show Duration</FormLabel>
+                        <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Show Duration</FormLabel>
                             <FormDescription>
                               Display duration to users
                             </FormDescription>
                           </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
                         </FormItem>
                       )}
                     />
@@ -810,6 +879,321 @@ export default function UnitsManagement() {
             </Card>
           </div>
         </div>
+
+        {/* Edit Unit Modal */}
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Unit</DialogTitle>
+              <DialogDescription>
+                Update the unit information and course assignments
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter unit name..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Unit description..."
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="trainingAreaId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Training Area</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("moduleId", "");
+                            form.setValue("courseIds", []);
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select training area" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {trainingAreas?.map((area) => (
+                              <SelectItem key={area.id} value={area.id.toString()}>
+                                {area.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="moduleId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Module</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("courseIds", []);
+                          }}
+                          value={field.value}
+                          disabled={!form.watch("trainingAreaId")}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select module" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {modules?.filter(m => m.trainingAreaId.toString() === form.watch("trainingAreaId"))?.map((module) => (
+                              <SelectItem key={module.id} value={module.id.toString()}>
+                                {module.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="courseIds"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Courses</FormLabel>
+                      <FormDescription>
+                        Select one or more courses for this unit
+                      </FormDescription>
+                      
+                      {/* Selected Courses Display */}
+                      {field.value && field.value.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md border">
+                          {field.value.map((courseId) => {
+                            const course = courses?.find(c => c.id.toString() === courseId);
+                            return course ? (
+                              <Badge 
+                                key={courseId} 
+                                variant="secondary" 
+                                className="flex items-center gap-1 px-2 py-1"
+                              >
+                                {course.name}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const currentValue = field.value ?? [];
+                                    field.onChange(currentValue.filter((id) => id !== courseId));
+                                  }}
+                                  className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* Available Courses Selection */}
+                      <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                        {courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No courses available for selected module</p>
+                        ) : (
+                          courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.map((course) => (
+                            <div key={course.id} className="flex items-center space-x-2 hover:bg-muted/30 p-2 rounded">
+                              <Checkbox
+                                id={`edit-course-${course.id}`}
+                                checked={field.value?.includes(course.id.toString()) ?? false}
+                                onCheckedChange={(checked) => {
+                                  const currentValue = field.value ?? [];
+                                  if (checked) {
+                                    field.onChange([...currentValue, course.id.toString()]);
+                                  } else {
+                                    field.onChange(
+                                      currentValue.filter((id) => id !== course.id.toString())
+                                    );
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`edit-course-${course.id}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                              >
+                                {course.name}
+                              </label>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="internalNote"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Internal Note (Admin Only)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Internal notes for administrators..."
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="order"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Order</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Order..."
+                            value={field.value}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="xpPoints"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>XP Points</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="XP Points..."
+                            value={field.value}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 100)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duration (minutes)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Duration..."
+                            value={field.value}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 30)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="showDuration"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Show Duration</FormLabel>
+                          <FormDescription>
+                            Display duration to users
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditingUnit(null);
+                      form.reset();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={updateMutation.isPending}
+                  >
+                    {updateMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Unit"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
