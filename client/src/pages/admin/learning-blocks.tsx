@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,6 +49,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Loader2,
   Pencil,
@@ -95,8 +96,6 @@ export default function LearningBlocksManagement() {
   const { toast } = useToast();
   const [editingBlock, setEditingBlock] = useState<LearningBlock | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const imageFileRef = useRef<HTMLInputElement>(null);
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -366,56 +365,7 @@ export default function LearningBlocksManagement() {
     },
   });
 
-  // Image upload handler
-  const handleImageUpload = async () => {
-    if (!imageFileRef.current?.files?.[0]) {
-      toast({
-        title: "No image selected",
-        description: "Please select an image file to upload.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setImageUploading(true);
-      const formData = new FormData();
-      formData.append("imageFile", imageFileRef.current.files[0]);
-
-      // Use apiRequest utility to handle authentication
-      const response = await apiRequest(
-        "POST",
-        "/api/images/upload",
-        formData,
-        null,
-        null,
-        true,
-      );
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      // Set the image URL in the form
-      form.setValue("imageUrl", result.imageUrl);
-
-      toast({
-        title: "Image uploaded",
-        description: "The image was uploaded successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Upload failed",
-        description:
-          error instanceof Error ? error.message : "Failed to upload image.",
-        variant: "destructive",
-      });
-    } finally {
-      setImageUploading(false);
-    }
-  };
+  // Removed custom image upload handler - now using standardized ImageUpload component
 
   // Form submission handler
   const onSubmit = (data: InsertLearningBlock) => {
@@ -699,71 +649,19 @@ export default function LearningBlocksManagement() {
                   )}
 
                   {form.watch("type") === "image" && (
-                    <>
-                      <FormField
-                        control={form.control}
-                        name="imageUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Image</FormLabel>
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-3">
-                                <Input
-                                  type="file"
-                                  accept="image/*"
-                                  ref={imageFileRef}
-                                  onChange={(e) => {
-                                    // Clear previous image URL when selecting a new file
-                                    if (
-                                      e.target.files &&
-                                      e.target.files.length > 0
-                                    ) {
-                                      field.onChange("");
-                                    }
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  onClick={handleImageUpload}
-                                  disabled={imageUploading}
-                                  size="sm"
-                                >
-                                  {imageUploading ? (
-                                    <>
-                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                      Uploading...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Upload className="h-4 w-4 mr-2" />
-                                      Upload
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-
-                              <Input
-                                placeholder="Image URL (will be set automatically after upload)"
-                                {...field}
-                                value={field.value || ""}
-                                disabled
-                              />
-
-                              {field.value && (
-                                <div className="mt-2 border rounded-md overflow-hidden max-w-xs max-h-48">
-                                  <img
-                                    src={field.value}
-                                    alt="Uploaded image preview"
-                                    className="w-full h-auto object-contain"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </>
+                    <FormField
+                      control={form.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <ImageUpload
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          label="Learning Block Image"
+                          placeholder="Image URL (will be set automatically after upload)"
+                          disabled={createMutation.isPending || updateMutation.isPending}
+                        />
+                      )}
+                    />
                   )}
 
                   {form.watch("type") === "interactive" && (

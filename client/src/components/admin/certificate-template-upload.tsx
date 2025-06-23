@@ -31,9 +31,9 @@ export function CertificateTemplateUpload({ value, onChange, disabled }: Certifi
 
     try {
       const formData = new FormData();
-      formData.append("certificateTemplate", file);
+      formData.append("mediaFiles", file);
 
-      const response = await fetch("/api/upload/certificate-template", {
+      const response = await fetch("/api/media/upload", {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -44,7 +44,12 @@ export function CertificateTemplateUpload({ value, onChange, disabled }: Certifi
       }
 
       const result = await response.json();
-      onChange(result.url);
+      // Use the first uploaded file's URL
+      if (result.files && result.files.length > 0) {
+        onChange(result.files[0].url);
+      } else {
+        throw new Error("No file uploaded");
+      }
     } catch (error) {
       setUploadError("Failed to upload certificate template");
       setUploadedFile(null);
