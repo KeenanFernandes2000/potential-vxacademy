@@ -1669,6 +1669,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excel template download route
+  app.get("/api/admin/users/template", requireAdminOrSubAdmin, (req, res) => {
+    try {
+      const templatePath = path.join(__dirname, '../attached_assets/VX Academy Import Format_1750675214885.xlsx');
+      
+      if (!fs.existsSync(templatePath)) {
+        return res.status(404).json({ message: "Template file not found" });
+      }
+      
+      res.download(templatePath, 'VX_Academy_Import_Template.xlsx', (err) => {
+        if (err) {
+          console.error("Error downloading template:", err);
+          res.status(500).json({ message: "Error downloading template" });
+        }
+      });
+    } catch (error) {
+      console.error("Error serving template:", error);
+      res.status(500).json({ message: "Error serving template" });
+    }
+  });
+
   app.put("/api/admin/users/:id", requireAdminOrSubAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);

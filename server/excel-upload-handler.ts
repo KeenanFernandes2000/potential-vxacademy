@@ -53,7 +53,7 @@ export const uploadExcel = multer({
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
-}).single('excelFile');
+}).single('file');
 
 // Process uploaded Excel file and create users
 export async function processExcelUpload(req: Request, res: Response, storage: IStorage) {
@@ -62,11 +62,8 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
       return res.status(400).json({ message: "No file uploaded" });
     }
     
-    const { defaultRole, defaultLanguage, courseIds = [] } = req.body;
-    
-    if (!defaultRole || !defaultLanguage) {
-      return res.status(400).json({ message: "Default role and language are required" });
-    }
+    // Remove default values - all data comes from Excel template
+    console.log("Processing Excel upload with template as single source of truth");
     
     // Read Excel file using the read method
     const fileBuffer = fs.readFileSync(req.file.path);
@@ -128,7 +125,7 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         }
         
         // Check if email already exists using a direct email check
-        console.log(`Checking if user with email ${email} already exists. Using role: ${defaultRole}`);
+        console.log(`Checking if user with email ${email} already exists`);
         
         // Check for existing user with this email
         const existingUser = await storage.getUserByUsername(email);
@@ -147,29 +144,32 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         const password = row.password || Math.random().toString(36).slice(2, 10);
         const hashedPassword = await hashPassword(password);
         
-        // Create the user
+        // Extract user data from Excel template columns
+        const role = row.role || row.Role || row['Platform Role'] || 'user';
+        const language = row.language || row.Language || row['Preferred Language'] || 'English';
+        const assets = row.assets || row.Assets || row['Asset Category'] || '';
+        const roleCategory = row.roleCategory || row['Role Category'] || row['Job Role'] || '';
+        const seniority = row.seniority || row.Seniority || row['Seniority Level'] || '';
+        const organization = row.organization || row.Organization || row['Organization Name'] || '';
+        const nationality = row.nationality || row.Nationality || '';
+        const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || 0;
+
+        // Create the user with all data from Excel template
         const newUser = await storage.createUser({
           username: email, // Use email as username since we're using email-based login
           password: hashedPassword,
           firstName: finalFirstName,
           lastName: finalLastName || '',
           email: email,
-          role: defaultRole,
-          language: defaultLanguage || "en",
+          role: role.toLowerCase() === 'sub-admin' ? 'sub-admin' : 'user',
+          language: language,
+          assets: assets,
+          roleCategory: roleCategory,
+          seniority: seniority,
+          organization: organization,
+          nationality: nationality,
+          yearsOfExperience: parseInt(String(yearsOfExperience)) || 0,
         });
-        
-        // If course IDs were provided, assign the courses to the user
-        if (courseIds && courseIds.length > 0) {
-          for (const courseId of courseIds) {
-            await storage.createUserProgress({
-              userId: newUser.id,
-              courseId: parseInt(courseId),
-              completed: false,
-              percentComplete: 0,
-              lastAccessed: new Date(),
-            });
-          }
-        }
         
         // Include generated password in response if auto-generated
         createdUsers.push({
