@@ -338,11 +338,10 @@ export default function UnitsManagement() {
                       <FormItem>
                         <FormLabel>Training Area</FormLabel>
                         <Select
-                          value={field.value ? field.value.toString() : ""}
+                          value={field.value || ""}
                           onValueChange={(value) => {
-                            const id = value ? parseInt(value) : undefined;
-                            field.onChange(id);
-                            form.setValue("moduleId", undefined);
+                            field.onChange(value);
+                            form.setValue("moduleId", "");
                             form.setValue("courseIds", []);
                           }}
                         >
@@ -371,10 +370,9 @@ export default function UnitsManagement() {
                       <FormItem>
                         <FormLabel>Module</FormLabel>
                         <Select
-                          value={field.value?.toString() || ""}
+                          value={field.value || ""}
                           onValueChange={(value) => {
-                            const id = value ? parseInt(value) : undefined;
-                            field.onChange(id);
+                            field.onChange(value);
                             form.setValue("courseIds", []);
                           }}
                           disabled={!form.watch("trainingAreaId")}
@@ -385,7 +383,7 @@ export default function UnitsManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {modules?.filter(m => m.trainingAreaId === form.watch("trainingAreaId"))?.map((module) => (
+                            {modules?.filter(m => m.trainingAreaId.toString() === form.watch("trainingAreaId"))?.map((module) => (
                               <SelectItem key={module.id} value={module.id.toString()}>
                                 {module.name}
                               </SelectItem>
@@ -407,20 +405,20 @@ export default function UnitsManagement() {
                           Select one or more courses for this unit
                         </FormDescription>
                         <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                          {courses?.filter(c => c.moduleId === form.watch("moduleId"))?.length === 0 ? (
+                          {courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No courses available for selected module</p>
                           ) : (
-                            courses?.filter(c => c.moduleId === form.watch("moduleId"))?.map((course) => (
+                            courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.map((course) => (
                               <div key={course.id} className="flex items-center space-x-2">
                                 <Checkbox
                                   id={`course-${course.id}`}
-                                  checked={field.value?.includes(course.id) || false}
+                                  checked={field.value?.includes(course.id.toString()) || false}
                                   onCheckedChange={(checked) => {
                                     if (checked) {
-                                      field.onChange([...(field.value || []), course.id]);
+                                      field.onChange([...(field.value || []), course.id.toString()]);
                                     } else {
                                       field.onChange(
-                                        field.value?.filter((id) => id !== course.id) || []
+                                        field.value?.filter((id) => id !== course.id.toString()) || []
                                       );
                                     }
                                   }}
