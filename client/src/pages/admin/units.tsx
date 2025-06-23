@@ -212,12 +212,13 @@ export default function UnitsManagement() {
 
   // Create unit mutation
   const createMutation = useMutation({
-    mutationFn: async (unit: InsertUnit) => {
-      const res = await apiRequest("POST", "/api/units", unit);
+    mutationFn: async (unitData: any) => {
+      const res = await apiRequest("POST", "/api/units", unitData);
       return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/units"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/course-units"] });
       form.reset();
       toast({
         title: "Unit created",
@@ -235,14 +236,17 @@ export default function UnitsManagement() {
 
   // Update unit mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, unit }: { id: number; unit: Partial<Unit> }) => {
-      const res = await apiRequest("PUT", `/api/units/${id}`, unit);
+    mutationFn: async ({ id, unit, courseIds }: { id: number; unit: any; courseIds?: string[] }) => {
+      const payload = { ...unit, courseIds };
+      const res = await apiRequest("PATCH", `/api/units/${id}`, payload);
       return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/units"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/course-units"] });
       setEditingUnit(null);
       setIsEditModalOpen(false);
+      form.reset();
       toast({
         title: "Unit updated",
         description: "The unit has been updated successfully.",
@@ -297,12 +301,12 @@ export default function UnitsManagement() {
       updateMutation.mutate({ 
         id: editingUnit.id, 
         unit: unitData,
-        courseIds: data.courseIds || []
+        courseIds: data.courseIds ? data.courseIds.map((id: string) => parseInt(id)) : []
       });
     } else {
       createMutation.mutate({
         ...unitData,
-        courseIds: data.courseIds || []
+        courseIds: data.courseIds ? data.courseIds.map((id: string) => parseInt(id)) : []
       });
     }
   };

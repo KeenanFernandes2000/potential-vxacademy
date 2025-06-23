@@ -166,7 +166,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Then create course-unit associations if courseIds are provided
       if (courseIds && Array.isArray(courseIds)) {
         for (const courseId of courseIds) {
-          await storage.addUnitToCourse(courseId, unit.id, unitData.order || 1);
+          const courseIdNum = typeof courseId === 'string' ? parseInt(courseId) : courseId;
+          await storage.addUnitToCourse(courseIdNum, unit.id, unitData.order || 1);
         }
       }
       
@@ -190,19 +191,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update course associations if courseIds are provided
       if (courseIds && Array.isArray(courseIds)) {
+        // Convert courseIds to numbers if they're strings
+        const normalizedCourseIds = courseIds.map(id => typeof id === 'string' ? parseInt(id) : id);
+        
         // Get current courses for this unit
         const currentCourses = await storage.getCoursesForUnit(id);
         const currentCourseIds = currentCourses.map(c => c.id);
         
         // Remove associations that are no longer needed
         for (const courseId of currentCourseIds) {
-          if (!courseIds.includes(courseId)) {
+          if (!normalizedCourseIds.includes(courseId)) {
             await storage.removeUnitFromCourse(courseId, id);
           }
         }
         
         // Add new associations
-        for (const courseId of courseIds) {
+        for (const courseId of normalizedCourseIds) {
           if (!currentCourseIds.includes(courseId)) {
             await storage.addUnitToCourse(courseId, id, unitData.order || 1);
           }
@@ -211,6 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(unit);
     } catch (error) {
+      console.error("Error updating unit:", error);
       res.status(500).json({ message: "Error updating unit" });
     }
   });
