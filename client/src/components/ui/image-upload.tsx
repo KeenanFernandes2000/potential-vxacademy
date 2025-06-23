@@ -88,9 +88,9 @@ export function ImageUpload({
     try {
       setUploading(true);
       const formData = new FormData();
-      formData.append("imageFile", fileToUpload);
+      formData.append("mediaFiles", fileToUpload);
 
-      const response = await apiRequest("POST", "/api/images/upload", formData, null, null, true);
+      const response = await apiRequest("POST", "/api/media/upload", formData, null, null, true);
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
@@ -98,25 +98,18 @@ export function ImageUpload({
 
       const result = await response.json();
       
-      // Auto-save uploaded image to Media tab
-      try {
-        const mediaFormData = new FormData();
-        mediaFormData.append("mediaFiles", fileToUpload);
+      // Use the first uploaded file's URL
+      if (result.files && result.files.length > 0) {
+        onChange(result.files[0].url);
+        setSelectedFile(null);
         
-        await apiRequest("POST", "/api/media/upload", mediaFormData, null, null, true);
-      } catch (mediaError) {
-        // Continue even if media save fails - don't block the main upload
-        console.warn("Failed to auto-save image to media:", mediaError);
+        toast({
+          title: "Image uploaded",
+          description: "The image was uploaded successfully to Media tab.",
+        });
+      } else {
+        throw new Error("No file uploaded");
       }
-      
-      // Set the image URL
-      onChange(result.imageUrl);
-      setSelectedFile(null);
-      
-      toast({
-        title: "Image uploaded",
-        description: "The image was uploaded and saved to Media tab successfully.",
-      });
     } catch (error) {
       toast({
         title: "Upload failed",

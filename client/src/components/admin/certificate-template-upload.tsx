@@ -125,7 +125,7 @@ export function CertificateTemplateUpload({ value, onChange, disabled }: Certifi
                     <File className="h-8 w-8 text-primary flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate" title={uploadedFile?.name}>
-                        {uploadedFile?.name.length > 30 ? `${uploadedFile?.name.substring(0, 30)}...` : uploadedFile?.name}
+                        {(uploadedFile?.name?.length || 0) > 30 ? `${uploadedFile?.name?.substring(0, 30)}...` : uploadedFile?.name}
                       </p>
                       <p className="text-sm text-gray-500">
                         {uploadedFile ? `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB` : "Template uploaded"}

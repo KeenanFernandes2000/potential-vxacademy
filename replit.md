@@ -114,6 +114,14 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 23, 2025: Unified Image Upload API Implementation Complete
+  - Standardized all image uploads across admin forms to use /api/media/upload endpoint
+  - Updated ImageUpload component to eliminate duplicate API calls (removed /api/images/upload)
+  - Fixed learning blocks page to use standardized ImageUpload component instead of custom implementation
+  - Updated certificate template upload to use unified media API for consistency
+  - All image uploads now automatically save to Media tab with single API call
+  - Fixed TypeScript errors in certificate template component with proper optional chaining
+  - Enhanced image upload efficiency and consistency across training areas, modules, courses, and learning blocks
 - June 23, 2025: Units Page CRUD Functionality and UI Enhancement Complete
   - Implemented inline editing functionality following courses page pattern (no popup modal)
   - Fixed broken edit functionality - form now properly populates with selected unit data
