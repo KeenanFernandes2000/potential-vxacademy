@@ -412,13 +412,14 @@ export default function UnitsManagement() {
                               <div key={course.id} className="flex items-center space-x-2">
                                 <Checkbox
                                   id={`course-${course.id}`}
-                                  checked={field.value?.includes(course.id.toString()) || false}
+                                  checked={Array.isArray(field.value) ? field.value.includes(course.id.toString()) : false}
                                   onCheckedChange={(checked) => {
+                                    const currentValue = Array.isArray(field.value) ? field.value : [];
                                     if (checked) {
-                                      field.onChange([...(field.value || []), course.id.toString()]);
+                                      field.onChange([...currentValue, course.id.toString()]);
                                     } else {
                                       field.onChange(
-                                        field.value?.filter((id) => id !== course.id.toString()) || []
+                                        currentValue.filter((id) => id !== course.id.toString())
                                       );
                                     }
                                   }}
