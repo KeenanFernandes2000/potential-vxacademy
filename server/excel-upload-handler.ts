@@ -155,9 +155,6 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         const nationality = row.nationality || row.Nationality || row['NATIONALITY'] || row['Country'] || '';
         const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || row['YEARS OF EXPERIENCE'] || row['Work Experience'] || '';
 
-        // Use username from Excel if provided, otherwise use email
-        const finalUsername = username || email;
-
         // Create the user with all data from Excel template
         const newUser = await storage.createUser({
           username: finalUsername,
