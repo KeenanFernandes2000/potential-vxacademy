@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  // Define navigation items with role-based filtering
+  // Define navigation items with role-based filtering in the exact order requested
   const allNavItems = [
     {
       name: "Dashboard",
@@ -63,35 +63,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       permission: () => canViewDashboard,
       roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
     },
-    {
-      name: "User Management",
-      path: "/admin/users",
-      icon: <Users className="h-5 w-5" />,
-      permission: () => true,
-      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
-    },
-    {
-      name: "Role Management",
-      path: "/admin/roles",
-      icon: <Shield className="h-5 w-5" />,
-      permission: () => canManageRoles,
-      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
-    },
-    {
-      name: "Analytics",
-      path: "/admin/analytics",
-      icon: <BarChart className="h-5 w-5" />,
-      permission: () => canViewAnalytics,
-      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
-    },
-    {
-      name: "Courses",
-      path: "/admin/course-management",
-      icon: <BookOpen className="h-5 w-5" />,
-      permission: () => canManageCourses,
-      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
-    },
-    // Admin-only sections
     {
       name: "Training Areas",
       path: "/admin/training-areas",
@@ -105,6 +76,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: <GraduationCap className="h-5 w-5" />,
       permission: () => canManageModules,
       roles: ["admin"], // Admin only
+    },
+    {
+      name: "Courses",
+      path: "/admin/course-management",
+      icon: <BookOpen className="h-5 w-5" />,
+      permission: () => canManageCourses,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
     },
     {
       name: "Units",
@@ -147,6 +125,27 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: <Award className="h-5 w-5" />,
       permission: () => canManageBadges,
       roles: ["admin"], // Admin only
+    },
+    {
+      name: "User Management",
+      path: "/admin/users",
+      icon: <Users className="h-5 w-5" />,
+      permission: () => true,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
+    },
+    {
+      name: "Role Management",
+      path: "/admin/roles",
+      icon: <Shield className="h-5 w-5" />,
+      permission: () => canManageRoles,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
+    },
+    {
+      name: "Analytics",
+      path: "/admin/analytics",
+      icon: <BarChart className="h-5 w-5" />,
+      permission: () => canViewAnalytics,
+      roles: ["admin", "sub-admin"], // Allow both admin and sub-admin
     },
   ];
 

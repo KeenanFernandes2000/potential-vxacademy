@@ -146,58 +146,64 @@ export default function LearningBlocksManagement() {
     },
   });
 
-  // Filter blocks based on search and filter criteria
-  const filteredBlocks =
-    allBlocks?.filter((block) => {
-      // Search filter
-      if (
-        searchTerm &&
-        !block.title.toLowerCase().includes(searchTerm.toLowerCase())
-      ) {
-        return false;
-      }
+  // Filter blocks based on search and filter criteria with live updates
+  const filteredBlocks = allBlocks?.filter((block) => {
+    // Search filter
+    if (
+      searchTerm &&
+      !block.title.toLowerCase().includes(searchTerm.toLowerCase())
+    ) {
+      return false;
+    }
 
-      // Get unit info for this block
-      const unit = units?.find((u) => u.id === block.unitId);
-      if (!unit) return false;
+    // Get unit info for this block
+    const unit = units?.find((u) => u.id === block.unitId);
+    if (!unit) return false;
 
-      // Get course info for this unit
-      const unitCourses = courses?.filter(
-        (course) =>
-          // Check if unit is assigned to this course through courseUnits table
-          // For now, we'll use a simplified approach since we don't have courseUnits data in frontend
-          true, // Will be refined when courseUnits API is available
+    // Training Area filter - updates display immediately when selected
+    if (selectedTrainingAreaId !== "all") {
+      // Find courses that belong to modules in the selected training area
+      const relevantModules = modules?.filter(
+        (m) => m.trainingAreaId === parseInt(selectedTrainingAreaId)
       );
+      
+      if (!relevantModules || relevantModules.length === 0) return false;
+      
+      const relevantCourses = courses?.filter((course) =>
+        relevantModules.some((module) => module.id === course.moduleId)
+      );
+      
+      if (!relevantCourses || relevantCourses.length === 0) return false;
+      
+      // For now, we'll assume the unit belongs to at least one relevant course
+      // This would need proper course-unit relationship checking
+    }
 
-      // Unit filter
-      if (
-        selectedFilterUnitId !== "all" &&
-        block.unitId !== parseInt(selectedFilterUnitId)
-      ) {
-        return false;
-      }
+    // Module filter - updates display immediately when selected
+    if (selectedModuleId !== "all") {
+      const relevantCourses = courses?.filter(
+        (c) => c.moduleId === parseInt(selectedModuleId)
+      );
+      
+      if (!relevantCourses || relevantCourses.length === 0) return false;
+      
+      // For now, we'll assume the unit belongs to at least one relevant course
+      // This would need proper course-unit relationship checking
+    }
 
-      // Course filter (simplified - would need course-unit relationship data)
-      if (selectedCourseId !== "all") {
-        // This would need proper course-unit relationship checking
-        // For now, skip this filter until we have the proper API
-      }
+    // Course filter - updates display immediately when selected
+    if (selectedCourseId !== "all") {
+      // This would need proper course-unit relationship checking
+      // For now, we'll keep all blocks when a course is selected
+    }
 
-      // Module filter (via course relationship)
-      if (selectedModuleId !== "all") {
-        const relevantCourses = courses?.filter(
-          (c) => c.moduleId === parseInt(selectedModuleId),
-        );
-        // Would need to check if unit belongs to any of these courses
-      }
-
-      // Training Area filter (via module-course-unit relationship)
-      if (selectedTrainingAreaId !== "all") {
-        const relevantModules = modules?.filter(
-          (m) => m.trainingAreaId === parseInt(selectedTrainingAreaId),
-        );
-        // Would need to trace through module -> course -> unit relationships
-      }
+    // Unit filter - updates display immediately when selected
+    if (
+      selectedFilterUnitId !== "all" &&
+      block.unitId !== parseInt(selectedFilterUnitId)
+    ) {
+      return false;
+    }
 
       return true;
     }) || [];

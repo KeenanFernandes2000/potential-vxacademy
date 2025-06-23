@@ -31,7 +31,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -146,6 +145,15 @@ export default function UnitsManagement() {
       unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       unit.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
+    if (!matchesSearch) return false;
+
+    // Training area, module, course filtering
+    if (selectedFilterCourseId) {
+      // For the new schema, we need to check course relationships differently
+      // This might need adjustment based on the actual unit-course relationship
+      return true; // Placeholder - needs proper implementation
+    }
+
     return matchesSearch;
   }) || [];
 
@@ -166,117 +174,70 @@ export default function UnitsManagement() {
     },
   });
 
-  // Reset form when editing a unit
-  useEffect(() => {
-    if (editingUnit) {
-      // Get courses for this unit
-      const getCoursesForUnit = async () => {
-        try {
-          const res = await apiRequest("GET", `/api/units/${editingUnit.id}/courses`);
-          const unitCourses = await res.json();
-          
-          form.reset({
-            name: editingUnit.name,
-            courseIds: unitCourses.map((c: any) => c.id),
-            description: editingUnit.description || "",
-            order: editingUnit.order,
-            duration: editingUnit.duration,
-            showDuration: editingUnit.showDuration,
-            xpPoints: editingUnit.xpPoints,
-          });
-        } catch (error) {
-          console.error("Failed to fetch courses for unit:", error);
-          form.reset({
-            name: editingUnit.name,
-            courseIds: [],
-            description: editingUnit.description || "",
-            order: editingUnit.order,
-            duration: editingUnit.duration,
-            showDuration: editingUnit.showDuration,
-            xpPoints: editingUnit.xpPoints,
-          });
-        }
-      };
-      
-      getCoursesForUnit();
-    }
-  }, [editingUnit, form]);
-
-  // Create mutation
+  // Create unit mutation
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const { courseIds, ...unitData } = data;
-      const res = await apiRequest("POST", "/api/units", { ...unitData, courseIds });
+    mutationFn: async (unit: InsertUnit) => {
+      const res = await apiRequest("POST", "/api/units", unit);
       return await res.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Unit created successfully.",
-      });
-      form.reset({
-        name: "",
-        description: "",
-        courseIds: [],
-        order: 1,
-        duration: 30,
-        showDuration: true,
-        xpPoints: 100,
-      });
-      setIsAddModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ["/api/units"] });
+      form.reset();
+      toast({
+        title: "Unit created",
+        description: "The unit has been created successfully.",
+      });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to create unit. Please try again.",
+        description: error.message || "Failed to create unit",
         variant: "destructive",
       });
     },
   });
 
-  // Update mutation
+  // Update unit mutation
   const updateMutation = useMutation({
-    mutationFn: async (data: { id: number; unit: any }) => {
-      const { courseIds, ...unitData } = data.unit;
-      const res = await apiRequest("PATCH", `/api/units/${data.id}`, { ...unitData, courseIds });
+    mutationFn: async ({ id, unit }: { id: number; unit: Partial<Unit> }) => {
+      const res = await apiRequest("PUT", `/api/units/${id}`, unit);
       return await res.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Unit updated successfully.",
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/units"] });
       setEditingUnit(null);
       setIsEditModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/units"] });
+      toast({
+        title: "Unit updated",
+        description: "The unit has been updated successfully.",
+      });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to update unit. Please try again.",
+        description: error.message || "Failed to update unit",
         variant: "destructive",
       });
     },
   });
 
-  // Delete mutation
+  // Delete unit mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const res = await apiRequest("DELETE", `/api/units/${id}`);
-      return res.ok;
+      return await res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/units"] });
       toast({
-        title: "Success",
-        description: "Unit deleted successfully.",
+        title: "Unit deleted",
+        description: "The unit has been deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedCourseId] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to delete unit. Please try again.",
+        description: error.message || "Failed to delete unit",
         variant: "destructive",
       });
     },
@@ -311,719 +272,427 @@ export default function UnitsManagement() {
   };
 
   return (
-    <>
-      <AdminLayout>
-        <div className="container mx-auto py-8 px-8">
+    <AdminLayout>
+      <div className="container mx-auto py-8 px-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-abu-charcoal">Units Management</h1>
-          <Button
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
-            disabled={!selectedCourseId}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Unit
-          </Button>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+            Units Management
+          </h1>
         </div>
-
-        {/* Search and Filter Section */}
-        <div className="mb-6">
-          <Card>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Panel - Add New Unit Form */}
+          <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                Search & Filter Units
+                <Plus className="h-5 w-5" />
+                Add New Unit
               </CardTitle>
               <CardDescription>
-                Search by unit name and filter by training area, module, and course
+                Create a new unit and assign it to courses
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search units by name or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Unit Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter unit name..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* Hierarchical Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Training Area Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Training Area</label>
-                  <Select
-                    value={selectedTrainingAreaId?.toString() || "all"}
-                    onValueChange={(value) => {
-                      const areaId = value === "all" ? null : parseInt(value);
-                      setSelectedTrainingAreaId(areaId);
-                      setSelectedModuleId(null);
-                      setSelectedFilterCourseId(null);
-                    }}
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Unit description..."
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="courseIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Select Courses</FormLabel>
+                        <FormDescription>
+                          Select one or more courses for this unit
+                        </FormDescription>
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {courses?.map((course) => (
+                            <div key={course.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`course-${course.id}`}
+                                checked={field.value?.includes(course.id) || false}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    field.onChange([...(field.value || []), course.id]);
+                                  } else {
+                                    field.onChange(
+                                      field.value?.filter((id) => id !== course.id) || []
+                                    );
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`course-${course.id}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {course.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="order"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Order</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="Order..."
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="xpPoints"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>XP Points</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="XP Points..."
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="duration"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Duration (minutes)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="Duration..."
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="showDuration"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Show Duration</FormLabel>
+                            <FormDescription>
+                              Display duration to users
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={createMutation.isPending}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Training Areas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Training Areas</SelectItem>
-                      {trainingAreas?.map((area) => (
-                        <SelectItem key={area.id} value={area.id.toString()}>
-                          {area.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Module Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Module</label>
-                  <Select
-                    value={selectedModuleId?.toString() || "all"}
-                    onValueChange={(value) => {
-                      const moduleId = value === "all" ? null : parseInt(value);
-                      setSelectedModuleId(moduleId);
-                      setSelectedFilterCourseId(null);
-                    }}
-                    disabled={!selectedTrainingAreaId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Modules" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Modules</SelectItem>
-                      {modules?.map((module) => (
-                        <SelectItem key={module.id} value={module.id.toString()}>
-                          {module.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Course Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Course</label>
-                  <Select
-                    value={selectedFilterCourseId?.toString() || "all"}
-                    onValueChange={(value) => {
-                      const courseId = value === "all" ? null : parseInt(value);
-                      setSelectedFilterCourseId(courseId);
-                    }}
-                    disabled={!selectedModuleId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Courses" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Courses</SelectItem>
-                      {courses?.map((course) => (
-                        <SelectItem key={course.id} value={course.id.toString()}>
-                          {course.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Clear Filters Button */}
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedTrainingAreaId(null);
-                    setSelectedModuleId(null);
-                    setSelectedFilterCourseId(null);
-                  }}
-                  className="text-sm"
-                >
-                  Clear All Filters
-                </Button>
-              </div>
+                    {createMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Unit"
+                    )}
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
           </Card>
-        </div>
 
-        <div className="mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Course</CardTitle>
-              <CardDescription>
-                Choose a course to view and manage its units
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                <div className="flex space-x-4">
-                  <div className="flex-1">
+          {/* Right Panel - Units List */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Filters</CardTitle>
+                <CardDescription>
+                  Filter units by training area, module, or course
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Training Area</label>
                     <Select
-                      value={selectedCourseId?.toString() || ""}
-                      onValueChange={(value) => setSelectedCourseId(parseInt(value))}
+                      value={selectedTrainingAreaId?.toString() || "all"}
+                      onValueChange={(value) => {
+                        const id = value === "all" ? null : parseInt(value);
+                        setSelectedTrainingAreaId(id);
+                        setSelectedModuleId(null);
+                        setSelectedFilterCourseId(null);
+                      }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a course" />
+                        <SelectValue placeholder="All Training Areas" />
                       </SelectTrigger>
                       <SelectContent>
-                        {coursesLoading ? (
-                          <div className="flex justify-center p-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          </div>
-                        ) : (
-                          courses?.map((course) => (
-                            <SelectItem key={course.id} value={course.id.toString()}>
-                              {course.name}
-                            </SelectItem>
-                          ))
-                        )}
+                        <SelectItem value="all">All Training Areas</SelectItem>
+                        {trainingAreas?.map((area) => (
+                          <SelectItem key={area.id} value={area.id.toString()}>
+                            {area.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
+
                   <div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setLocation("/admin/course-management")}
+                    <label className="text-sm font-medium mb-2 block">Module</label>
+                    <Select
+                      value={selectedModuleId?.toString() || "all"}
+                      onValueChange={(value) => {
+                        const id = value === "all" ? null : parseInt(value);
+                        setSelectedModuleId(id);
+                        setSelectedFilterCourseId(null);
+                      }}
+                      disabled={!selectedTrainingAreaId}
                     >
-                      Manage Courses
-                    </Button>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Modules" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Modules</SelectItem>
+                        {modules?.map((module) => (
+                          <SelectItem key={module.id} value={module.id.toString()}>
+                            {module.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Course</label>
+                    <Select
+                      value={selectedFilterCourseId?.toString() || "all"}
+                      onValueChange={(value) => {
+                        const id = value === "all" ? null : parseInt(value);
+                        setSelectedFilterCourseId(id);
+                      }}
+                      disabled={!selectedModuleId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Courses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Courses</SelectItem>
+                        {courses?.map((course) => (
+                          <SelectItem key={course.id} value={course.id.toString()}>
+                            {course.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* All Units Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Units</CardTitle>
-            <CardDescription>
-              {filteredUnits.length} unit{filteredUnits.length !== 1 ? 's' : ''} found
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {unitsLoading ? (
-              <div className="flex justify-center p-12">
-                <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
-              </div>
-            ) : filteredUnits && filteredUnits.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Unit Name</TableHead>
-                    <TableHead>Course</TableHead>
-                    <TableHead>Training Area</TableHead>
-                    <TableHead>Order</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>XP Points</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUnits.map((unit) => {
-                    return (
-                      <TableRow key={unit.id}>
-                        <TableCell>
-                          <div className="font-medium">{unit.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {unit.description && unit.description.substring(0, 60)}
-                            {unit.description && unit.description.length > 60 ? "..." : ""}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">Multiple Courses</div>
-                          <div className="text-sm text-muted-foreground">Can be assigned to multiple courses</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">Various</div>
-                        </TableCell>
-                        <TableCell>{unit.order}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span>{unit.duration} min</span>
-                            {/* <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                // Toggle duration visibility
-                                // This would require updating the unit with showDuration field
-                                toast({
-                                  title: "Duration visibility toggle",
-                                  description: "This feature will be implemented when the database schema is updated.",
-                                });
-                              }}
-                            >
-                            </Button> */}
-                              {unit.showDuration !== false ? (
-                                <Eye className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <EyeOff className="h-4 w-4 text-gray-400" />
-                              )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{unit.xpPoints} XP</TableCell>
-                        <TableCell className="text-right">
-                          <TooltipProvider>
-                            <div className="flex justify-end space-x-2">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setLocation(`/admin/learning-blocks?unitId=${unit.id}`)}
-                                  >
-                                    <FileText className="h-4 w-4 mr-1" />
-                                    Blocks
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Manage Learning Blocks</p>
-                                </TooltipContent>
-                              </Tooltip>
-                              
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setLocation(`/admin/assessments?unitId=${unit.id}`)}
-                                  >
-                                    <School className="h-4 w-4 mr-1" />
-                                    Assessments
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Manage Assessments</p>
-                                </TooltipContent>
-                              </Tooltip>
-                              
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleEdit(unit)}
-                                  >
-                                    <Pencil className="h-4 w-4" />
-                                    <span className="sr-only">Edit</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Edit Unit</p>
-                                </TooltipContent>
-                              </Tooltip>
-                              
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDelete(unit.id)}
-                                    disabled={deleteMutation.isPending}
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                    <span className="sr-only">Delete</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Delete Unit</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </TooltipProvider>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-12">
-                  <School className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No units found</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Create your first unit for this course to get started
-                  </p>
+                {/* Search Bar */}
+                <div className="mt-4">
+                  <label className="text-sm font-medium mb-2 block">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search units by name or description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                <div className="flex justify-end mt-4">
                   <Button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setSelectedTrainingAreaId(null);
+                      setSelectedModuleId(null);
+                      setSelectedFilterCourseId(null);
+                    }}
+                    className="text-sm"
                   >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add First Unit
+                    Clear All Filters
                   </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Units List */}
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Existing Units</CardTitle>
+                    <CardDescription>
+                      Showing {filteredUnits.length} of {allUnits?.length || 0} units
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {unitsLoading ? (
+                  <div className="flex justify-center p-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+                  </div>
+                ) : filteredUnits && filteredUnits.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Unit Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Order</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>XP Points</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUnits.map((unit) => {
+                        return (
+                          <TableRow key={unit.id}>
+                            <TableCell>
+                              <div className="font-medium">{unit.name}</div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm text-muted-foreground">
+                                {unit.description && unit.description.substring(0, 60)}
+                                {unit.description && unit.description.length > 60 && "..."}
+                              </div>
+                            </TableCell>
+                            <TableCell>{unit.order}</TableCell>
+                            <TableCell>
+                              {unit.showDuration ? `${unit.duration} min` : "Hidden"}
+                            </TableCell>
+                            <TableCell>{unit.xpPoints}</TableCell>
+                            <TableCell className="text-right">
+                              <TooltipProvider>
+                                <div className="flex justify-end space-x-2">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleEdit(unit)}
+                                        disabled={updateMutation.isPending}
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                        <span className="sr-only">Edit</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Edit Unit</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDelete(unit.id)}
+                                        disabled={deleteMutation.isPending}
+                                      >
+                                        <Trash className="h-4 w-4" />
+                                        <span className="sr-only">Delete</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Delete Unit</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </TooltipProvider>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-12">
+                    <School className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No units found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {searchTerm || selectedTrainingAreaId || selectedModuleId || selectedFilterCourseId
+                        ? "No units match your current filters"
+                        : "Create your first unit to get started"}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </AdminLayout>
-
-      {/* Add Unit Dialog */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Add New Unit</DialogTitle>
-            <DialogDescription>
-              Create a learning unit for the selected course
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Introduction to Emirati Culture" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="courseIds"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Courses</FormLabel>
-                    <FormControl>
-                      <div className="space-y-2">
-                        {coursesLoading ? (
-                          <div className="flex justify-center p-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
-                            {courses?.map((course) => (
-                              <div key={course.id} className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  id={`course-${course.id}`}
-                                  checked={field.value?.includes(course.id) || false}
-                                  onChange={(e) => {
-                                    const currentValue = field.value || [];
-                                    if (e.target.checked) {
-                                      field.onChange([...currentValue, course.id]);
-                                    } else {
-                                      field.onChange(currentValue.filter((id: number) => id !== course.id));
-                                    }
-                                  }}
-                                  className="rounded border-gray-300"
-                                />
-                                <label
-                                  htmlFor={`course-${course.id}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                >
-                                  {course.name}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter a description for this unit"
-                        className="min-h-[120px]"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="order"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Display Order</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="1" {...field} />
-                      </FormControl>
-                      <FormDescription>Order in the course</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Duration (minutes)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="1" {...field} />
-                      </FormControl>
-                      <FormDescription>Estimated time to complete</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="xpPoints"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>XP Points</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="0" {...field} />
-                      </FormControl>
-                      <FormDescription>Points awarded on completion</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="showDuration"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Show Duration to Students
-                      </FormLabel>
-                      <FormDescription>
-                        When enabled, students will see the estimated duration for this unit
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
-                >
-                  {createMutation.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Create Unit
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Unit Dialog */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edit Unit</DialogTitle>
-            <DialogDescription>
-              Update unit information
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Introduction to Emirati Culture" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="courseIds"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Courses</FormLabel>
-                    <FormControl>
-                      <div className="space-y-2">
-                        {coursesLoading ? (
-                          <div className="flex justify-center p-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
-                            {courses?.map((course) => (
-                              <div key={course.id} className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  id={`edit-course-${course.id}`}
-                                  checked={field.value?.includes(course.id) || false}
-                                  onChange={(e) => {
-                                    const currentValue = field.value || [];
-                                    if (e.target.checked) {
-                                      field.onChange([...currentValue, course.id]);
-                                    } else {
-                                      field.onChange(currentValue.filter((id: number) => id !== course.id));
-                                    }
-                                  }}
-                                  className="rounded border-gray-300"
-                                />
-                                <label
-                                  htmlFor={`edit-course-${course.id}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                >
-                                  {course.name}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter a description for this unit"
-                        className="min-h-[120px]"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="order"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Display Order</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="1" {...field} />
-                      </FormControl>
-                      <FormDescription>Order in the course</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Duration (minutes)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="1" {...field} />
-                      </FormControl>
-                      <FormDescription>Estimated time to complete</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="xpPoints"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>XP Points</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="0" {...field} />
-                      </FormControl>
-                      <FormDescription>Points awarded on completion</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="showDuration"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Show Duration to Students
-                      </FormLabel>
-                      <FormDescription>
-                        When enabled, students will see the estimated duration for this unit
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsEditModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={updateMutation.isPending}
-                  className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
-                >
-                  {updateMutation.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Update Unit
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </>
+      </div>
+    </AdminLayout>
   );
 }

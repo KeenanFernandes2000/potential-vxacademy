@@ -170,6 +170,7 @@ export function ImageUpload({
                       Supports JPG, PNG, GIF, and SVG files up to 5MB
                     </p>
                     <Button
+                      type="button"
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={disabled || uploading}
