@@ -86,7 +86,7 @@ export default function UnitsManagement() {
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // Remove modal state - we'll use inline editing like courses page
   
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -245,7 +245,6 @@ export default function UnitsManagement() {
       queryClient.invalidateQueries({ queryKey: ["/api/units"] });
       queryClient.invalidateQueries({ queryKey: ["/api/course-units"] });
       setEditingUnit(null);
-      setIsEditModalOpen(false);
       form.reset();
       toast({
         title: "Unit updated",
@@ -311,28 +310,48 @@ export default function UnitsManagement() {
     }
   };
 
-  // Function to handle editing a unit
+  // Function to handle editing a unit (inline editing like courses page)
   const handleEdit = (unit: Unit) => {
     setEditingUnit(unit);
     
     // Get courses associated with this unit
     const unitCourseIds = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId.toString()) || [];
     
+    // Find the training area and module for this unit's courses
+    const firstCourse = courses?.find(c => unitCourseIds.includes(c.id.toString()));
+    const trainingAreaId = firstCourse?.trainingAreaId?.toString() || "";
+    const moduleId = firstCourse?.moduleId?.toString() || "";
+    
     // Populate the form with unit data
     form.reset({
       name: unit.name,
       description: unit.description || "",
       internalNote: unit.internalNote || "",
-      trainingAreaId: "",
-      moduleId: "",
+      trainingAreaId: trainingAreaId,
+      moduleId: moduleId,
       courseIds: unitCourseIds,
       order: unit.order,
       duration: unit.duration,
       showDuration: unit.showDuration,
       xpPoints: unit.xpPoints,
     });
-    
-    setIsEditModalOpen(true);
+  };
+
+  // Function to handle canceling edit (like courses page)
+  const handleCancel = () => {
+    setEditingUnit(null);
+    form.reset({
+      name: "",
+      description: "",
+      internalNote: "",
+      trainingAreaId: "",
+      moduleId: "",
+      courseIds: [],
+      order: 1,
+      duration: 30,
+      showDuration: true,
+      xpPoints: 100,
+    });
   };
 
   // Function to handle deleting a unit
@@ -362,11 +381,20 @@ export default function UnitsManagement() {
           <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Add New Unit
+                {editingUnit ? (
+                  <>
+                    <Pencil className="h-5 w-5" />
+                    Edit Unit
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5" />
+                    Add New Unit
+                  </>
+                )}
               </CardTitle>
               <CardDescription>
-                Create a new unit and assign it to courses
+                {editingUnit ? "Update the unit information and course assignments" : "Create a new unit and assign it to courses"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -624,12 +652,10 @@ export default function UnitsManagement() {
                       control={form.control}
                       name="showDuration"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Show Duration</FormLabel>
-                            <FormDescription>
-                              Display duration to users
-                            </FormDescription>
+                        <FormItem className="flex flex-col ">
+                          <div className="space-y-2">
+                            <FormLabel>Show Duration</FormLabel>
+                            
                           </div>
                           <FormControl>
                             <Switch
@@ -642,20 +668,43 @@ export default function UnitsManagement() {
                     />
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full"
-                    disabled={createMutation.isPending}
-                  >
-                    {createMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      "Create Unit"
+                  <div className="flex gap-2">
+                    {editingUnit && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleCancel}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
                     )}
-                  </Button>
+                    <Button 
+                      type="submit" 
+                      className="flex-1"
+                      disabled={createMutation.isPending || updateMutation.isPending}
+                    >
+                      {editingUnit ? (
+                        updateMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          "Update Unit"
+                        )
+                      ) : (
+                        createMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          "Create Unit"
+                        )
+                      )}
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </CardContent>
@@ -884,320 +933,7 @@ export default function UnitsManagement() {
           </div>
         </div>
 
-        {/* Edit Unit Modal */}
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Unit</DialogTitle>
-              <DialogDescription>
-                Update the unit information and course assignments
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Unit Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter unit name..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Unit description..."
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="trainingAreaId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Training Area</FormLabel>
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            form.setValue("moduleId", "");
-                            form.setValue("courseIds", []);
-                          }}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select training area" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {trainingAreas?.map((area) => (
-                              <SelectItem key={area.id} value={area.id.toString()}>
-                                {area.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="moduleId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Module</FormLabel>
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            form.setValue("courseIds", []);
-                          }}
-                          value={field.value}
-                          disabled={!form.watch("trainingAreaId")}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select module" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {modules?.filter(m => m.trainingAreaId.toString() === form.watch("trainingAreaId"))?.map((module) => (
-                              <SelectItem key={module.id} value={module.id.toString()}>
-                                {module.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="courseIds"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Courses</FormLabel>
-                      <FormDescription>
-                        Select one or more courses for this unit
-                      </FormDescription>
-                      
-                      {/* Selected Courses Display */}
-                      {field.value && field.value.length > 0 && (
-                        <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md border">
-                          {field.value.map((courseId) => {
-                            const course = courses?.find(c => c.id.toString() === courseId);
-                            return course ? (
-                              <Badge 
-                                key={courseId} 
-                                variant="secondary" 
-                                className="flex items-center gap-1 px-2 py-1"
-                              >
-                                {course.name}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const currentValue = field.value ?? [];
-                                    field.onChange(currentValue.filter((id) => id !== courseId));
-                                  }}
-                                  className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                                >
-                                  ×
-                                </button>
-                              </Badge>
-                            ) : null;
-                          })}
-                        </div>
-                      )}
-                      
-                      {/* Available Courses Selection */}
-                      <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                        {courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">No courses available for selected module</p>
-                        ) : (
-                          courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.map((course) => (
-                            <div key={course.id} className="flex items-center space-x-2 hover:bg-muted/30 p-2 rounded">
-                              <Checkbox
-                                id={`edit-course-${course.id}`}
-                                checked={field.value?.includes(course.id.toString()) ?? false}
-                                onCheckedChange={(checked) => {
-                                  const currentValue = field.value ?? [];
-                                  if (checked) {
-                                    field.onChange([...currentValue, course.id.toString()]);
-                                  } else {
-                                    field.onChange(
-                                      currentValue.filter((id) => id !== course.id.toString())
-                                    );
-                                  }
-                                }}
-                              />
-                              <label
-                                htmlFor={`edit-course-${course.id}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
-                              >
-                                {course.name}
-                              </label>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="internalNote"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Internal Note (Admin Only)</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Internal notes for administrators..."
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="order"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Order</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Order..."
-                            value={field.value}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="xpPoints"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>XP Points</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="XP Points..."
-                            value={field.value}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 100)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="duration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Duration (minutes)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Duration..."
-                            value={field.value}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 30)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="showDuration"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Show Duration</FormLabel>
-                          <FormDescription>
-                            Display duration to users
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsEditModalOpen(false);
-                      setEditingUnit(null);
-                      form.reset();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit"
-                    disabled={updateMutation.isPending}
-                  >
-                    {updateMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Updating...
-                      </>
-                    ) : (
-                      "Update Unit"
-                    )}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
       </div>
     </AdminLayout>
   );
