@@ -66,9 +66,6 @@ const unitFormSchema = z.object({
   name: z.string().min(2, {
     message: "Unit name must be at least 2 characters.",
   }),
-  courseIds: z.array(z.number()).min(1, {
-    message: "Please select at least one course.",
-  }),
   description: z.string().optional(),
   order: z.coerce.number().default(1),
   duration: z.coerce.number().min(1).default(30),
@@ -166,7 +163,6 @@ export default function UnitsManagement() {
     defaultValues: {
       name: "",
       description: "",
-      courseIds: [],
       order: 1,
       duration: 30,
       showDuration: true,
@@ -327,44 +323,12 @@ export default function UnitsManagement() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="courseIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Select Courses</FormLabel>
-                        <FormDescription>
-                          Select one or more courses for this unit
-                        </FormDescription>
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {courses?.map((course) => (
-                            <div key={course.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`course-${course.id}`}
-                                checked={field.value?.includes(course.id) || false}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    field.onChange([...(field.value || []), course.id]);
-                                  } else {
-                                    field.onChange(
-                                      field.value?.filter((id) => id !== course.id) || []
-                                    );
-                                  }
-                                }}
-                              />
-                              <label
-                                htmlFor={`course-${course.id}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                              >
-                                {course.name}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">Course Assignment</h4>
+                    <p className="text-xs text-blue-700">
+                      After creating the unit, you can assign it to courses through the course management interface.
+                    </p>
+                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
@@ -377,8 +341,8 @@ export default function UnitsManagement() {
                             <Input
                               type="number"
                               placeholder="Order..."
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value))}
+                              value={field.value}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                             />
                           </FormControl>
                           <FormMessage />
@@ -396,8 +360,8 @@ export default function UnitsManagement() {
                             <Input
                               type="number"
                               placeholder="XP Points..."
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value))}
+                              value={field.value}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 100)}
                             />
                           </FormControl>
                           <FormMessage />
@@ -417,8 +381,8 @@ export default function UnitsManagement() {
                             <Input
                               type="number"
                               placeholder="Duration..."
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value))}
+                              value={field.value}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 30)}
                             />
                           </FormControl>
                           <FormMessage />
