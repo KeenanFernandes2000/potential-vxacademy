@@ -70,7 +70,7 @@ const unitFormSchema = z.object({
   internalNote: z.string().optional(),
   trainingAreaId: z.string().optional(),
   moduleId: z.string().optional(),
-  courseIds: z.array(z.string()).optional().default([]),
+  courseIds: z.array(z.string()).default([]),
   order: z.coerce.number().default(1),
   duration: z.coerce.number().min(1).default(30),
   showDuration: z.boolean().default(true),
