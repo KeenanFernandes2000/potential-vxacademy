@@ -54,7 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files from the public directory
   app.use(
     "/uploads",
-    express.static(path.join(process.cwd(), "public/uploads"))
+    express.static(path.join(process.cwd(), "public/uploads")),
   );
 
   // Add endpoint to get user permissions
@@ -140,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : undefined;
 
       console.log("Fetching units, courseId:", courseId);
-      
+
       // If courseId is provided, get units for that course, otherwise get all units
       let units;
       if (courseId) {
@@ -153,25 +153,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(units);
     } catch (error) {
       console.error("Error fetching units:", error);
-      res.status(500).json({ message: "Error fetching units", error: error instanceof Error ? error.message : String(error) });
+      res
+        .status(500)
+        .json({
+          message: "Error fetching units",
+          error: error instanceof Error ? error.message : String(error),
+        });
     }
   });
 
   app.post("/api/units", async (req, res) => {
     try {
       const { courseIds, ...unitData } = req.body;
-      
+
       // Create the unit first
       const unit = await storage.createUnit(unitData);
-      
+
       // Then create course-unit associations if courseIds are provided
       if (courseIds && Array.isArray(courseIds)) {
         for (const courseId of courseIds) {
-          const courseIdNum = typeof courseId === 'string' ? parseInt(courseId) : courseId;
-          await storage.addUnitToCourse(courseIdNum, unit.id, unitData.order || 1);
+          const courseIdNum =
+            typeof courseId === "string" ? parseInt(courseId) : courseId;
+          await storage.addUnitToCourse(
+            courseIdNum,
+            unit.id,
+            unitData.order || 1,
+          );
         }
       }
-      
+
       res.status(201).json(unit);
     } catch (error) {
       console.error("Error creating unit:", error);
@@ -183,29 +193,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { courseIds, ...unitData } = req.body;
-      
+
       // Update the unit data
       const unit = await storage.updateUnit(id, unitData);
       if (!unit) {
         return res.status(404).json({ message: "Unit not found" });
       }
-      
+
       // Update course associations if courseIds are provided
       if (courseIds && Array.isArray(courseIds)) {
         // Convert courseIds to numbers if they're strings
-        const normalizedCourseIds = courseIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-        
+        const normalizedCourseIds = courseIds.map((id) =>
+          typeof id === "string" ? parseInt(id) : id,
+        );
+
         // Get current courses for this unit
         const currentCourses = await storage.getCoursesForUnit(id);
-        const currentCourseIds = currentCourses.map(c => c.id);
-        
+        const currentCourseIds = currentCourses.map((c) => c.id);
+
         // Remove associations that are no longer needed
         for (const courseId of currentCourseIds) {
           if (!normalizedCourseIds.includes(courseId)) {
             await storage.removeUnitFromCourse(courseId, id);
           }
         }
-        
+
         // Add new associations
         for (const courseId of normalizedCourseIds) {
           if (!currentCourseIds.includes(courseId)) {
@@ -213,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
+
       res.json(unit);
     } catch (error) {
       console.error("Error updating unit:", error);
@@ -276,13 +288,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all units first
       const units = await storage.getAllUnits();
       let allBlocks: any[] = [];
-      
+
       // Fetch blocks for each unit
       for (const unit of units) {
         const blocks = await storage.getLearningBlocks(unit.id);
         allBlocks = allBlocks.concat(blocks || []);
       }
-      
+
       console.log(`Retrieved ${allBlocks.length} total learning blocks`);
       res.json(allBlocks);
     } catch (error) {
@@ -306,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(
         `Retrieved ${
           blocks?.length || 0
-        } learning blocks for unit ID: ${unitId}`
+        } learning blocks for unit ID: ${unitId}`,
       );
       res.json(blocks || []);
     } catch (error) {
@@ -358,7 +370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) {
       console.log(
         "Not authenticated for GET /api/progress - User session:",
-        req.session
+        req.session,
       );
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -385,7 +397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) {
       console.log(
         "Not authenticated for POST /api/progress - User session:",
-        req.session
+        req.session,
       );
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -437,9 +449,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Force refresh the progress data to ensure it's properly saved
-      const updatedProgressList = await storage.getUserProgressForAllCourses(
-        userId
-      );
+      const updatedProgressList =
+        await storage.getUserProgressForAllCourses(userId);
       console.log("All user progress after update:", updatedProgressList);
 
       res.json(progress);
@@ -511,13 +522,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all units to fetch their assessments
       const allUnits = await storage.getAllUnits();
       const allAssessments = [];
-      
+
       // Get assessments for each unit
       for (const unit of allUnits) {
         const unitAssessments = await storage.getAssessments(unit.id);
         allAssessments.push(...unitAssessments);
       }
-      
+
       console.log("Fetched all assessments:", allAssessments.length);
       res.json(allAssessments);
     } catch (error) {
@@ -608,7 +619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.body.questionType === "true_false") {
         console.log(
           "True/False question - incoming correctAnswer:",
-          req.body.correctAnswer
+          req.body.correctAnswer,
         );
       }
 
@@ -689,14 +700,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (error) {
           console.log(
-            "Note: Could not create notification - table may not exist yet"
+            "Note: Could not create notification - table may not exist yet",
           );
         }
         const user = await storage.getUser(userId);
         if (user) {
           // Get the unit this assessment belongs to
           if (!assessment.unitId) {
-            return res.status(400).json({ message: "Assessment is not associated with a unit" });
+            return res
+              .status(400)
+              .json({ message: "Assessment is not associated with a unit" });
           }
           const unit = await storage.getUnit(assessment.unitId as number);
           if (!unit) {
@@ -712,7 +725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             try {
               // Check if user already has a certificate for this assessment's course
               let courseId = assessment.courseId;
-              
+
               // If this is a unit assessment, get the course from the unit
               if (!courseId && assessment.unitId) {
                 const unit = await storage.getUnit(assessment.unitId);
@@ -725,18 +738,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               if (courseId) {
-                const existingCertificate = await storage.getCertificateByCourseAndUser(userId, courseId);
-                
+                const existingCertificate =
+                  await storage.getCertificateByCourseAndUser(userId, courseId);
+
                 if (!existingCertificate) {
                   // Generate unique certificate number
                   const certificateNumber = `CERT-${Date.now()}-${userId}-${courseId}`;
-                  
+
                   // Create certificate
                   const certificate = await storage.createCertificate({
                     userId,
                     courseId,
                     certificateNumber,
-                    status: "active"
+                    status: "active",
                   });
 
                   // Get course details for notification
@@ -744,7 +758,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   const courseName = course ? course.name : "Course";
 
                   // Send certificate notification
-                  await notificationTriggers.onCertificateEarned(userId, certificate.id, courseName);
+                  await notificationTriggers.onCertificateEarned(
+                    userId,
+                    certificate.id,
+                    courseName,
+                  );
                 }
               }
             } catch (certError) {
@@ -757,7 +775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const userBadges = await storage.getUserBadges(userId);
           const allBadges = await storage.getBadges();
           const firstAssessmentBadge = allBadges.find(
-            (b) => b.type === "assessment"
+            (b) => b.type === "assessment",
           );
 
           if (
@@ -789,109 +807,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Get all units for this course
               const courseUnits = await storage.getUnits(course.id);
 
-            // Check if all units have learning blocks and assessments completed
-            let allCompleted = true;
-            let totalUnits = courseUnits.length;
-            let completedUnits = 0;
+              // Check if all units have learning blocks and assessments completed
+              let allCompleted = true;
+              let totalUnits = courseUnits.length;
+              let completedUnits = 0;
 
-            for (const courseUnit of courseUnits) {
-              // Get blocks for this unit
-              const blocks = await storage.getLearningBlocks(courseUnit.id);
+              for (const courseUnit of courseUnits) {
+                // Get blocks for this unit
+                const blocks = await storage.getLearningBlocks(courseUnit.id);
 
-              // Check block completions
-              let allBlocksCompleted = blocks.length === 0 ? true : false; // Default to true only if no blocks
-              let completedBlocks = 0;
+                // Check block completions
+                let allBlocksCompleted = blocks.length === 0 ? true : false; // Default to true only if no blocks
+                let completedBlocks = 0;
 
-              for (const block of blocks) {
-                const blockCompletion = await storage.getBlockCompletion(
-                  userId,
-                  block.id
-                );
-                if (blockCompletion && blockCompletion.completed) {
-                  completedBlocks++;
-                }
-              }
-
-              // If all blocks are completed or no blocks exist, mark blocks as completed
-              if (blocks.length === 0 || completedBlocks === blocks.length) {
-                allBlocksCompleted = true;
-              }
-
-              // Get assessments for this unit
-              const unitAssessments = await storage.getAssessments(
-                courseUnit.id
-              );
-
-              // Check if user has passed any assessment for this unit
-              let assessmentPassed =
-                unitAssessments.length === 0 ? true : false; // Default to true only if no assessments
-
-              for (const unitAssessment of unitAssessments) {
-                const attempts = await storage.getAssessmentAttempts(
-                  userId,
-                  unitAssessment.id
-                );
-                if (attempts.some((a) => a.passed)) {
-                  assessmentPassed = true;
-                  break;
-                }
-              }
-
-              // Unit is completed if blocks are completed AND assessment is passed (if any)
-              const unitCompleted = allBlocksCompleted && assessmentPassed;
-
-              if (unitCompleted) {
-                completedUnits++;
-              } else {
-                allCompleted = false;
-              }
-            }
-
-            // Calculate percentage complete
-            const percentComplete =
-              totalUnits > 0
-                ? Math.round((completedUnits / totalUnits) * 100)
-                : 0;
-
-            // Update progress
-            await storage.updateUserProgress(userId, course.id, {
-              percentComplete,
-              completed: allCompleted,
-            });
-
-            // Award course completion badge if all units completed
-            if (allCompleted) {
-              // Get available badges
-              const badges = await storage.getBadges();
-
-              // Find course completion badge with type property
-              const completionBadge = badges.find(
-                (b) => b.type === "course_completion"
-              );
-
-              if (completionBadge) {
-                // Check if user already has this badge
-                const userBadges = await storage.getUserBadges(userId);
-                if (
-                  !userBadges.some((ub) => ub.badgeId === completionBadge.id)
-                ) {
-                  console.log(
-                    "Awarding course completion badge to user",
-                    userId
-                  );
-                  // Award badge
-                  await storage.createUserBadge({
+                for (const block of blocks) {
+                  const blockCompletion = await storage.getBlockCompletion(
                     userId,
-                    badgeId: completionBadge.id,
-                  });
+                    block.id,
+                  );
+                  if (blockCompletion && blockCompletion.completed) {
+                    completedBlocks++;
+                  }
+                }
 
-                  // Also update user XP
-                  if (completionBadge.xpPoints) {
-                    const user = await storage.getUser(userId);
-                    if (user) {
-                      const updatedXP =
-                        user.xpPoints + completionBadge.xpPoints;
-                      await storage.updateUser(userId, { xpPoints: updatedXP });
+                // If all blocks are completed or no blocks exist, mark blocks as completed
+                if (blocks.length === 0 || completedBlocks === blocks.length) {
+                  allBlocksCompleted = true;
+                }
+
+                // Get assessments for this unit
+                const unitAssessments = await storage.getAssessments(
+                  courseUnit.id,
+                );
+
+                // Check if user has passed any assessment for this unit
+                let assessmentPassed =
+                  unitAssessments.length === 0 ? true : false; // Default to true only if no assessments
+
+                for (const unitAssessment of unitAssessments) {
+                  const attempts = await storage.getAssessmentAttempts(
+                    userId,
+                    unitAssessment.id,
+                  );
+                  if (attempts.some((a) => a.passed)) {
+                    assessmentPassed = true;
+                    break;
+                  }
+                }
+
+                // Unit is completed if blocks are completed AND assessment is passed (if any)
+                const unitCompleted = allBlocksCompleted && assessmentPassed;
+
+                if (unitCompleted) {
+                  completedUnits++;
+                } else {
+                  allCompleted = false;
+                }
+              }
+
+              // Calculate percentage complete
+              const percentComplete =
+                totalUnits > 0
+                  ? Math.round((completedUnits / totalUnits) * 100)
+                  : 0;
+
+              // Update progress
+              await storage.updateUserProgress(userId, course.id, {
+                percentComplete,
+                completed: allCompleted,
+              });
+
+              // Award course completion badge if all units completed
+              if (allCompleted) {
+                // Get available badges
+                const badges = await storage.getBadges();
+
+                // Find course completion badge with type property
+                const completionBadge = badges.find(
+                  (b) => b.type === "course_completion",
+                );
+
+                if (completionBadge) {
+                  // Check if user already has this badge
+                  const userBadges = await storage.getUserBadges(userId);
+                  if (
+                    !userBadges.some((ub) => ub.badgeId === completionBadge.id)
+                  ) {
+                    console.log(
+                      "Awarding course completion badge to user",
+                      userId,
+                    );
+                    // Award badge
+                    await storage.createUserBadge({
+                      userId,
+                      badgeId: completionBadge.id,
+                    });
+
+                    // Also update user XP
+                    if (completionBadge.xpPoints) {
+                      const user = await storage.getUser(userId);
+                      if (user) {
+                        const updatedXP =
+                          user.xpPoints + completionBadge.xpPoints;
+                        await storage.updateUser(userId, {
+                          xpPoints: updatedXP,
+                        });
+                      }
                     }
                   }
                 }
@@ -899,21 +920,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-      }
-          } // Close the course loop
+      } // Close the course loop
 
-          res.json({
-            attempt,
-            passed,
-            message: passed
-              ? "Congratulations! You passed the assessment."
-              : "You did not meet the passing score. Try again!",
-          });
-        } catch (error) {
-          console.error("Error submitting assessment:", error);
-          res.status(500).json({ message: "Error submitting assessment" });
-        }
+      res.json({
+        attempt,
+        passed,
+        message: passed
+          ? "Congratulations! You passed the assessment."
+          : "You did not meet the passing score. Try again!",
       });
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      res.status(500).json({ message: "Error submitting assessment" });
+    }
+  });
 
   // Badges
   app.get("/api/badges", async (req, res) => {
@@ -937,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get full badge details
       const badgeIds = userBadges.map((ub) => ub.badgeId);
       const badges = await Promise.all(
-        badgeIds.map((id) => storage.getBadge(id))
+        badgeIds.map((id) => storage.getBadge(id)),
       );
 
       // Combine user badge (earned date) with badge details
@@ -1008,7 +1028,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const leaderboard = await storage.getLeaderboard(limit);
 
       // Filter out admin and sub-admin users - only show regular users
-      const filteredLeaderboard = leaderboard.filter(user => user.role === "user");
+      const filteredLeaderboard = leaderboard.filter(
+        (user) => user.role === "user",
+      );
 
       // Remove sensitive data
       const sanitizedLeaderboard = filteredLeaderboard.map((user) => {
@@ -1034,7 +1056,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate required fields for basic profile update
       if (!firstName || !lastName) {
-        return res.status(400).json({ message: "First name and last name are required" });
+        return res
+          .status(400)
+          .json({ message: "First name and last name are required" });
       }
 
       // Prepare update data - only allow basic users to update limited fields
@@ -1089,7 +1113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { comparePasswords } = await import("./auth.js");
       const isCurrentPasswordValid = await comparePasswords(
         currentPassword,
-        user.password
+        user.password,
       );
       if (!isCurrentPasswordValid) {
         return res
@@ -1144,23 +1168,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get total users
       const allUsers = await storage.getLeaderboard(1000);
-      const usersByRole = allUsers.reduce((acc, user) => {
-        const role = user.role || "user";
-        acc[role] = (acc[role] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      const usersByRole = allUsers.reduce(
+        (acc, user) => {
+          const role = user.role || "user";
+          acc[role] = (acc[role] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       // Get courses
       const courses = await storage.getCourses();
 
       // Get courses by module
       const modules = await storage.getModules();
-      const coursesByModule = courses.reduce((acc, course) => {
-        const module = modules.find((m) => m.id === course.moduleId);
-        const moduleName = module ? module.name : `Module ${course.moduleId}`;
-        acc[moduleName] = (acc[moduleName] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      const coursesByModule = courses.reduce(
+        (acc, course) => {
+          const module = modules.find((m) => m.id === course.moduleId);
+          const moduleName = module ? module.name : `Module ${course.moduleId}`;
+          acc[moduleName] = (acc[moduleName] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       // Get progress
       // In a real app, we would calculate these properly
@@ -1179,7 +1209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         courses: {
           total: courses.length,
           byModule: Object.entries(coursesByModule).map(
-            ([moduleName, count]) => ({ moduleName, count })
+            ([moduleName, count]) => ({ moduleName, count }),
           ),
         },
         progress: {
@@ -1409,57 +1439,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get enhanced user data with XP, badges, and progress (admin and sub-admin)
-  app.get("/api/admin/users/enhanced", requireAdminOrSubAdmin, async (req, res) => {
-    try {
-      let users = Array.from(await storage.getLeaderboard(1000));
-      
-      // If sub-admin, filter to only show users they created
-      if (req.user!.role === "sub-admin") {
-        users = users.filter(user => user.createdBy === req.user!.id);
-      }
-      
-      const enhancedUsers = await Promise.all(
-        users.map(async (user) => {
-          // Get user badges count
-          const userBadges = await storage.getUserBadges(user.id);
-          const badgesCollected = userBadges.length;
-          
-          // Get mandatory courses for user's role
-          const mandatoryCourses = await storage.getMandatoryCoursesForUser(user.id);
-          const totalMandatory = mandatoryCourses.length;
-          
-          // Get user progress on mandatory courses
-          let completedMandatory = 0;
-          if (totalMandatory > 0) {
-            const progressPromises = mandatoryCourses.map(course => 
-              storage.getUserProgress(user.id, course.id)
+  app.get(
+    "/api/admin/users/enhanced",
+    requireAdminOrSubAdmin,
+    async (req, res) => {
+      try {
+        let users = Array.from(await storage.getLeaderboard(1000));
+
+        // If sub-admin, filter to only show users they created
+        if (req.user!.role === "sub-admin") {
+          users = users.filter((user) => user.createdBy === req.user!.id);
+        }
+
+        const enhancedUsers = await Promise.all(
+          users.map(async (user) => {
+            // Get user badges count
+            const userBadges = await storage.getUserBadges(user.id);
+            const badgesCollected = userBadges.length;
+
+            // Get mandatory courses for user's role
+            const mandatoryCourses = await storage.getMandatoryCoursesForUser(
+              user.id,
             );
-            const progressResults = await Promise.all(progressPromises);
-            completedMandatory = progressResults.filter(progress => progress?.completed).length;
-          }
-          
-          const mandatoryProgress = totalMandatory > 0 ? Math.round((completedMandatory / totalMandatory) * 100) : 0;
-          
-          // Remove password for security
-          const { password, ...userWithoutPassword } = user;
-          
-          return {
-            ...userWithoutPassword,
-            badgesCollected,
-            mandatoryProgress,
-          };
-        })
-      );
-      
-      res.json(enhancedUsers);
-    } catch (error) {
-      console.error("Error fetching enhanced users:", error);
-      res.status(500).json({ error: "Failed to fetch enhanced users" });
-    }
-  });
+            const totalMandatory = mandatoryCourses.length;
+
+            // Get user progress on mandatory courses
+            let completedMandatory = 0;
+            if (totalMandatory > 0) {
+              const progressPromises = mandatoryCourses.map((course) =>
+                storage.getUserProgress(user.id, course.id),
+              );
+              const progressResults = await Promise.all(progressPromises);
+              completedMandatory = progressResults.filter(
+                (progress) => progress?.completed,
+              ).length;
+            }
+
+            const mandatoryProgress =
+              totalMandatory > 0
+                ? Math.round((completedMandatory / totalMandatory) * 100)
+                : 0;
+
+            // Remove password for security
+            const { password, ...userWithoutPassword } = user;
+
+            return {
+              ...userWithoutPassword,
+              badgesCollected,
+              mandatoryProgress,
+            };
+          }),
+        );
+
+        res.json(enhancedUsers);
+      } catch (error) {
+        console.error("Error fetching enhanced users:", error);
+        res.status(500).json({ error: "Failed to fetch enhanced users" });
+      }
+    },
+  );
 
   app.post("/api/admin/users", requireAdminOrSubAdmin, async (req, res) => {
-
     try {
       const {
         firstName,
@@ -1487,13 +1527,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.user!.role === "sub-admin") {
         // Sub-admins can only create users, not other sub-admins
         if (role !== "user") {
-          return res.status(403).json({ message: "Sub-admins can only create users, not sub-admins" });
+          return res
+            .status(403)
+            .json({
+              message: "Sub-admins can only create users, not sub-admins",
+            });
         }
       }
 
       // Only admins can create sub-admins
       if (role === "sub-admin" && req.user!.role !== "admin") {
-        return res.status(403).json({ message: "Only admins can create sub-admins" });
+        return res
+          .status(403)
+          .json({ message: "Only admins can create sub-admins" });
       }
 
       // Check if username already exists
@@ -1546,140 +1592,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload users via Excel file (admin and sub-admin)
-  app.post("/api/admin/users/upload-excel", requireAdminOrSubAdmin, async (req, res) => {
+  app.post(
+    "/api/admin/users/upload-excel",
+    requireAdminOrSubAdmin,
+    async (req, res) => {
+      uploadExcel(req, res, async (err) => {
+        if (err) {
+          console.error("Excel upload error:", err);
+          return res.status(400).json({ message: err.message });
+        }
 
-    uploadExcel(req, res, async (err) => {
-      if (err) {
-        console.error("Excel upload error:", err);
-        return res.status(400).json({ message: err.message });
-      }
-
-      try {
-        // Process the Excel file and create users
-        await processExcelUpload(req, res, storage);
-      } catch (error) {
-        console.error("Error processing Excel upload:", error);
-        return res.status(500).json({
-          message: "Failed to process Excel file",
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
-    });
-  });
-
-  // Create multiple users in bulk (admin and sub-admin)
-  app.post("/api/admin/users/bulk", requireAdminOrSubAdmin, async (req, res) => {
-
-    try {
-      const { 
-        defaultLanguage, 
-        defaultAssets, 
-        defaultRoleCategory, 
-        defaultSeniority, 
-        defaultNationality,
-        defaultYearsOfExperience,
-        defaultSubCategory,
-        defaultOrganizationName,
-        users, 
-        courseIds = [] 
-      } = req.body;
-
-      if (!users || !Array.isArray(users) || users.length === 0) {
-        return res
-          .status(400)
-          .json({ message: "No users provided for bulk creation" });
-      }
-
-      const createdUsers = [];
-      const failedUsers = [];
-
-      // Create users in bulk
-      for (const userData of users) {
         try {
-          // Check if username is already taken
-          const existingUser = await storage.getUserByUsername(
-            userData.username
-          );
-          if (existingUser) {
-            failedUsers.push({
-              ...userData,
-              error: "Username already exists",
-            });
-            continue;
-          }
-
-          // Generate a random password if none provided
-          const password =
-            userData.password || Math.random().toString(36).slice(2, 10);
-          const hashedPassword = await hashPassword(password);
-
-          const newUser = await storage.createUser({
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            username: userData.username,
-            password: hashedPassword,
-            email: userData.email,
-            role: "user",
-            language: defaultLanguage || "en",
-            nationality: defaultNationality || null,
-            yearsOfExperience: defaultYearsOfExperience || null,
-            assets: defaultAssets || null,
-            roleCategory: defaultRoleCategory || null,
-            subCategory: defaultSubCategory || null,
-            seniority: defaultSeniority || null,
-            organizationName: defaultOrganizationName || null,
-            createdBy: req.user?.id || null,
-            isActive: true,
-          });
-
-          // If course IDs were provided, assign the courses to the user
-          if (courseIds && courseIds.length > 0) {
-            for (const courseId of courseIds) {
-              await storage.createUserProgress({
-                userId: newUser.id,
-                courseId: parseInt(courseId),
-                completed: false,
-                percentComplete: 0,
-                lastAccessed: new Date(),
-              });
-            }
-          }
-
-          createdUsers.push({
-            ...newUser,
-            generatedPassword: !userData.password ? password : undefined, // Include the generated password in the response only if it was auto-generated
-          });
+          // Process the Excel file and create users
+          await processExcelUpload(req, res, storage);
         } catch (error) {
-          console.error("Error creating user in bulk:", error);
-          failedUsers.push({
-            ...userData,
-            error: "Failed to create user",
+          console.error("Error processing Excel upload:", error);
+          return res.status(500).json({
+            message: "Failed to process Excel file",
+            error: error instanceof Error ? error.message : "Unknown error",
           });
         }
-      }
-
-      res.status(201).json({
-        created: createdUsers.length,
-        failed: failedUsers.length,
-        users: createdUsers,
-        failedUsers: failedUsers,
       });
-    } catch (error) {
-      console.error("Error in bulk user creation:", error);
-      res.status(500).json({ message: "Failed to create users in bulk" });
-    }
-  });
+    },
+  );
+
+  // Create multiple users in bulk (admin and sub-admin)
+  app.post(
+    "/api/admin/users/bulk",
+    requireAdminOrSubAdmin,
+    async (req, res) => {
+      try {
+        const {
+          defaultLanguage,
+          defaultAssets,
+          defaultRoleCategory,
+          defaultSeniority,
+          defaultNationality,
+          defaultYearsOfExperience,
+          defaultSubCategory,
+          defaultOrganizationName,
+          users,
+          courseIds = [],
+        } = req.body;
+
+        if (!users || !Array.isArray(users) || users.length === 0) {
+          return res
+            .status(400)
+            .json({ message: "No users provided for bulk creation" });
+        }
+
+        const createdUsers = [];
+        const failedUsers = [];
+
+        // Create users in bulk
+        for (const userData of users) {
+          try {
+            // Check if username is already taken
+            const existingUser = await storage.getUserByUsername(
+              userData.username,
+            );
+            if (existingUser) {
+              failedUsers.push({
+                ...userData,
+                error: "Username already exists",
+              });
+              continue;
+            }
+
+            // Generate a random password if none provided
+            const password =
+              userData.password || Math.random().toString(36).slice(2, 10);
+            const hashedPassword = await hashPassword(password);
+
+            const newUser = await storage.createUser({
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              username: userData.username,
+              password: hashedPassword,
+              email: userData.email,
+              role: "user",
+              language: defaultLanguage || "en",
+              nationality: defaultNationality || null,
+              yearsOfExperience: defaultYearsOfExperience || null,
+              assets: defaultAssets || null,
+              roleCategory: defaultRoleCategory || null,
+              subCategory: defaultSubCategory || null,
+              seniority: defaultSeniority || null,
+              organizationName: defaultOrganizationName || null,
+              createdBy: req.user?.id || null,
+              isActive: true,
+            });
+
+            // If course IDs were provided, assign the courses to the user
+            if (courseIds && courseIds.length > 0) {
+              for (const courseId of courseIds) {
+                await storage.createUserProgress({
+                  userId: newUser.id,
+                  courseId: parseInt(courseId),
+                  completed: false,
+                  percentComplete: 0,
+                  lastAccessed: new Date(),
+                });
+              }
+            }
+
+            createdUsers.push({
+              ...newUser,
+              generatedPassword: !userData.password ? password : undefined, // Include the generated password in the response only if it was auto-generated
+            });
+          } catch (error) {
+            console.error("Error creating user in bulk:", error);
+            failedUsers.push({
+              ...userData,
+              error: "Failed to create user",
+            });
+          }
+        }
+
+        res.status(201).json({
+          created: createdUsers.length,
+          failed: failedUsers.length,
+          users: createdUsers,
+          failedUsers: failedUsers,
+        });
+      } catch (error) {
+        console.error("Error in bulk user creation:", error);
+        res.status(500).json({ message: "Failed to create users in bulk" });
+      }
+    },
+  );
 
   // Excel template download route
   app.get("/api/admin/users/template", requireAdminOrSubAdmin, (req, res) => {
     try {
-      const templatePath = path.join(__dirname, '../attached_assets/VX Academy Import Format.xlsx');
-      
+      const templatePath = path.join(
+        __dirname,
+        "..attached_assets/VX Academy Import Format.xlsx",
+      );
+
       if (!fs.existsSync(templatePath)) {
         return res.status(404).json({ message: "Template file not found" });
       }
-      
-      res.download(templatePath, 'VX_Academy_Import_Template.xlsx', (err) => {
+
+      res.download(templatePath, "VX_Academy_Import_Template.xlsx", (err) => {
         if (err) {
           console.error("Error downloading template:", err);
           res.status(500).json({ message: "Error downloading template" });
@@ -1715,28 +1770,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Also support PATCH for user updates
-  app.patch("/api/admin/users/:id", requireAdminOrSubAdmin, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.id);
+  app.patch(
+    "/api/admin/users/:id",
+    requireAdminOrSubAdmin,
+    async (req, res) => {
+      try {
+        const userId = parseInt(req.params.id);
 
-      // Don't allow password changes through this endpoint
-      const { password, ...updateData } = req.body;
+        // Don't allow password changes through this endpoint
+        const { password, ...updateData } = req.body;
 
-      const updatedUser = await storage.updateUser(userId, updateData);
+        const updatedUser = await storage.updateUser(userId, updateData);
 
-      if (!updatedUser) {
-        return res.status(404).json({ message: "User not found" });
+        if (!updatedUser) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = updatedUser;
+
+        res.json(userWithoutPassword);
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ message: "Error updating user" });
       }
-
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = updatedUser;
-
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ message: "Error updating user" });
-    }
-  });
+    },
+  );
 
   // Delete user endpoint
   app.delete("/api/admin/users/:id", async (req, res) => {
@@ -1804,21 +1863,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Enhanced role management endpoints
   app.get("/api/admin/roles", async (req, res) => {
-    if (!req.isAuthenticated() || (req.user!.role !== "admin" && req.user!.role !== "sub-admin")) {
+    if (
+      !req.isAuthenticated() ||
+      (req.user!.role !== "admin" && req.user!.role !== "sub-admin")
+    ) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
     try {
       const roles = await storage.getRoles();
-      
+
       // Add user count for each role
-      const enhancedRoles = await Promise.all(roles.map(async (role) => {
-        const users = await storage.getUsersByRole(role.name);
-        return {
-          ...role,
-          userCount: users.length
-        };
-      }));
+      const enhancedRoles = await Promise.all(
+        roles.map(async (role) => {
+          const users = await storage.getUsersByRole(role.name);
+          return {
+            ...role,
+            userCount: users.length,
+          };
+        }),
+      );
 
       res.json(enhancedRoles);
     } catch (error) {
@@ -1928,8 +1992,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if role has users assigned
       const usersWithRole = await storage.getUsersByRole(existingRole.name);
       if (usersWithRole.length > 0) {
-        return res.status(400).json({ 
-          message: `Cannot delete role. ${usersWithRole.length} users are assigned to this role.` 
+        return res.status(400).json({
+          message: `Cannot delete role. ${usersWithRole.length} users are assigned to this role.`,
         });
       }
 
@@ -1960,7 +2024,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!Array.isArray(unitIds) || unitIds.length === 0) {
-        return res.status(400).json({ message: "Unit IDs must be a non-empty array" });
+        return res
+          .status(400)
+          .json({ message: "Unit IDs must be a non-empty array" });
       }
 
       // Check if role exists
@@ -1982,14 +2048,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             assignments.push(assignment);
           } catch (error) {
             // Skip if already exists
-            console.log(`Course ${course.id} already assigned to role ${roleId}`);
+            console.log(
+              `Course ${course.id} already assigned to role ${roleId}`,
+            );
           }
         }
       }
 
-      res.status(201).json({ 
-        message: "Units assigned successfully", 
-        assignments: assignments.length 
+      res.status(201).json({
+        message: "Units assigned successfully",
+        assignments: assignments.length,
       });
     } catch (error) {
       console.error("Error assigning units to role:", error);
@@ -2068,9 +2136,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const roleId = parseInt(req.params.roleId);
-      const coursesWithRelations = await storage.getRoleMandatoryCourses(
-        roleId
-      );
+      const coursesWithRelations =
+        await storage.getRoleMandatoryCourses(roleId);
 
       // These courses already have all the required data including the relation ID
       // We're just sending them directly to the client
@@ -2102,7 +2169,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(entry);
     } catch (error) {
       console.error("Error adding mandatory course to role:", error);
-      if (error instanceof Error && error.message === "Role or course not found") {
+      if (
+        error instanceof Error &&
+        error.message === "Role or course not found"
+      ) {
         return res.status(404).json({ message: error.message });
       }
       res
@@ -2130,7 +2200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const success = await storage.removeMandatoryCourseFromRole(
           roleId,
-          courseId
+          courseId,
         );
 
         if (!success) {
@@ -2146,7 +2216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .status(500)
           .json({ message: "Failed to remove mandatory course from role" });
       }
-    }
+    },
   );
 
   // Get mandatory courses for the current user
@@ -2184,7 +2254,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/images/upload", uploadImage, handleImageUpload);
 
   // Certificate Template Upload
-  app.post("/api/upload/certificate-template", uploadCertificateTemplate, handleCertificateTemplateUpload);
+  app.post(
+    "/api/upload/certificate-template",
+    uploadCertificateTemplate,
+    handleCertificateTemplateUpload,
+  );
 
   // Certificate Routes
   app.get("/api/certificates", async (req, res) => {
@@ -2203,14 +2277,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user = await storage.getUser(cert.userId);
           console.log(
             `Certificate ${cert.id}: User ID ${cert.userId}, User data:`,
-            user
+            user,
           );
           return {
             ...cert,
             course,
             user,
           };
-        })
+        }),
       );
 
       res.set("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -2285,7 +2359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if certificate already exists
       const existingCertificate = await storage.getCertificateByCourseAndUser(
         userId,
-        courseId
+        courseId,
       );
       if (existingCertificate) {
         return res.json(existingCertificate);
@@ -2318,7 +2392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/scorm-packages/:packageId/files/:filePath(*)", serveScormFile);
   app.post(
     "/api/scorm-packages/:scormPackageId/tracking",
-    saveScormTrackingData
+    saveScormTrackingData,
   );
   app.get("/api/scorm-packages/:scormPackageId/tracking", getScormTrackingData);
 
