@@ -163,6 +163,10 @@ export default function UnitsManagement() {
     defaultValues: {
       name: "",
       description: "",
+      internalNote: "",
+      trainingAreaId: undefined,
+      moduleId: undefined,
+      courseIds: [],
       order: 1,
       duration: 30,
       showDuration: true,
@@ -323,12 +327,132 @@ export default function UnitsManagement() {
                     )}
                   />
 
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="text-sm font-medium text-blue-900 mb-2">Course Assignment</h4>
-                    <p className="text-xs text-blue-700">
-                      After creating the unit, you can assign it to courses through the course management interface.
-                    </p>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="trainingAreaId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Training Area</FormLabel>
+                        <Select
+                          value={field.value?.toString() || ""}
+                          onValueChange={(value) => {
+                            const id = value ? parseInt(value) : undefined;
+                            field.onChange(id);
+                            form.setValue("moduleId", undefined);
+                            form.setValue("courseIds", []);
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select training area" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {trainingAreas?.map((area) => (
+                              <SelectItem key={area.id} value={area.id.toString()}>
+                                {area.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="moduleId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Module</FormLabel>
+                        <Select
+                          value={field.value?.toString() || ""}
+                          onValueChange={(value) => {
+                            const id = value ? parseInt(value) : undefined;
+                            field.onChange(id);
+                            form.setValue("courseIds", []);
+                          }}
+                          disabled={!form.watch("trainingAreaId")}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select module" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {modules?.map((module) => (
+                              <SelectItem key={module.id} value={module.id.toString()}>
+                                {module.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="courseIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Courses</FormLabel>
+                        <FormDescription>
+                          Select one or more courses for this unit
+                        </FormDescription>
+                        <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                          {courses?.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No courses available for selected module</p>
+                          ) : (
+                            courses?.map((course) => (
+                              <div key={course.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`course-${course.id}`}
+                                  checked={field.value?.includes(course.id) || false}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      field.onChange([...(field.value || []), course.id]);
+                                    } else {
+                                      field.onChange(
+                                        field.value?.filter((id) => id !== course.id) || []
+                                      );
+                                    }
+                                  }}
+                                />
+                                <label
+                                  htmlFor={`course-${course.id}`}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  {course.name}
+                                </label>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="internalNote"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Internal Note (Admin Only)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Internal notes for administrators..."
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
@@ -432,17 +556,21 @@ export default function UnitsManagement() {
           </Card>
 
           {/* Right Panel - Units List */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Filters */}
+          <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Filters</CardTitle>
-                <CardDescription>
-                  Filter units by training area, module, or course
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Existing Units</CardTitle>
+                    <CardDescription>
+                      Showing {filteredUnits.length} of {allUnits?.length || 0} units
+                    </CardDescription>
+                  </div>
+                </div>
+                
+                {/* Filters above the list */}
+                <div className="mt-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Training Area</label>
                     <Select
