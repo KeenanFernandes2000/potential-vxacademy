@@ -437,7 +437,7 @@ export default function LearningBlocksManagement() {
     }
   };
 
-  // Function to handle canceling edit
+  // Function to handle canceling edit - properly reset form to initial empty state
   const handleCancelEdit = () => {
     setEditingBlock(null);
     form.reset({

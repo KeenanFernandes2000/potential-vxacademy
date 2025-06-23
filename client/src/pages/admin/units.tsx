@@ -68,9 +68,9 @@ const unitFormSchema = z.object({
   }),
   description: z.string().optional(),
   internalNote: z.string().optional(),
-  trainingAreaId: z.number().optional(),
-  moduleId: z.number().optional(),
-  courseIds: z.array(z.number()).optional().default([]),
+  trainingAreaId: z.string().optional(),
+  moduleId: z.string().optional(),
+  courseIds: z.array(z.string()).optional().default([]),
   order: z.coerce.number().default(1),
   duration: z.coerce.number().min(1).default(30),
   showDuration: z.boolean().default(true),
@@ -168,8 +168,8 @@ export default function UnitsManagement() {
       name: "",
       description: "",
       internalNote: "",
-      trainingAreaId: undefined,
-      moduleId: undefined,
+      trainingAreaId: "",
+      moduleId: "",
       courseIds: [],
       order: 1,
       duration: 30,
@@ -338,7 +338,7 @@ export default function UnitsManagement() {
                       <FormItem>
                         <FormLabel>Training Area</FormLabel>
                         <Select
-                          value={field.value?.toString() || ""}
+                          value={field.value ? field.value.toString() : ""}
                           onValueChange={(value) => {
                             const id = value ? parseInt(value) : undefined;
                             field.onChange(id);
