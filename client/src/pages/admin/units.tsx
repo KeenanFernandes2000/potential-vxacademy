@@ -43,6 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -67,6 +68,10 @@ const unitFormSchema = z.object({
     message: "Unit name must be at least 2 characters.",
   }),
   description: z.string().optional(),
+  internalNote: z.string().optional(),
+  trainingAreaId: z.number().optional(),
+  moduleId: z.number().optional(),
+  courseIds: z.array(z.number()).optional().default([]),
   order: z.coerce.number().default(1),
   duration: z.coerce.number().min(1).default(30),
   showDuration: z.boolean().default(true),
@@ -381,7 +386,7 @@ export default function UnitsManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {modules?.map((module) => (
+                            {modules?.filter(m => m.trainingAreaId === form.watch("trainingAreaId"))?.map((module) => (
                               <SelectItem key={module.id} value={module.id.toString()}>
                                 {module.name}
                               </SelectItem>
@@ -403,10 +408,10 @@ export default function UnitsManagement() {
                           Select one or more courses for this unit
                         </FormDescription>
                         <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                          {courses?.length === 0 ? (
+                          {courses?.filter(c => c.moduleId === form.watch("moduleId"))?.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No courses available for selected module</p>
                           ) : (
-                            courses?.map((course) => (
+                            courses?.filter(c => c.moduleId === form.watch("moduleId"))?.map((course) => (
                               <div key={course.id} className="flex items-center space-x-2">
                                 <Checkbox
                                   id={`course-${course.id}`}
@@ -556,21 +561,17 @@ export default function UnitsManagement() {
           </Card>
 
           {/* Right Panel - Units List */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Filters */}
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Existing Units</CardTitle>
-                    <CardDescription>
-                      Showing {filteredUnits.length} of {allUnits?.length || 0} units
-                    </CardDescription>
-                  </div>
-                </div>
-                
-                {/* Filters above the list */}
-                <div className="mt-4 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <CardTitle>Filters</CardTitle>
+                <CardDescription>
+                  Filter units by training area, module, or course
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Training Area</label>
                     <Select
