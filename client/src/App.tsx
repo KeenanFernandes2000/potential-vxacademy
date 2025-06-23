@@ -7,7 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import AuthPage from "@/pages/auth-page";
 import HomePage from "@/pages/home-page";
 import Courses from "@/pages/courses";
-import CourseDetail from "@/pages/course-detail";
+import EnhancedCourseDetail from "@/pages/enhanced-course-detail";
 import Achievements from "@/pages/achievements";
 import Leaderboard from "@/pages/leaderboard";
 import AiTutor from "@/pages/ai-tutor";

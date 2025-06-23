@@ -8,34 +8,63 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Trophy, AlertTriangle, Clock, Award } from "lucide-react";
-import { AssessmentTimer } from "./AssessmentTimer";
+import { Trophy, AlertTriangle, Clock, Award, CheckCircle } from "lucide-react";
 
-interface AssessmentFlowProps {
+interface ComprehensiveAssessmentProps {
   assessment: Assessment;
   userId: number;
-  onComplete: (passed: boolean, score: number, certificateGenerated?: boolean) => void;
+  onComplete: (result: {
+    passed: boolean;
+    score: number;
+    certificateGenerated?: boolean;
+    attemptsRemaining: number;
+  }) => void;
   onCancel: () => void;
 }
 
-export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: AssessmentFlowProps) {
+export function ComprehensiveAssessment({ 
+  assessment, 
+  userId, 
+  onComplete, 
+  onCancel 
+}: ComprehensiveAssessmentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [assessmentStarted, setAssessmentStarted] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(
+    assessment.hasTimeLimit && assessment.timeLimit ? assessment.timeLimit * 60 : 0
+  );
   const [timeExpired, setTimeExpired] = useState(false);
 
-  // Fetch questions for the assessment
+  // Fetch questions
   const { data: questions, isLoading: isLoadingQuestions } = useQuery<Question[]>({
     queryKey: [`/api/assessments/${assessment.id}/questions`],
     enabled: !!assessment.id,
   });
 
-  // Fetch user's previous attempts
-  const { data: attempts, isLoading: isLoadingAttempts } = useQuery<any[]>({
+  // Fetch previous attempts
+  const { data: attempts = [], isLoading: isLoadingAttempts } = useQuery<any[]>({
     queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
     enabled: !!assessment.id && !!userId,
   });
+
+  // Timer effect
+  useEffect(() => {
+    if (!assessmentStarted || !assessment.hasTimeLimit || timeExpired || isSubmitting) return;
+
+    if (timeRemaining <= 0) {
+      setTimeExpired(true);
+      handleSubmitAssessment();
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [assessmentStarted, timeRemaining, timeExpired, isSubmitting]);
 
   // Submit assessment mutation
   const submitAssessmentMutation = useMutation({
@@ -45,10 +74,17 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
     },
     onSuccess: (result) => {
       setIsSubmitting(false);
-      onComplete(result.passed, result.score, result.certificateGenerated);
+      onComplete({
+        passed: result.passed,
+        score: result.score,
+        certificateGenerated: result.certificateGenerated,
+        attemptsRemaining: result.attemptsRemaining
+      });
       
       // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`] });
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`] 
+      });
       queryClient.invalidateQueries({ queryKey: [`/api/user/progress`] });
       
       if (result.certificateGenerated) {
@@ -60,7 +96,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
     }
   });
 
-  const attemptsUsed = attempts?.length || 0;
+  const attemptsUsed = attempts.length;
   const attemptsRemaining = Math.max(0, assessment.maxRetakes - attemptsUsed);
   const canTakeAssessment = attemptsRemaining > 0;
 
@@ -75,46 +111,40 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
     }));
   };
 
-  const handleNextQuestion = () => {
-    if (questions && currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
-
   const handleSubmitAssessment = () => {
-    if (timeExpired || Object.keys(selectedAnswers).length === questions?.length) {
-      setIsSubmitting(true);
-      
-      submitAssessmentMutation.mutate({
-        answers: selectedAnswers,
-        timeExpired,
-        startedAt: new Date().toISOString()
-      });
-    }
+    if (!questions) return;
+    
+    setIsSubmitting(true);
+    submitAssessmentMutation.mutate({
+      answers: selectedAnswers,
+      timeExpired,
+      startedAt: new Date().toISOString()
+    });
   };
 
-  const handleTimeExpired = () => {
-    setTimeExpired(true);
-    // Auto-submit when time expires
-    handleSubmitAssessment();
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const getTimeWarning = () => {
+    if (timeRemaining <= 300) return "text-red-600"; // Last 5 minutes
+    if (timeRemaining <= 600) return "text-yellow-600"; // Last 10 minutes
+    return "text-green-600";
   };
 
   if (isLoadingQuestions || isLoadingAttempts) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading assessment...</div>
+        <CardContent className="p-6 text-center">
+          Loading assessment...
         </CardContent>
       </Card>
     );
   }
 
+  // No attempts remaining
   if (!canTakeAssessment) {
     return (
       <Card>
@@ -125,18 +155,20 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert className="border-red-200 bg-red-50">
+          <Alert className="border-red-200 bg-red-50 mb-4">
             <AlertDescription className="text-red-700">
               You have used all your allowed attempts ({assessment.maxRetakes}) for this assessment.
             </AlertDescription>
           </Alert>
-          <div className="mt-4 space-y-2">
+          
+          <div className="space-y-2 mb-4">
             <p><strong>Attempts used:</strong> {attemptsUsed} / {assessment.maxRetakes}</p>
-            {attempts && attempts.length > 0 && (
+            {attempts.length > 0 && (
               <p><strong>Best score:</strong> {Math.max(...attempts.map(a => a.score))}%</p>
             )}
           </div>
-          <Button onClick={onCancel} className="mt-4">
+          
+          <Button onClick={onCancel}>
             Back to Course
           </Button>
         </CardContent>
@@ -144,6 +176,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
     );
   }
 
+  // Assessment start screen
   if (!assessmentStarted) {
     return (
       <Card>
@@ -187,7 +220,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
             </div>
           </div>
 
-          {attempts && attempts.length > 0 && (
+          {attempts.length > 0 && (
             <Alert className="border-blue-200 bg-blue-50">
               <AlertDescription className="text-blue-700">
                 Previous attempts: {attempts.map(a => `${a.score}%`).join(", ")}
@@ -231,13 +264,30 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
 
   return (
     <div className="space-y-4">
-      {/* Timer (if time limit is set) */}
+      {/* Timer */}
       {assessment.hasTimeLimit && assessment.timeLimit && (
-        <AssessmentTimer
-          timeLimit={assessment.timeLimit}
-          onTimeExpired={handleTimeExpired}
-          isActive={!timeExpired && !isSubmitting}
-        />
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-5 w-5 text-blue-600" />
+                <span className="font-medium">Time Remaining:</span>
+              </div>
+              <div className={`text-2xl font-bold ${getTimeWarning()}`}>
+                {formatTime(timeRemaining)}
+              </div>
+            </div>
+            
+            {timeRemaining <= 300 && (
+              <Alert className="mt-3 border-red-200 bg-red-50">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-700">
+                  Warning: Less than 5 minutes remaining!
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Progress */}
@@ -266,14 +316,16 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
               value={selectedAnswers[currentQuestion.id.toString()] || ""}
               onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
             >
-              {Array.isArray(currentQuestion.options) && (currentQuestion.options as string[]).map((option, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="cursor-pointer">
-                    {option}
-                  </Label>
-                </div>
-              ))}
+              {Array.isArray(currentQuestion.options) && 
+                (currentQuestion.options as string[]).map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                    <Label htmlFor={`option-${index}`} className="cursor-pointer">
+                      {String(option)}
+                    </Label>
+                  </div>
+                ))
+              }
             </RadioGroup>
           )}
         </CardContent>
@@ -284,7 +336,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
         <CardContent className="p-4">
           <div className="flex justify-between items-center">
             <Button
-              onClick={handlePreviousQuestion}
+              onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
               disabled={currentQuestionIndex === 0}
               variant="outline"
             >
@@ -293,7 +345,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
 
             <div className="flex space-x-2">
               {currentQuestionIndex < questions.length - 1 ? (
-                <Button onClick={handleNextQuestion}>
+                <Button onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}>
                   Next
                 </Button>
               ) : (

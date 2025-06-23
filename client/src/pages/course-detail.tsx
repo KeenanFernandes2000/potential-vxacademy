@@ -38,8 +38,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Loader2, Trophy, AlertCircle, Clock, Award } from "lucide-react";
-import { AssessmentFlow } from "@/components/assessment/AssessmentFlow";
+import { Loader2, Trophy, AlertCircle, Clock, Award, CheckCircle } from "lucide-react";
+import { ComprehensiveAssessment } from "@/components/assessment/ComprehensiveAssessment";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function CourseDetail() {
@@ -49,9 +49,8 @@ export default function CourseDetail() {
   const [activeUnitId, setActiveUnitId] = useState<number | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
   const [assessmentDialogOpen, setAssessmentDialogOpen] = useState(false);
-  const [activeAssessmentId, setActiveAssessmentId] = useState<number | null>(null);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [assessmentSubmitted, setAssessmentSubmitted] = useState(false);
+  const [activeAssessment, setActiveAssessment] = useState<Assessment | null>(null);
+  const [courseStarted, setCourseStarted] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState<any>(null);
 
   const toggleSidebar = () => {
@@ -76,26 +75,32 @@ export default function CourseDetail() {
     enabled: !!activeUnitId,
   });
 
-  // Fetch assessments for the active unit with improved query settings
-  const { data: assessments, isLoading: isLoadingAssessments } = useQuery<Assessment[]>({
-    queryKey: [`/api/units/${activeUnitId}/assessments`],
-    enabled: !!activeUnitId,
-    // Make sure we always get fresh data when switching units
-    staleTime: 0,
-    // Force refetch when the component is mounted or when the activeUnitId changes
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+  // Fetch beginning assessments for the course
+  const { data: beginningAssessments, isLoading: isLoadingBeginningAssessments } = useQuery<Assessment[]>({
+    queryKey: [`/api/courses/${courseId}/assessments?placement=beginning`],
+    enabled: !!courseId,
   });
 
-  // Fetch questions for the active assessment
-  const { data: questions, isLoading: isLoadingQuestions } = useQuery<any[]>({
-    queryKey: [`/api/assessments/${activeAssessmentId}/questions`],
-    enabled: !!activeAssessmentId,
+  // Fetch end assessments for the course
+  const { data: endAssessments, isLoading: isLoadingEndAssessments } = useQuery<Assessment[]>({
+    queryKey: [`/api/courses/${courseId}/assessments?placement=end`],
+    enabled: !!courseId,
+  });
+
+  // Fetch assessments for the active unit
+  const { data: unitAssessments, isLoading: isLoadingUnitAssessments } = useQuery<Assessment[]>({
+    queryKey: [`/api/units/${activeUnitId}/assessments`],
+    enabled: !!activeUnitId,
   });
 
   // Fetch user progress
   const { data: progress, isLoading: isLoadingProgress } = useQuery<any>({
     queryKey: [`/api/progress`],
+  });
+
+  // Fetch current user for assessment flow
+  const { data: currentUser } = useQuery<any>({
+    queryKey: [`/api/user`],
   });
 
   // Complete block mutation
@@ -105,19 +110,6 @@ export default function CourseDetail() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
-    },
-  });
-
-  // Submit assessment mutation
-  const submitAssessmentMutation = useMutation({
-    mutationFn: async ({ assessmentId, answers, score }: { assessmentId: number; answers: any; score: number }) => {
-      const res = await apiRequest("POST", `/api/assessments/${assessmentId}/submit`, { answers, score });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setAssessmentResult(data);
-      setAssessmentSubmitted(true);
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
     },
   });
