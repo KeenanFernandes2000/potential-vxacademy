@@ -1673,7 +1673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Excel template download route
   app.get("/api/admin/users/template", requireAdminOrSubAdmin, (req, res) => {
     try {
-      const templatePath = path.join(__dirname, '../attached_assets/VX Academy Import Format_1750675214885.xlsx');
+      const templatePath = path.join(__dirname, '../attached_assets/VX Academy Import Format.xlsx');
       
       if (!fs.existsSync(templatePath)) {
         return res.status(404).json({ message: "Template file not found" });
