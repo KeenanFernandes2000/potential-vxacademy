@@ -141,7 +141,16 @@ export default function UnitsManagement() {
     },
   });
 
-  // Filter units based on search and filters
+  // Fetch course-unit relationships for proper filtering
+  const { data: courseUnits } = useQuery({
+    queryKey: ["/api/course-units"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/course-units");
+      return await res.json();
+    },
+  });
+
+  // Filter units based on search and hierarchical filters
   const filteredUnits = allUnits?.filter(unit => {
     // Search filter
     const matchesSearch = !searchTerm || 
@@ -150,29 +159,33 @@ export default function UnitsManagement() {
 
     if (!matchesSearch) return false;
 
-    // Dynamic hierarchical filtering - updates display at each selection step
-    // Training Area filter
-    if (selectedTrainingAreaId !== "all") {
-      const trainingAreaModules = modules?.filter(m => m.trainingAreaId.toString() === selectedTrainingAreaId) || [];
-      const trainingAreaCourses = courses?.filter(c => trainingAreaModules.some(m => m.id === c.moduleId)) || [];
-      // Note: For units, we would need course-unit junction data to properly filter
-      // For now, showing all units when training area is selected
+    // Get courses that contain this unit
+    const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId) || [];
+    
+    // If no courses contain this unit, show it in "all" view only
+    if (unitCourses.length === 0) {
+      return selectedTrainingAreaId === "all" && selectedModuleId === "all" && selectedFilterCourseId === "all";
     }
 
-    // Module filter
-    if (selectedModuleId !== "all") {
-      const moduleCourses = courses?.filter(c => c.moduleId.toString() === selectedModuleId) || [];
-      // Note: For units, we would need course-unit junction data to properly filter
-      // For now, showing all units when module is selected
-    }
-
-    // Course filter
+    // Course filter - direct filter
     if (selectedFilterCourseId !== "all") {
-      // Note: For units, we would need course-unit junction data to properly filter
-      // For now, showing all units when course is selected
+      return unitCourses.includes(parseInt(selectedFilterCourseId));
     }
 
-    return matchesSearch;
+    // Module filter - check if unit belongs to any course in the selected module
+    if (selectedModuleId !== "all") {
+      const moduleCourses = courses?.filter(c => c.moduleId.toString() === selectedModuleId).map(c => c.id) || [];
+      return unitCourses.some(courseId => moduleCourses.includes(courseId));
+    }
+
+    // Training Area filter - check if unit belongs to any course in modules within the training area
+    if (selectedTrainingAreaId !== "all") {
+      const trainingAreaModules = modules?.filter(m => m.trainingAreaId.toString() === selectedTrainingAreaId).map(m => m.id) || [];
+      const trainingAreaCourses = courses?.filter(c => trainingAreaModules.includes(c.moduleId)).map(c => c.id) || [];
+      return unitCourses.some(courseId => trainingAreaCourses.includes(courseId));
+    }
+
+    return true;
   }) || [];
 
   // Units for the selected course (for form dropdown)
