@@ -97,12 +97,12 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
       try {
         const row = rowData as any;
         
-        // Check if required fields exist and consider different column name formats
-        const firstName = row.firstName || row.FirstName || row['First Name'] || row['first_name'] || row['First name'] || row['FIRST NAME'];
-        const lastName = row.lastName || row.LastName || row['Last Name'] || row['last_name'] || row['Last name'] || row['LAST NAME'];
-        const fullName = row.name || row.Name || row['Full Name'] || row['full_name'] || row['FULL NAME'] || row['Employee Name'] || row['User Name'];
-        const email = row.email || row.Email || row['Email Address'] || row['E-mail'] || row['EMAIL'] || row['Email ID'] || row['Work Email'];
-        const username = row.username || row.Username || row['User Name'] || row['USERNAME'] || row['Login ID'] || row['Employee ID'];
+        // Enhanced column mapping for VX Academy Import Format
+        const firstName = row.firstName || row.FirstName || row['First Name'] || row['first_name'] || row['First name'] || row['FIRST NAME'] || row['Employee First Name'] || row['Given Name'];
+        const lastName = row.lastName || row.LastName || row['Last Name'] || row['last_name'] || row['Last name'] || row['LAST NAME'] || row['Employee Last Name'] || row['Family Name'] || row['Surname'];
+        const fullName = row.name || row.Name || row['Full Name'] || row['full_name'] || row['FULL NAME'] || row['Employee Name'] || row['User Name'] || row['Display Name'] || row['Complete Name'];
+        const email = row.email || row.Email || row['Email Address'] || row['E-mail'] || row['EMAIL'] || row['Email ID'] || row['Work Email'] || row['Business Email'] || row['Corporate Email'];
+        const username = row.username || row.Username || row['User Name'] || row['USERNAME'] || row['Login ID'] || row['Employee ID'] || row['User ID'] || row['Login Name'];
         
         // If we have a full name but no first/last, try to split it
         let finalFirstName = firstName;
@@ -141,19 +141,19 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
           continue;
         }
         
-        // Generate a random password if none provided
-        const password = row.password || Math.random().toString(36).slice(2, 10);
+        // Enhanced password field mapping
+        const password = row.password || row.Password || row['Password'] || row['Initial Password'] || row['Temp Password'] || Math.random().toString(36).slice(2, 10);
         const hashedPassword = await hashPassword(password);
         
-        // Extract user data from Excel template columns with more field variations
-        const role = row.role || row.Role || row['Platform Role'] || row['USER ROLE'] || row['Role Type'] || 'user';
-        const language = row.language || row.Language || row['Preferred Language'] || row['LANGUAGE'] || row['Primary Language'] || 'English';
-        const assets = row.assets || row.Assets || row['Asset Category'] || row['ASSETS'] || row['Asset Type'] || row['Asset Group'] || '';
-        const roleCategory = row.roleCategory || row['Role Category'] || row['Job Role'] || row['ROLE CATEGORY'] || row['Position'] || row['Job Title'] || '';
-        const seniority = row.seniority || row.Seniority || row['Seniority Level'] || row['SENIORITY'] || row['Experience Level'] || row['Level'] || '';
-        const organization = row.organization || row.Organization || row['Organization Name'] || row['ORGANIZATION'] || row['Company'] || row['Department'] || '';
-        const nationality = row.nationality || row.Nationality || row['NATIONALITY'] || row['Country'] || '';
-        const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || row['YEARS OF EXPERIENCE'] || row['Work Experience'] || '';
+        // Enhanced field mapping for VX Academy Import Format
+        const role = row.role || row.Role || row['Platform Role'] || row['USER ROLE'] || row['Role Type'] || row['User Role'] || row['System Role'] || 'user';
+        const language = row.language || row.Language || row['Preferred Language'] || row['LANGUAGE'] || row['Primary Language'] || row['Default Language'] || 'English';
+        const assets = row.assets || row.Assets || row['Asset Category'] || row['ASSETS'] || row['Asset Type'] || row['Asset Group'] || row['Asset Assignment'] || row['Assigned Assets'] || '';
+        const roleCategory = row.roleCategory || row['Role Category'] || row['Job Role'] || row['ROLE CATEGORY'] || row['Position'] || row['Job Title'] || row['Professional Role'] || row['Work Role'] || '';
+        const seniority = row.seniority || row.Seniority || row['Seniority Level'] || row['SENIORITY'] || row['Experience Level'] || row['Level'] || row['Grade'] || row['Rank'] || '';
+        const organization = row.organization || row.Organization || row['Organization Name'] || row['ORGANIZATION'] || row['Company'] || row['Department'] || row['Business Unit'] || row['Division'] || '';
+        const nationality = row.nationality || row.Nationality || row['NATIONALITY'] || row['Country'] || row['Country of Origin'] || row['Citizenship'] || '';
+        const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || row['YEARS OF EXPERIENCE'] || row['Work Experience'] || row['Total Experience'] || row['Professional Experience'] || '';
 
         // Create the user with all data from Excel template
         const newUser = await storage.createUser({

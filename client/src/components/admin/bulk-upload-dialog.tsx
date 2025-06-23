@@ -55,7 +55,7 @@ export function BulkUploadDialog({
     // Create a download link for the Excel template
     const link = document.createElement('a');
     link.href = '/api/admin/users/template-download';
-    link.download = 'VX_Academy_User_Import_Template.xlsx';
+    link.download = 'VX_Academy_Import_Format.xlsx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -77,7 +77,7 @@ export function BulkUploadDialog({
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Step 1: Download Template</CardTitle>
               <CardDescription>
-                Download the Excel template with the required format and fill in your user data
+                Download the VX Academy Import Format template. Required fields: First Name, Email. Optional: Last Name, Username, Password, Role, Language, Assets, Role Category, Seniority, Organization, Nationality, Years of Experience.
               </CardDescription>
             </CardHeader>
             <CardContent>
