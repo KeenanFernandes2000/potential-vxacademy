@@ -1727,7 +1727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const templatePath = path.join(
         process.cwd(),
-        "attached_assets/VX Academy Import Format.xlsx",
+        "client/public/assets/VX Academy Import Format.xlsx",
       );
 
       if (!fs.existsSync(templatePath)) {
