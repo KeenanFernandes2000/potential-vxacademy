@@ -114,6 +114,18 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 23, 2025: Units Page CRUD Functionality and UI Enhancement Complete
+  - Implemented inline editing functionality following courses page pattern (no popup modal)
+  - Fixed broken edit functionality - form now properly populates with selected unit data
+  - Enhanced delete operations with proper UI updates and cache invalidation
+  - Fixed create form submission with correct data transformation for course assignments
+  - Replaced Show Duration checkbox with modern toggle switch component
+  - Improved course selection UI with badge display for selected courses and easy removal
+  - Added dynamic form title ("Edit Unit" vs "Add New Unit") and submit button text
+  - Implemented cancel functionality for editing mode with proper form reset
+  - Enhanced backend API to handle course-unit many-to-many relationships correctly
+  - Fixed all TypeScript compilation errors and removed deprecated modal code
+  - Course selection now shows selected courses as removable badges with hover effects
 - June 19, 2025: Application Crash Resolution and Stability Fixes
   - Fixed critical server startup crash caused by missing import path in excel-upload-handler.ts
   - Removed invalid isSubAdmin field reference from seed script that was causing database errors
