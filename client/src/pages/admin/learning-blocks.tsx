@@ -161,39 +161,19 @@ export default function LearningBlocksManagement() {
     if (!unit) return false;
 
     // Apply hierarchical filtering based on current selections
-    // Training Area filter - updates display immediately when selected
-    if (selectedTrainingAreaId !== "all") {
-      const trainingAreaModules = modules?.filter(m => m.trainingAreaId.toString() === selectedTrainingAreaId) || [];
-      const trainingAreaCourses = courses?.filter(c => trainingAreaModules.some(m => m.id === c.moduleId)) || [];
-      
-      // Check if this unit belongs to any course in the selected training area
-      const unitInTrainingArea = trainingAreaCourses.some(course => {
-        // Check course-unit relationship (assuming we have this data or need to fetch it)
-        return true; // Simplified for now - would need actual course-unit junction data
-      });
-      
-      if (!unitInTrainingArea) return false;
+    // Note: Units don't have direct course relationships in the new schema
+    // For proper filtering, we'd need to fetch course-unit junction data
+    // For now, implementing basic unit-level filtering
+
+    // Unit filter - direct filter on selected unit
+    if (selectedFilterUnitId !== "all") {
+      if (unit.id.toString() !== selectedFilterUnitId) {
+        return false;
+      }
     }
 
-    // Module filter - updates display immediately when selected
-    if (selectedModuleId !== "all") {
-      const moduleCourses = courses?.filter(c => c.moduleId.toString() === selectedModuleId) || [];
-      
-      // Check if this unit belongs to any course in the selected module
-      const unitInModule = moduleCourses.some(course => {
-        // Check course-unit relationship (assuming we have this data or need to fetch it)
-        return true; // Simplified for now - would need actual course-unit junction data
-      });
-      
-      if (!unitInModule) return false;
-    }
-
-    // Course filter - updates display immediately when selected
-    if (selectedCourseId !== "all") {
-      // Check if this unit belongs to the selected course
-      // Would need actual course-unit junction data to verify this relationship
-      // For now, keeping all blocks when a course is selected
-    }
+    // Course/Module/Training Area filters would need course-unit junction data
+    // Simplified implementation for now - showing all blocks when hierarchical filters are applied
 
     // Unit filter - updates display immediately when selected
     if (
@@ -215,7 +195,15 @@ export default function LearningBlocksManagement() {
     selectedModuleId === "all" || course.moduleId.toString() === selectedModuleId
   ) || [];
 
-  const filteredUnitsForBlocks = units || [];
+  const filteredUnitsForBlocks = units?.filter(unit => {
+    // Filter units based on selected course (if any)
+    if (selectedCourseId !== "all") {
+      // Note: Need course-unit junction data for proper filtering
+      // For now, showing all units when course is selected
+      return true;
+    }
+    return true;
+  }) || [];
 
   // Fetch SCORM packages for dropdown selection
   const { data: scormPackages, isLoading: scormPackagesLoading } = useQuery({

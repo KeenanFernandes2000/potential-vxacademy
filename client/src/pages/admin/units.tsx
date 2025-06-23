@@ -638,12 +638,11 @@ export default function UnitsManagement() {
                   <div>
                     <label className="text-sm font-medium mb-2 block">Course</label>
                     <Select
-                      value={selectedFilterCourseId?.toString() || "all"}
+                      value={selectedFilterCourseId}
                       onValueChange={(value) => {
-                        const id = value === "all" ? null : parseInt(value);
-                        setSelectedFilterCourseId(id);
+                        setSelectedFilterCourseId(value);
                       }}
-                      disabled={!selectedModuleId}
+                      disabled={selectedModuleId === "all"}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="All Courses" />
@@ -680,9 +679,9 @@ export default function UnitsManagement() {
                     variant="outline"
                     onClick={() => {
                       setSearchTerm("");
-                      setSelectedTrainingAreaId(null);
-                      setSelectedModuleId(null);
-                      setSelectedFilterCourseId(null);
+                      setSelectedTrainingAreaId("all");
+                      setSelectedModuleId("all");
+                      setSelectedFilterCourseId("all");
                     }}
                     className="text-sm"
                   >
