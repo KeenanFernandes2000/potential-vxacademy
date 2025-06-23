@@ -271,6 +271,7 @@ export default function LearningBlocksManagement() {
         imageUrl: "",
         interactiveData: null,
       });
+      setEditingBlock(null);
       queryClient.invalidateQueries({ queryKey: ["/api/learning-blocks"] });
     },
     onError: (error) => {
