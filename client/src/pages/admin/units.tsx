@@ -388,7 +388,7 @@ export default function UnitsManagement() {
                   </>
                 ) : (
                   <>
-                    <Plus className="h-5 w-5" />
+                    
                     Add New Unit
                   </>
                 )}
@@ -681,7 +681,7 @@ export default function UnitsManagement() {
                     )}
                     <Button 
                       type="submit" 
-                      className="flex-1"
+                      className="flex-1 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-medium"
                       disabled={createMutation.isPending || updateMutation.isPending}
                     >
                       {editingUnit ? (
@@ -712,15 +712,18 @@ export default function UnitsManagement() {
 
           {/* Right Panel - Units List */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Filters */}
             <Card>
               <CardHeader>
-                <CardTitle>Filters</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <School className="h-5 w-5" />
+                  Existing Units
+                </CardTitle>
                 <CardDescription>
-                  Filter units by training area, module, or course
+                  Manage and view all units. Use filters to find specific units by training area, module, or course.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                {/* Filters Section */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Training Area</label>
@@ -808,8 +811,11 @@ export default function UnitsManagement() {
                   </div>
                 </div>
 
-                {/* Clear Filters Button */}
-                <div className="flex justify-end mt-4">
+                {/* Results Count and Clear Filters */}
+                <div className="flex justify-between items-center mt-6 pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {filteredUnits.length} of {allUnits?.length || 0} units
+                  </p>
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -823,22 +829,8 @@ export default function UnitsManagement() {
                     Clear All Filters
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Units List */}
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Existing Units</CardTitle>
-                    <CardDescription>
-                      Showing {filteredUnits.length} of {allUnits?.length || 0} units
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
+                {/* Units Table */}
                 {unitsLoading ? (
                   <div className="flex justify-center p-12">
                     <Loader2 className="h-8 w-8 animate-spin text-teal-600" />

@@ -126,6 +126,10 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
   - Enhanced backend API to handle course-unit many-to-many relationships correctly
   - Fixed all TypeScript compilation errors and removed deprecated modal code
   - Course selection now shows selected courses as removable badges with hover effects
+  - Restructured right panel to match other admin pages: single card with "Existing Units" title
+  - Integrated filters seamlessly without separate card headers
+  - Updated Create Unit button with consistent gradient styling to match admin interface
+  - Maintained all CRUD functionality while improving visual consistency across admin pages
 - June 19, 2025: Application Crash Resolution and Stability Fixes
   - Fixed critical server startup crash caused by missing import path in excel-upload-handler.ts
   - Removed invalid isSubAdmin field reference from seed script that was causing database errors
