@@ -119,7 +119,7 @@ export default function EnhancedCourseDetail() {
   useEffect(() => {
     if (beginningAssessments.length > 0 && !courseStarted) {
       const incompleteBeginningAssessment = beginningAssessments.find(
-        assessment => !completedAssessments.has(assessment.id)
+        assessment => !Array.from(completedAssessments).includes(assessment.id)
       );
       if (incompleteBeginningAssessment) {
         setActiveAssessment(incompleteBeginningAssessment);
@@ -132,7 +132,7 @@ export default function EnhancedCourseDetail() {
     // Check for unit assessments first
     if (unitAssessments.length > 0) {
       const incompleteUnitAssessment = unitAssessments.find(
-        assessment => !completedAssessments.has(assessment.id)
+        assessment => !Array.from(completedAssessments).includes(assessment.id)
       );
       if (incompleteUnitAssessment) {
         setActiveAssessment(incompleteUnitAssessment);
@@ -144,7 +144,7 @@ export default function EnhancedCourseDetail() {
     // Check for end assessments if all content is complete
     if (isAllContentComplete() && endAssessments.length > 0) {
       const incompleteEndAssessment = endAssessments.find(
-        assessment => !completedAssessments.has(assessment.id)
+        assessment => !Array.from(completedAssessments).includes(assessment.id)
       );
       if (incompleteEndAssessment) {
         setActiveAssessment(incompleteEndAssessment);
@@ -168,7 +168,7 @@ export default function EnhancedCourseDetail() {
     attemptsRemaining: number;
   }) => {
     if (activeAssessment) {
-      setCompletedAssessments(prev => new Set([...prev, activeAssessment.id]));
+      setCompletedAssessments(prev => new Set([...Array.from(prev), activeAssessment.id]));
       
       if (result.certificateGenerated) {
         setCertificatesEarned(prev => [...prev, activeAssessment.id]);

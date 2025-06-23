@@ -50,7 +50,7 @@ function Router() {
       {/* Protected routes */}
       <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/courses" component={Courses} />
-      <ProtectedRoute path="/courses/:id" component={CourseDetail} />
+      <ProtectedRoute path="/courses/:id" component={EnhancedCourseDetail} />
       <ProtectedRoute path="/achievements" component={Achievements} />
       <ProtectedRoute path="/leaderboard" component={Leaderboard} />
       <ProtectedRoute path="/ai-tutor" component={AiTutor} />
