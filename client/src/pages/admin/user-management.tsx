@@ -247,17 +247,10 @@ export default function UserManagementPage() {
     bulkCreateUsersMutation.mutate(data);
   };
 
-  const handleBulkUploadSubmit = (data: any) => {
+  const handleBulkUploadSubmit = (data: { file: File }) => {
     const formData = new FormData();
     formData.append("file", data.file);
-    formData.append("defaults", JSON.stringify({
-      defaultLanguage: data.defaultLanguage,
-      defaultAssets: data.defaultAssets,
-      defaultRoleCategory: data.defaultRoleCategory,
-      defaultSeniority: data.defaultSeniority,
-      defaultOrganization: data.defaultOrganization,
-      defaultRole: data.defaultRole,
-    }));
+    // No default values - Excel template is the single source of truth
     bulkUploadMutation.mutate(formData);
   };
 
@@ -506,7 +499,6 @@ export default function UserManagementPage() {
         <BulkUploadDialog
           open={isBulkUploadOpen}
           onOpenChange={setIsBulkUploadOpen}
-          courses={courses}
           onSubmit={handleBulkUploadSubmit}
           isLoading={bulkUploadMutation.isPending}
         />
