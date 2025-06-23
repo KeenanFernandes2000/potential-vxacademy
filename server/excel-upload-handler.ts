@@ -98,10 +98,11 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         const row = rowData as any;
         
         // Check if required fields exist and consider different column name formats
-        const firstName = row.firstName || row.FirstName || row['First Name'] || row['first_name'];
-        const lastName = row.lastName || row.LastName || row['Last Name'] || row['last_name'];
-        const fullName = row.name || row.Name || row['Full Name'] || row['Name'];
-        const email = row.email || row.Email || row['Email Address'] || row['E-mail'];
+        const firstName = row.firstName || row.FirstName || row['First Name'] || row['first_name'] || row['First name'] || row['FIRST NAME'];
+        const lastName = row.lastName || row.LastName || row['Last Name'] || row['last_name'] || row['Last name'] || row['LAST NAME'];
+        const fullName = row.name || row.Name || row['Full Name'] || row['full_name'] || row['FULL NAME'] || row['Employee Name'] || row['User Name'];
+        const email = row.email || row.Email || row['Email Address'] || row['E-mail'] || row['EMAIL'] || row['Email ID'] || row['Work Email'];
+        const username = row.username || row.Username || row['User Name'] || row['USERNAME'] || row['Login ID'] || row['Employee ID'];
         
         // If we have a full name but no first/last, try to split it
         let finalFirstName = firstName;
@@ -124,18 +125,18 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
           continue;
         }
         
-        // Check if email already exists using a direct email check
-        console.log(`Checking if user with email ${email} already exists`);
+        // Use username from Excel if provided, otherwise use email
+        const finalUsername = username || email;
         
-        // Check for existing user with this email
-        const existingUser = await storage.getUserByUsername(email);
-        const usersByEmail = existingUser ? [existingUser] : [];
+        // Check if username already exists
+        console.log(`Checking if user with username ${finalUsername} already exists`);
         
-        if (usersByEmail.length > 0) {
+        const existingUser = await storage.getUserByUsername(finalUsername);
+        if (existingUser) {
           failedUsers.push({
             name: `${finalFirstName} ${finalLastName}`.trim(),
             email: email,
-            error: "Email already exists"
+            error: "Username already exists"
           });
           continue;
         }
@@ -144,19 +145,22 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         const password = row.password || Math.random().toString(36).slice(2, 10);
         const hashedPassword = await hashPassword(password);
         
-        // Extract user data from Excel template columns
-        const role = row.role || row.Role || row['Platform Role'] || 'user';
-        const language = row.language || row.Language || row['Preferred Language'] || 'English';
-        const assets = row.assets || row.Assets || row['Asset Category'] || '';
-        const roleCategory = row.roleCategory || row['Role Category'] || row['Job Role'] || '';
-        const seniority = row.seniority || row.Seniority || row['Seniority Level'] || '';
-        const organization = row.organization || row.Organization || row['Organization Name'] || '';
-        const nationality = row.nationality || row.Nationality || '';
-        const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || '';
+        // Extract user data from Excel template columns with more field variations
+        const role = row.role || row.Role || row['Platform Role'] || row['USER ROLE'] || row['Role Type'] || 'user';
+        const language = row.language || row.Language || row['Preferred Language'] || row['LANGUAGE'] || row['Primary Language'] || 'English';
+        const assets = row.assets || row.Assets || row['Asset Category'] || row['ASSETS'] || row['Asset Type'] || row['Asset Group'] || '';
+        const roleCategory = row.roleCategory || row['Role Category'] || row['Job Role'] || row['ROLE CATEGORY'] || row['Position'] || row['Job Title'] || '';
+        const seniority = row.seniority || row.Seniority || row['Seniority Level'] || row['SENIORITY'] || row['Experience Level'] || row['Level'] || '';
+        const organization = row.organization || row.Organization || row['Organization Name'] || row['ORGANIZATION'] || row['Company'] || row['Department'] || '';
+        const nationality = row.nationality || row.Nationality || row['NATIONALITY'] || row['Country'] || '';
+        const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || row['YEARS OF EXPERIENCE'] || row['Work Experience'] || '';
+
+        // Use username from Excel if provided, otherwise use email
+        const finalUsername = username || email;
 
         // Create the user with all data from Excel template
         const newUser = await storage.createUser({
-          username: email, // Use email as username since we're using email-based login
+          username: finalUsername,
           password: hashedPassword,
           firstName: finalFirstName,
           lastName: finalLastName || '',
