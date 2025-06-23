@@ -54,7 +54,7 @@ export function BulkUploadDialog({
   const handleDownloadTemplate = () => {
     // Create a download link for the Excel template
     const link = document.createElement('a');
-    link.href = '/api/admin/users/template-download';
+    link.href = '/api/admin/users/template';
     link.download = 'VX_Academy_Import_Format.xlsx';
     document.body.appendChild(link);
     link.click();

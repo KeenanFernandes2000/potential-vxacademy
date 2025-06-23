@@ -1726,8 +1726,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users/template", requireAdminOrSubAdmin, (req, res) => {
     try {
       const templatePath = path.join(
-        __dirname,
-        "..attached_assets/VX Academy Import Format.xlsx",
+        process.cwd(),
+        "attached_assets/VX Academy Import Format.xlsx",
       );
 
       if (!fs.existsSync(templatePath)) {
