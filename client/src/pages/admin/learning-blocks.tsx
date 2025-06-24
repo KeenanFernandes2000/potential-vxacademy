@@ -192,7 +192,7 @@ export default function LearningBlocksManagement() {
 
     // Get courses that contain this unit
     const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId as number) || [];
-    
+
     // If no courses contain this unit, show it in "all" view only
     if (unitCourses.length === 0) {
       return selectedTrainingAreaId === "all" && selectedModuleId === "all" && selectedCourseId === "all";
@@ -1031,7 +1031,7 @@ export default function LearningBlocksManagement() {
                         {courses
                           ?.filter(
                             (course) =>
-                              selectedModuleId === "all" ||
+                              selectedModuleId === "all"                              ||
                               course.moduleId === parseInt(selectedModuleId),
                           )
                           .map((course) => (

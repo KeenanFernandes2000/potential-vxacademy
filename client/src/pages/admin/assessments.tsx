@@ -53,13 +53,15 @@ const assessmentFormSchema = z.object({
     required_error: "Please select if this assessment is for a course or unit.",
   }),
   trainingAreaId: z.coerce.number({
-    required_error: "Training Area is required.",
-  }),
+    required_error: "Training area is required.",
+  }).optional(),
   moduleId: z.coerce.number({
     required_error: "Module is required.",
-  }),
+  }).optional(),
   courseId: z.coerce.number().optional(),
-  unitId: z.coerce.number().optional(),
+  unitId: z.coerce.number({
+    required_error: "Unit is required.",
+  }).optional(),
   title: z.string().min(2, {
     message: "Assessment title must be at least 2 characters.",
   }),
@@ -451,7 +453,7 @@ export default function AssessmentsManagement() {
                         name="trainingAreaId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Training Area</FormLabel>
+                            <FormLabel>Training Area <span className="text-red-500">*</span></FormLabel>
                             <Select
                               onValueChange={(value) => {
                                 const areaId = parseInt(value);
@@ -492,7 +494,7 @@ export default function AssessmentsManagement() {
                         name="moduleId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Module</FormLabel>
+                            <FormLabel>Module <span className="text-red-500">*</span></FormLabel>
                             <Select
                               onValueChange={(value) => {
                                 const moduleId = parseInt(value);
@@ -533,7 +535,7 @@ export default function AssessmentsManagement() {
                         name="courseId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Course</FormLabel>
+                            <FormLabel>Course <span className="text-red-500">*</span></FormLabel>
                             <Select
                               onValueChange={(value) => {
                                 const courseId = parseInt(value);
@@ -576,7 +578,7 @@ export default function AssessmentsManagement() {
                       name="unitId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Unit</FormLabel>
+                          <FormLabel>Unit <span className="text-red-500">*</span></FormLabel>
                           <Select
                             onValueChange={(value) => {
                               field.onChange(parseInt(value));

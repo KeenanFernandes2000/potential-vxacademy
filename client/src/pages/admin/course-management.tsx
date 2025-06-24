@@ -57,10 +57,10 @@ import { MultiSelect } from "@/components/ui/multi-select";
 // Form validation schema
 const courseFormSchema = z.object({
   trainingAreaId: z.coerce.number({
-    required_error: "Please select a training area.",
+    required_error: "Training area is required.",
   }),
   moduleId: z.coerce.number({
-    required_error: "Please select a module.",
+    required_error: "Module is required.",
   }),
   name: z.string().min(2, {
     message: "Course name must be at least 2 characters.",
@@ -349,7 +349,7 @@ export default function CourseManagement() {
                     name="trainingAreaId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Training Area</FormLabel>
+                        <FormLabel>Training Area <span className="text-red-500">*</span></FormLabel>
                         <Select
                           onValueChange={(value) => {
                             const id = parseInt(value);
@@ -392,7 +392,7 @@ export default function CourseManagement() {
                     name="moduleId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Module</FormLabel>
+                        <FormLabel>Module <span className="text-red-500">*</span></FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value?.toString()}

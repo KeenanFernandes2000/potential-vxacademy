@@ -53,14 +53,14 @@ import AdminLayout from "@/components/layout/admin-layout";
 
 // Form validation schema
 const moduleFormSchema = z.object({
+  trainingAreaId: z.coerce.number({
+    required_error: "Training area is required.",
+  }),
   name: z.string().min(2, {
     message: "Module name must be at least 2 characters.",
   }),
   description: z.string().optional(),
   imageUrl: z.string().optional().nullable(),
-  trainingAreaId: z.coerce.number({
-    required_error: "Please select a training area.",
-  }),
 });
 
 export default function ModuleManagement() {
