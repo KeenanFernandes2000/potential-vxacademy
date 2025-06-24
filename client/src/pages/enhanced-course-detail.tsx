@@ -123,8 +123,18 @@ export default function EnhancedCourseDetail() {
     },
   });
 
-  // Complete block mutation
-  const completeBlockMutation = useMutation({
+  // Check if course is accessible (for sequential courses)
+  const isCourseAccessible = () => {
+    if (!course || course.courseType === "free") return true;
+    
+    if (course.courseType === "sequential" && prerequisites.length > 0) {
+      // Check if all prerequisites are completed
+      const completedCourseIds = userProgress?.filter((p: any) => p.completed).map((p: any) => p.courseId) || [];
+      return prerequisites.every(prereq => completedCourseIds.includes(prereq.id));
+    }
+    
+    return true;
+  };
     mutationFn: async (blockId: number) => {
       const res = await apiRequest("POST", `/api/blocks/${blockId}/complete`, {});
       return res.json();
@@ -241,7 +251,7 @@ export default function EnhancedCourseDetail() {
     return detailedProgress.percent >= 80;
   };
 
-  if (courseLoading || unitsLoading) {
+  if (courseLoading || unitsLoading || blocksLoading) {
     return (
       <Layout>
         <div className="container mx-auto py-8">
@@ -559,16 +569,6 @@ export default function EnhancedCourseDetail() {
     </Layout>
   );
 }
-
-  return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              {/* Course Header */}
-              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.name}</h1>
