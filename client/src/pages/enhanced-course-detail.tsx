@@ -81,6 +81,12 @@ export default function EnhancedCourseDetail() {
     queryKey: [`/api/progress`],
   });
 
+  // Fetch course prerequisites
+  const { data: prerequisites = [] } = useQuery<Course[]>({
+    queryKey: [`/api/courses/${courseId}/prerequisites`],
+    enabled: !!courseId,
+  });
+
   // Complete block mutation
   const completeBlockMutation = useMutation({
     mutationFn: async (blockId: number) => {
@@ -213,18 +219,20 @@ export default function EnhancedCourseDetail() {
     let completedUnits = 0;
     const totalUnits = units.length;
 
-    // For now, we'll use a simplified progress calculation
-    // In a real implementation, you'd check completion of blocks and assessments per unit
-    units.forEach(unit => {
-      // Check if unit has completed blocks (simplified check)
-      // This would need to be enhanced with actual block completion data
-      if (courseProgress && courseProgress.percentComplete > 0) {
-        completedUnits += 0.5; // Simplified calculation
-      }
-    });
+    // Calculate based on actual course progress or use simplified method
+    if (courseProgress && courseProgress.percentComplete > 0) {
+      const progressPercent = courseProgress.percentComplete;
+      completedUnits = Math.floor((progressPercent / 100) * totalUnits);
+      return { 
+        percent: progressPercent, 
+        completedUnits, 
+        totalUnits 
+      };
+    }
 
+    // Fallback calculation
     const percent = Math.round((completedUnits / totalUnits) * 100);
-    return { percent, completedUnits: Math.floor(completedUnits), totalUnits };
+    return { percent, completedUnits, totalUnits };
   };
 
   const detailedProgress = calculateCourseProgress();
@@ -281,23 +289,13 @@ export default function EnhancedCourseDetail() {
                   )}
                   
                   {/* Enhanced Course Progress */}
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Course Progress</span>
-                      <span className="text-sm text-gray-500">
-                        {detailedProgress.completedUnits}/{detailedProgress.totalUnits} units • {detailedProgress.percent}% complete
-                      </span>
-                    </div>
-                    <Progress value={detailedProgress.percent} className="h-3" />
-                    
-                    {/* Progress details */}
-                    <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-                      <span>Units: {detailedProgress.completedUnits}/{detailedProgress.totalUnits}</span>
-                      {endAssessments.length > 0 && (
-                        <span>Final Assessment: {detailedProgress.percent >= 80 ? 'Available' : 'Locked'}</span>
-                      )}
-                    </div>
-                  </div>
+                  <CourseProgressBar
+                    completedUnits={detailedProgress.completedUnits}
+                    totalUnits={detailedProgress.totalUnits}
+                    percent={detailedProgress.percent}
+                    hasEndAssessment={endAssessments.length > 0}
+                    endAssessmentAvailable={detailedProgress.percent >= 80}
+                  />
                 </div>
 
                 {/* Start Assessment - Placed at top when placement = "beginning" */}
@@ -549,35 +547,68 @@ export default function EnhancedCourseDetail() {
                       <CardContent>
                         {endAssessments.map((assessment) => (
                           <div
-                                  key={assessment.id}
-                                  className="p-4 border rounded-lg mb-4 border-gray-200"
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <h3 className="font-semibold">{assessment.title}</h3>
-                                      {assessment.description && (
-                                        <p className="text-gray-600 mt-1">{assessment.description}</p>
-                                      )}
-                                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                                        <span>XP: {assessment.xpPoints}</span>
-                                        {assessment.hasTimeLimit && (
-                                          <span className="flex items-center">
-                                            <Clock className="mr-1 h-3 w-3" />
-                                            {assessment.timeLimit} min
-                                          </span>
-                                        )}
-                                        {assessment.hasCertificate && (
-                                          <span className="flex items-center text-green-600">
-                                            <Award className="mr-1 h-3 w-3" />
-                                            Certificate
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <Button
-                                      onClick={() => handleStartAssessment(assessment)}
-                                      disabled={completedAssessments.has(assessment.id)}
-                                      className={
+                            key={assessment.id}
+                            className="p-4 border rounded-lg mb-4 border-gray-200"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="font-semibold">{assessment.title}</h3>
+                                {assessment.description && (
+                                  <p className="text-gray-600 mt-1">{assessment.description}</p>
+                                )}
+                                <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                  <span>XP: {assessment.xpPoints}</span>
+                                  {assessment.hasTimeLimit && (
+                                    <span className="flex items-center">
+                                      <Clock className="mr-1 h-3 w-3" />
+                                      {assessment.timeLimit} min
+                                    </span>
+                                  )}
+                                  {assessment.hasCertificate && (
+                                    <span className="flex items-center text-green-600">
+                                      <Award className="mr-1 h-3 w-3" />
+                                      Certificate Available
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                onClick={() => handleStartAssessment(assessment)}
+                                disabled={completedAssessments.has(assessment.id) || detailedProgress.percent < 80}
+                                className={
+                                  completedAssessments.has(assessment.id)
+                                    ? "bg-green-600"
+                                    : detailedProgress.percent < 80
+                                    ? "bg-gray-400"
+                                    : "bg-blue-600 hover:bg-blue-700"
+                                }
+                              >
+                                {completedAssessments.has(assessment.id) ? (
+                                  <>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Completed
+                                  </>
+                                ) : detailedProgress.percent < 80 ? (
+                                  "Complete Course First"
+                                ) : (
+                                  "Take Assessment"
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
                                         completedAssessments.has(assessment.id)
                                           ? "bg-green-600"
                                           : "bg-green-600 hover:bg-green-700"
