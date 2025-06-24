@@ -1,0 +1,120 @@
+client:1 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/@fs/home/runner/workspace/node_modules/vite/dist/client/env.mjs 502 (Bad Gateway)
+App.tsx:18 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/lib/queryClient.ts net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:20 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/components/ui/toaster.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:21 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/not-found.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:23 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/auth-page.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:24 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/home-page.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:25 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/courses.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:26 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/enhanced-course-detail.tsx?t=1750759763473 net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:27 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/achievements.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:22 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/dashboard.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:28 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/leaderboard.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:30 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/profile.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:29 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/ai-tutor.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:31 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/user-management.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:32 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/content-management.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:33 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/analytics.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:34 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/dashboard.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:35 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/course-management.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:37 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/training-areas.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:36 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/modules.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:38 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/units.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:40 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/assessments.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:39 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/learning-blocks.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:41 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/questions.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:42 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/badges.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:44 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/roles-management.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:43 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/scorm-packages.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:45 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/pages/admin/media.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:46 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/hooks/use-auth.tsx net::ERR_ABORTED 502 (Bad Gateway)
+App.tsx:47 
+            
+            
+           GET https://18aeedbb-e914-47cb-86e5-05b9ee129c4e-00-2p4f5p7f4g6w5.sisko.replit.dev/src/lib/protected-route.tsx ne
