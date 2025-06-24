@@ -814,7 +814,9 @@ export default function UnitsManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Courses</SelectItem>
-                        {courses?.map((course) => (
+                        {courses?.filter(course => 
+                          selectedModuleId === "all" || course.moduleId.toString() === selectedModuleId
+                        ).map((course) => (
                           <SelectItem key={course.id} value={course.id.toString()}>
                             {course.name}
                           </SelectItem>
