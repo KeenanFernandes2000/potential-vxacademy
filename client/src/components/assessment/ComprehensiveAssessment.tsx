@@ -33,7 +33,7 @@ export function ComprehensiveAssessment({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [assessmentStarted, setAssessmentStarted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(
-    assessment.hasTimeLimit && assessment.timeLimit ? assessment.timeLimit * 60 : 0
+    assessment?.hasTimeLimit && assessment?.timeLimit ? assessment.timeLimit * 60 : 0
   );
   const [timeExpired, setTimeExpired] = useState(false);
 
