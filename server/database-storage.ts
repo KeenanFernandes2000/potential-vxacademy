@@ -9,7 +9,7 @@ import { users, type User, type InsertUser, modules, type Module, type InsertMod
   scormPackages, type ScormPackage, type InsertScormPackage, scormTrackingData, type ScormTrackingData, type InsertScormTrackingData,
   roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse,
   certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification,
-  mediaFiles, type MediaFile, type InsertMediaFile
+  mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, desc, and, inArray } from "drizzle-orm";
@@ -908,5 +908,85 @@ export class DatabaseStorage implements IStorage {
     if (ids.length === 0) return 0;
     const result = await db.delete(mediaFiles).where(inArray(mediaFiles.id, ids));
     return result.rowCount ?? 0;
+  }
+
+  // Course Prerequisites
+  async getCoursePrerequisites(courseId: number): Promise<Course[]> {
+    const prerequisites = await db
+      .select({
+        id: courses.id,
+        trainingAreaId: courses.trainingAreaId,
+        moduleId: courses.moduleId,
+        name: courses.name,
+        description: courses.description,
+        imageUrl: courses.imageUrl,
+        internalNote: courses.internalNote,
+        courseType: courses.courseType,
+        duration: courses.duration,
+        showDuration: courses.showDuration,
+        level: courses.level,
+        showLevel: courses.showLevel,
+        estimatedDuration: courses.estimatedDuration,
+        difficultyLevel: courses.difficultyLevel,
+        createdAt: courses.createdAt,
+      })
+      .from(coursePrerequisites)
+      .innerJoin(courses, eq(courses.id, coursePrerequisites.prerequisiteCourseId))
+      .where(eq(coursePrerequisites.courseId, courseId));
+    
+    return prerequisites;
+  }
+
+  async addCoursePrerequisite(data: InsertCoursePrerequisite): Promise<CoursePrerequisite> {
+    const [prerequisite] = await db.insert(coursePrerequisites).values(data).returning();
+    return prerequisite;
+  }
+
+  async removeCoursePrerequisite(courseId: number, prerequisiteCourseId: number): Promise<boolean> {
+    const result = await db
+      .delete(coursePrerequisites)
+      .where(and(
+        eq(coursePrerequisites.courseId, courseId),
+        eq(coursePrerequisites.prerequisiteCourseId, prerequisiteCourseId)
+      ));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getUserAccessibleCourses(userId: number): Promise<Course[]> {
+    // Get user's completed courses
+    const completedCourses = await db
+      .select({ courseId: userProgress.courseId })
+      .from(userProgress)
+      .where(and(
+        eq(userProgress.userId, userId),
+        eq(userProgress.completed, true)
+      ));
+
+    const completedCourseIds = completedCourses.map(c => c.courseId);
+
+    // Get all courses
+    const allCourses = await this.getCourses();
+    
+    // Filter courses based on prerequisites
+    const accessibleCourses = [];
+    
+    for (const course of allCourses) {
+      if (course.courseType === "free") {
+        // Free courses are always accessible
+        accessibleCourses.push(course);
+      } else if (course.courseType === "sequential") {
+        // Check if all prerequisites are completed
+        const prerequisites = await this.getCoursePrerequisites(course.id);
+        const allPrerequisitesCompleted = prerequisites.every(prereq => 
+          completedCourseIds.includes(prereq.id)
+        );
+        
+        if (prerequisites.length === 0 || allPrerequisitesCompleted) {
+          accessibleCourses.push(course);
+        }
+      }
+    }
+    
+    return accessibleCourses;
   }
 }

@@ -122,15 +122,30 @@ export const courses = pgTable("courses", {
   description: text("description"),
   imageUrl: text("image_url"),
   internalNote: text("internal_note"), // admin-only field
-  courseType: text("course_type").notNull().default("sequential"), // sequential, free
+  courseType: text("course_type").notNull().default("free"), // sequential, free
   duration: integer("duration").notNull(), // in minutes
   showDuration: boolean("show_duration").notNull().default(true),
   level: text("level").notNull().default("beginner"), // beginner, intermediate, advanced
   showLevel: boolean("show_level").notNull().default(true),
+  estimatedDuration: text("estimated_duration"), // formatted duration like "2h 30m"
+  difficultyLevel: text("difficulty_level"), // for display purposes
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Course Prerequisites (for sequential courses)
+export const coursePrerequisites = pgTable("course_prerequisites", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").notNull().references(() => courses.id),
+  prerequisiteCourseId: integer("prerequisite_course_id").notNull().references(() => courses.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertCourseSchema = createInsertSchema(courses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCoursePrerequisiteSchema = createInsertSchema(coursePrerequisites).omit({
   id: true,
   createdAt: true,
 });
@@ -335,6 +350,8 @@ export type Module = typeof modules.$inferSelect;
 
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 export type Course = typeof courses.$inferSelect;
+export type CoursePrerequisite = typeof coursePrerequisites.$inferSelect;
+export type InsertCoursePrerequisite = z.infer<typeof insertCoursePrerequisiteSchema>;
 
 export type InsertUnit = z.infer<typeof insertUnitSchema>;
 export type Unit = typeof units.$inferSelect;

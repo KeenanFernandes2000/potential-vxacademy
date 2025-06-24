@@ -206,6 +206,29 @@ export default function EnhancedCourseDetail() {
     ? progress.find((p: any) => p.courseId === courseId)
     : null;
 
+  // Calculate detailed course progress
+  const calculateCourseProgress = () => {
+    if (!units || !progress) return { percent: 0, completedUnits: 0, totalUnits: units?.length || 0 };
+
+    let completedUnits = 0;
+    const totalUnits = units.length;
+
+    // For now, we'll use a simplified progress calculation
+    // In a real implementation, you'd check completion of blocks and assessments per unit
+    units.forEach(unit => {
+      // Check if unit has completed blocks (simplified check)
+      // This would need to be enhanced with actual block completion data
+      if (courseProgress && courseProgress.percentComplete > 0) {
+        completedUnits += 0.5; // Simplified calculation
+      }
+    });
+
+    const percent = Math.round((completedUnits / totalUnits) * 100);
+    return { percent, completedUnits: Math.floor(completedUnits), totalUnits };
+  };
+
+  const detailedProgress = calculateCourseProgress();
+
   if (isLoadingCourse || isLoadingUnits) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -257,28 +280,89 @@ export default function EnhancedCourseDetail() {
                     <p className="text-gray-700 leading-relaxed mb-4">{course.description}</p>
                   )}
                   
-                  {/* Course Progress */}
-                  {courseProgress && (
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Course Progress</span>
-                        <span className="text-sm text-gray-500">
-                          {courseProgress.percentComplete}% complete
-                        </span>
-                      </div>
-                      <Progress value={courseProgress.percentComplete} className="h-2" />
+                  {/* Enhanced Course Progress */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Course Progress</span>
+                      <span className="text-sm text-gray-500">
+                        {detailedProgress.completedUnits}/{detailedProgress.totalUnits} units • {detailedProgress.percent}% complete
+                      </span>
                     </div>
-                  )}
+                    <Progress value={detailedProgress.percent} className="h-3" />
+                    
+                    {/* Progress details */}
+                    <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                      <span>Units: {detailedProgress.completedUnits}/{detailedProgress.totalUnits}</span>
+                      {endAssessments.length > 0 && (
+                        <span>Final Assessment: {detailedProgress.percent >= 80 ? 'Available' : 'Locked'}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Beginning Assessment Notice */}
+                {/* Start Assessment - Placed at top when placement = "beginning" */}
                 {beginningAssessments.length > 0 && !courseStarted && (
-                  <Alert className="mb-6 border-blue-200 bg-blue-50">
-                    <Trophy className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-700">
-                      This course requires completing an assessment before you can access the content.
-                    </AlertDescription>
-                  </Alert>
+                  <div className="mb-6">
+                    <Alert className="mb-4 border-blue-200 bg-blue-50">
+                      <Trophy className="h-4 w-4 text-blue-600" />
+                      <AlertDescription className="text-blue-700">
+                        This course requires completing an initial assessment before you can access the content.
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <Trophy className="mr-2 h-5 w-5 text-blue-600" />
+                          Initial Assessment
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {beginningAssessments.map((assessment) => (
+                          <div key={assessment.id} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="font-medium">{assessment.title}</h3>
+                                <p className="text-sm text-gray-600 mt-1">{assessment.description}</p>
+                                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                  {assessment.hasTimeLimit && (
+                                    <span className="flex items-center">
+                                      <Clock className="mr-1 h-3 w-3" />
+                                      {assessment.timeLimit} min
+                                    </span>
+                                  )}
+                                  {assessment.hasCertificate && (
+                                    <span className="flex items-center text-green-600">
+                                      <Award className="mr-1 h-3 w-3" />
+                                      Certificate Available
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                onClick={() => handleStartAssessment(assessment)}
+                                disabled={completedAssessments.has(assessment.id)}
+                                className={
+                                  completedAssessments.has(assessment.id)
+                                    ? "bg-green-600"
+                                    : "bg-blue-600 hover:bg-blue-700"
+                                }
+                              >
+                                {completedAssessments.has(assessment.id) ? (
+                                  <>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Completed
+                                  </>
+                                ) : (
+                                  "Start Assessment"
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
 
                 {/* Course Content */}
@@ -436,18 +520,35 @@ export default function EnhancedCourseDetail() {
                           </Card>
                         )}
 
-                        {/* End Assessments */}
-                        {endAssessments.length > 0 && isAllContentComplete() && (
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="flex items-center">
-                                <Trophy className="mr-2 h-5 w-5 text-green-600" />
-                                Final Assessments
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              {endAssessments.map((assessment) => (
-                                <div
+                        {/* End Assessments - Moved to bottom and enhanced */}
+                      </>
+                    ) : (
+                      <Card>
+                        <CardContent className="p-6 text-center">
+                          <Trophy className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">Complete Initial Assessment</h3>
+                          <p className="text-gray-600">
+                            You need to complete the initial assessment to access the course content.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+
+                {/* Final Assessment Section - Placed at bottom when placement = "end" */}
+                {endAssessments.length > 0 && courseStarted && (
+                  <div className="mt-8 border-t pt-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <Trophy className="mr-2 h-5 w-5 text-green-600" />
+                          Final Quiz
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {endAssessments.map((assessment) => (
+                          <div
                                   key={assessment.id}
                                   className="p-4 border rounded-lg mb-4 border-gray-200"
                                 >

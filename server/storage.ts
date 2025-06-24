@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, courseUnits, type CourseUnit, type InsertCourseUnit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification, mediaFiles, type MediaFile, type InsertMediaFile } from "@shared/schema";
+import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, courseUnits, type CourseUnit, type InsertCourseUnit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification, mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite } from "@shared/schema";
 import session from "express-session";
 
 export interface IStorage {
@@ -33,6 +33,12 @@ export interface IStorage {
   createCourse(course: InsertCourse): Promise<Course>;
   updateCourse(id: number, courseData: Partial<Course>): Promise<Course | undefined>;
   deleteCourse(id: number): Promise<boolean>;
+  
+  // Course Prerequisites
+  getCoursePrerequisites(courseId: number): Promise<Course[]>;
+  addCoursePrerequisite(data: InsertCoursePrerequisite): Promise<CoursePrerequisite>;
+  removeCoursePrerequisite(courseId: number, prerequisiteCourseId: number): Promise<boolean>;
+  getUserAccessibleCourses(userId: number): Promise<Course[]>;
   
   // Badge Management
   getBadge(id: number): Promise<Badge | undefined>;
