@@ -114,9 +114,23 @@ export function ComprehensiveAssessment({
   const handleSubmitAssessment = () => {
     if (!questions) return;
     
+    // Calculate score on client side before submitting
+    let correctAnswers = 0;
+    const totalQuestions = questions.length;
+
+    questions.forEach(question => {
+      const userAnswer = selectedAnswers[question.id.toString()];
+      if (userAnswer === question.correctAnswer) {
+        correctAnswers++;
+      }
+    });
+
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
+    
     setIsSubmitting(true);
     submitAssessmentMutation.mutate({
       answers: selectedAnswers,
+      score,
       timeExpired,
       startedAt: new Date().toISOString()
     });

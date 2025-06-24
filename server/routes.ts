@@ -2444,7 +2444,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const assessmentId = parseInt(req.params.assessmentId);
       const userId = req.user!.id;
-      const { answers, timeExpired, startedAt } = req.body;
+      const { answers, score: clientScore, timeExpired, startedAt } = req.body;
+
+      if (!answers) {
+        return res.status(400).json({ message: "Answers are required" });
+      }
 
       // Get assessment details
       const assessment = await storage.getAssessment(assessmentId);
@@ -2464,7 +2468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No questions found for assessment" });
       }
 
-      // Calculate score
+      // Calculate score on server side (always recalculate for security)
       let correctAnswers = 0;
       const totalQuestions = questions.length;
 
