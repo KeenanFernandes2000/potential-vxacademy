@@ -148,8 +148,11 @@ export default function UserManagementPage() {
         method: "POST",
         body: formData,
         credentials: "include",
-      }).then(res => {
-        if (!res.ok) throw new Error("Upload failed");
+      }).then(async res => {
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Upload failed: ${errorText}`);
+        }
         return res.json();
       }),
     onSuccess: (result: any) => {

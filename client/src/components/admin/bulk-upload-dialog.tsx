@@ -21,7 +21,7 @@ type BulkUploadFormData = z.infer<typeof bulkUploadSchema>;
 interface BulkUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { file: File }) => void;
+  onSubmit: (formData: FormData) => void;
   isLoading?: boolean;
 }
 
@@ -40,14 +40,31 @@ export function BulkUploadDialog({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type
+      const allowedTypes = [
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        form.setError("file", { 
+          type: "manual", 
+          message: "Please select a valid Excel file (.xlsx or .xls)" 
+        });
+        return;
+      }
+      
       setSelectedFile(file);
       form.setValue("file", event.target.files);
+      form.clearErrors("file");
     }
   };
 
   const handleSubmit = (data: BulkUploadFormData) => {
     if (selectedFile) {
-      onSubmit({ file: selectedFile });
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      onSubmit(formData);
     }
   };
 
