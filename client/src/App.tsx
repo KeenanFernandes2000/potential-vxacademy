@@ -39,12 +39,7 @@ function Router() {
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/">
-        {(params) => {
-          const isAuthenticated = !!queryClient.getQueryData(["/api/user"]);
-          return isAuthenticated ? <Dashboard /> : <HomePage />;
-        }}
-      </Route>
+      <Route path="/" component={HomePage} />
       <Route path="/auth" component={AuthPage} />
       
       {/* Protected routes */}

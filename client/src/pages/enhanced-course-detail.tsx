@@ -738,6 +738,42 @@ export default function EnhancedCourseDetail() {
                     );
                   })}
 
+                  {/* Course Assessment at End */}
+                  {showCourseAssessmentAtEnd && isAllContentComplete() && (
+                    <div className="mt-4 p-3 border-t border-gray-200">
+                      <div className="text-center">
+                        <h4 className="font-medium mb-2 flex items-center justify-center gap-2">
+                          <Trophy className="h-4 w-4 text-yellow-600" />
+                          Final Assessment
+                        </h4>
+                        {courseAssessments
+                          ?.filter(assessment => assessment.placement === 'end')
+                          .map((assessment) => {
+                            const isCompleted = completedAssessments.has(assessment.id);
+                            return (
+                              <Button
+                                key={`final-assessment-${assessment.id}`}
+                                onClick={() => handleStartAssessment(assessment)}
+                                disabled={isCompleted}
+                                className={`w-full ${isCompleted ? 'bg-green-600 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700'}`}
+                              >
+                                {isCompleted ? (
+                                  <>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Assessment Completed
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trophy className="mr-2 h-4 w-4" />
+                                    Start Final Assessment
+                                  </>
+                                )}
+                              </Button>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               </CardContent>
