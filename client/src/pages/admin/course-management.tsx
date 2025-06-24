@@ -466,12 +466,13 @@ export default function CourseManagement() {
                     name="imageUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Course Image</FormLabel>
+                        {/* <FormLabel>Course Image</FormLabel> */}
                         <FormControl>
                           <ImageUpload
                             value={field.value || ""}
-                            onChange={field.onChange}
                             label="Course Image"
+                            onChange={field.onChange}
+                            
                             placeholder="Upload image or enter URL..."
                           />
                         </FormControl>
