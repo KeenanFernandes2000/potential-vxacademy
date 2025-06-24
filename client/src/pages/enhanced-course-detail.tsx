@@ -203,14 +203,14 @@ export default function EnhancedCourseDetail() {
       setActiveUnitId(firstUnit.id);
       setSelectedUnit(firstUnit);
     }
-  }, [units, activeUnitId]);
+  }, [units]);
 
   useEffect(() => {
     if (blocks.length > 0 && !activeBlockId) {
       setActiveBlockId(blocks[0].id);
       setSelectedBlock(blocks[0]);
     }
-  }, [blocks, activeBlockId]);
+  }, [blocks]);
 
   // Initialize completed assessments and blocks from progress data
   useEffect(() => {
@@ -568,7 +568,7 @@ export default function EnhancedCourseDetail() {
 
                   {/* Course Assessment at End */}
                   {showCourseAssessmentAtEnd && (
-                    <Card key="course-assessment-end" className="mt-6">
+                    <Card key="course-final-assessments" className="mt-6">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Award className="h-5 w-5" />
@@ -582,7 +582,7 @@ export default function EnhancedCourseDetail() {
                         {courseAssessments
                           ?.filter(assessment => assessment.placement === 'end')
                           .map((assessment) => (
-                            <div key={`course-assessment-end-${assessment.id}`} className="mb-4">
+                            <div key={`final-assessment-${assessment.id}`} className="mb-4">
                               <h4 className="font-medium mb-2">{assessment.title}</h4>
                               <p className="text-sm text-muted-foreground mb-3">
                                 {assessment.description}
