@@ -89,29 +89,32 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
     console.log("Headers found:", headers);
     console.log("Data rows count:", rows.length);
     
-    // Required field mappings based on exact headers
+    // Required field mappings - now includes variations with asterisks
     const requiredHeaders = {
-      'First name': ['First name', 'firstName', 'First Name', 'FIRST NAME'],
-      'Last name': ['Last name', 'lastName', 'Last Name', 'LAST NAME'],
-      'Email Address': ['Email Address', 'email', 'Email', 'EMAIL'],
-      'Language': ['Language', 'language', 'LANGUAGE'],
-      'Nationality': ['Nationality', 'nationality', 'NATIONALITY'],
-      'Years of Experience': ['Years of Experience', 'yearsOfExperience', 'Experience'],
-      'Asset': ['Asset', 'assets', 'Asset Category'],
-      'Role Category': ['Role Category', 'roleCategory', 'Job Role'],
-      'Seniority': ['Seniority', 'seniority', 'Seniority Level'],
-      'Organization Name': ['Organization Name', 'organizationName', 'Organization']
+      'First name': ['First name', 'First name*', 'firstName', 'First Name', 'FIRST NAME'],
+      'Last name': ['Last name', 'Last name*', 'lastName', 'Last Name', 'LAST NAME'],
+      'Email Address': ['Email Address', 'Email Address*', 'email', 'Email', 'EMAIL'],
+      'Language': ['Language', 'Language*', 'language', 'LANGUAGE'],
+      'Nationality': ['Nationality', 'Nationality*', 'nationality', 'NATIONALITY'],
+      'Years of Experience': ['Years of Experience', 'Years of Experience*', 'yearsOfExperience', 'Experience'],
+      'Asset': ['Asset', 'Asset*', 'assets', 'Asset Category'],
+      'Role Category': ['Role Category', 'Role Category*', 'roleCategory', 'Job Role'],
+      'Seniority': ['Seniority', 'Seniority*', 'seniority', 'Seniority Level'],
+      'Organization Name': ['Organization Name', 'Organization Name*', 'organizationName', 'Organization']
     };
     
-    // Find header indices
+    // Find header indices with more flexible matching
     const headerIndices: { [key: string]: number } = {};
     
     for (const [requiredField, variations] of Object.entries(requiredHeaders)) {
-      const foundIndex = headers.findIndex(header => 
-        variations.some(variation => 
-          header && header.toLowerCase().trim() === variation.toLowerCase().trim()
-        )
-      );
+      const foundIndex = headers.findIndex(header => {
+        if (!header) return false;
+        const cleanHeader = header.toLowerCase().trim().replace(/\*/g, '');
+        return variations.some(variation => {
+          const cleanVariation = variation.toLowerCase().trim().replace(/\*/g, '');
+          return cleanHeader === cleanVariation;
+        });
+      });
       if (foundIndex !== -1) {
         headerIndices[requiredField] = foundIndex;
       }
@@ -158,9 +161,15 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
         const seniority = row[headerIndices['Seniority']]?.toString().trim();
         const organizationName = row[headerIndices['Organization Name']]?.toString().trim();
         
-        // Optional field
-        const subCategory = headerIndices['Sub-Category'] !== undefined ? 
-          row[headerIndices['Sub-Category']]?.toString().trim() : '';
+        // Handle Sub-Category (optional field) - check for variations with/without asterisk
+        let subCategoryIndex = headers.findIndex(header => {
+          if (!header) return false;
+          const cleanHeader = header.toLowerCase().trim().replace(/\*/g, '');
+          return cleanHeader === 'sub-category' || cleanHeader === 'subcategory';
+        });
+        
+        const subCategory = subCategoryIndex !== -1 ? 
+          row[subCategoryIndex]?.toString().trim() || '' : '';
         
         // Validation checks
         const validationErrors = [];
