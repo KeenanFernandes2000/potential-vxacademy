@@ -135,6 +135,9 @@ export default function EnhancedCourseDetail() {
     
     return true;
   };
+
+  // Complete block mutation
+  const completeBlockMutation = useMutation({
     mutationFn: async (blockId: number) => {
       const res = await apiRequest("POST", `/api/blocks/${blockId}/complete`, {});
       return res.json();
@@ -231,18 +234,7 @@ export default function EnhancedCourseDetail() {
     completeBlockMutation.mutate(blockId);
   };
 
-  // Check if course is accessible (for sequential courses)
-  const isCourseAccessible = () => {
-    if (!course || course.courseType === "free") return true;
-    
-    if (course.courseType === "sequential" && prerequisites.length > 0) {
-      // Check if all prerequisites are completed
-      const completedCourseIds = progress?.filter((p: any) => p.completed).map((p: any) => p.courseId) || [];
-      return prerequisites.every(prereq => completedCourseIds.includes(prereq.id));
-    }
-    
-    return true;
-  };
+
 
   const courseStarted = beginningAssessments.length === 0 || 
     beginningAssessments.some(assessment => completedAssessments.has(assessment.id));
