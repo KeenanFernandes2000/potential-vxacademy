@@ -99,6 +99,8 @@ export function ComprehensiveAssessment({
   const attemptsUsed = attempts.length;
   const attemptsRemaining = Math.max(0, assessment.maxRetakes - attemptsUsed);
   const canTakeAssessment = attemptsRemaining > 0;
+  const hasPassed = attempts.some(attempt => attempt.passed);
+  const lastAttempt = attempts[attempts.length - 1];
 
   const handleStartAssessment = () => {
     setAssessmentStarted(true);
@@ -153,6 +155,43 @@ export function ComprehensiveAssessment({
       <Card>
         <CardContent className="p-6 text-center">
           Loading assessment...
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Check if user has already passed this assessment
+  if (hasPassed) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Assessment Completed
+          </h3>
+          <p className="text-gray-600 mb-4">
+            You have successfully passed this assessment with a score of{" "}
+            {attempts.find(a => a.passed)?.score}%.
+          </p>
+          {assessment.hasCertificate && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center justify-center gap-2 text-yellow-800">
+                <Award className="h-5 w-5" />
+                <span className="font-medium">Certificate Earned!</span>
+              </div>
+              <p className="text-sm text-yellow-700 mt-1">
+                Check your Achievements page to view your certificate.
+              </p>
+            </div>
+          )}
+          <Button 
+            onClick={onCancel} 
+            variant="outline"
+            disabled
+            className="cursor-not-allowed opacity-75"
+          >
+            Completed
+          </Button>
         </CardContent>
       </Card>
     );

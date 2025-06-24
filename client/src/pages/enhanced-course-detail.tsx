@@ -78,6 +78,11 @@ export default function EnhancedCourseDetail() {
   const [completedAssessments, setCompletedAssessments] = useState<Set<number>>(new Set());
   const [completedBlocks, setCompletedBlocks] = useState<Set<number>>(new Set());
 
+  // Fetch current user
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
   // Fetch course details
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
     queryKey: [`/api/courses/${courseId}`],
