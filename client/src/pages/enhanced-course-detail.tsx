@@ -568,40 +568,7 @@ export default function EnhancedCourseDetail() {
                     );
                   })}
 
-                  {/* Course Assessment at End */}
-                  {showCourseAssessmentAtEnd && (
-                    <div key="course-final-assessments-wrapper" className="mt-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Award className="h-5 w-5" />
-                            Course Assessment
-                          </CardTitle>
-                          <CardDescription>
-                            Complete this final assessment to finish the course
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          {courseAssessments
-                            ?.filter(assessment => assessment.placement === 'end')
-                            .map((assessment) => (
-                              <div key={`course-end-assessment-${assessment.id}`} className="mb-4">
-                                <h4 className="font-medium mb-2">{assessment.title}</h4>
-                                <p className="text-sm text-muted-foreground mb-3">
-                                  {assessment.description}
-                                </p>
-                                <Button 
-                                  onClick={() => handleStartAssessment(assessment)}
-                                  className="w-full"
-                                >
-                                  Start Assessment
-                                </Button>
-                              </div>
-                            ))}
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
+
                 </div>
               </CardContent>
             </Card>

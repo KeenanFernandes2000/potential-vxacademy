@@ -114,6 +114,11 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 24, 2025: Course Assessment Duplication Fix Complete
+  - Removed duplicate course assessment rendering causing same assessment to appear twice
+  - Consolidated assessment display logic to prevent redundant UI elements
+  - Maintained proper assessment placement functionality for beginning/end assessments
+  - Enhanced course detail page now displays assessments cleanly without duplication
 - June 24, 2025: Enhanced Course Detail React Errors Resolution Complete
   - Fixed duplicate React key error for course assessments causing rendering warnings
   - Resolved infinite re-render loop in useEffect dependencies causing maximum update depth exceeded
