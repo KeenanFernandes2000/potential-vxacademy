@@ -71,7 +71,7 @@ export function BulkUploadDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6"></div>
+        <div className="space-y-6">
           {/* Template Download Section */}
           <Card>
             <CardHeader className="pb-3">
@@ -131,8 +131,6 @@ export function BulkUploadDialog({
                     </div>
                   )}
 
-                  
-
                   <div className="flex gap-2 pt-4">
                     <Button
                       type="button"
@@ -165,6 +163,14 @@ export function BulkUploadDialog({
               </Form>
             </CardContent>
           </Card>
+
+          {/* Instructions */}
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Make sure your Excel file follows the template format. Invalid data will be skipped during import.
+            </AlertDescription>
+          </Alert>
         </div>
       </DialogContent>
     </Dialog>
