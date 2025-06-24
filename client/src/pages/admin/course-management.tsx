@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/tooltip";
 import AdminLayout from "@/components/layout/admin-layout";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 // Form validation schema
 const courseFormSchema = z.object({
