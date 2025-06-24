@@ -63,6 +63,16 @@ const Layout = ({ children }: LayoutProps) => {
 export default function EnhancedCourseDetail() {
   const [match, params] = useRoute("/courses/:id");
   const courseId = params?.id ? parseInt(params.id) : null;
+  
+  if (!match || !courseId) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8 text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Course not found</h1>
+        </div>
+      </Layout>
+    );
+  }
 
   const [activeUnitId, setActiveUnitId] = useState<number | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
@@ -261,14 +271,14 @@ export default function EnhancedCourseDetail() {
       setActiveUnitId(firstUnit.id);
       setSelectedUnit(firstUnit);
     }
-  }, [units]);
+  }, [units, activeUnitId]);
 
   useEffect(() => {
     if (blocks.length > 0 && !activeBlockId) {
       setActiveBlockId(blocks[0].id);
       setSelectedBlock(blocks[0]);
     }
-  }, [blocks]);
+  }, [blocks, activeBlockId]);
 
   // Initialize completed assessments and blocks from progress data
   useEffect(() => {
