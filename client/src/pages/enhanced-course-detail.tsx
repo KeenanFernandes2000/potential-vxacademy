@@ -137,6 +137,12 @@ export default function EnhancedCourseDetail() {
     enabled: !!activeUnitId,
   });
 
+  // Fetch course assessments
+  const { data: courseAssessments = [] } = useQuery<Assessment[]>({
+    queryKey: [`/api/courses/${courseId}/assessments`],
+    enabled: !!courseId,
+  });
+
   // Calculate course progress
   const courseProgressData = useMemo(() => {
     if (!units || !blocks) return { percentComplete: 0, completed: false, totalItems: 0, completedItems: 0 };
@@ -153,12 +159,6 @@ export default function EnhancedCourseDetail() {
     
     return { percentComplete, completed, totalItems, completedItems: completedItemsCount };
   }, [units, blocks, unitAssessments, courseAssessments, completedBlocks, completedAssessments]);
-
-  // Fetch course assessments
-  const { data: courseAssessments = [] } = useQuery<Assessment[]>({
-    queryKey: [`/api/courses/${courseId}/assessments`],
-    enabled: !!courseId,
-  });
 
   // Fetch block completions
   const { data: blockCompletions = [] } = useQuery({
