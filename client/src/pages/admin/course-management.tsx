@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Pencil, Plus, Trash, Copy, Search, Filter } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash, Copy, Search, Filter, X, Image } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -476,6 +476,27 @@ export default function CourseManagement() {
                     )}
                   />
 
+                  {/* Image Preview */}
+                  {form.watch("imageUrl") && (
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <Image className="h-5 w-5 text-green-600" />
+                        <span className="text-sm font-medium text-green-800 flex-1 truncate">
+                          {form.watch("imageUrl").split('/').pop() || 'Image file'}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-green-600 hover:text-green-800"
+                          onClick={() => form.setValue("imageUrl", "")}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* 6. Internal Note (admin-only) */}
                   <FormField
                     control={form.control}
@@ -638,7 +659,7 @@ export default function CourseManagement() {
                   <CardTitle>Existing Courses</CardTitle>
                   <CardDescription>Manage your existing courses</CardDescription>
                 </div>
-                
+
                 {/* Search and Filters */}
                 <div className="flex flex-col lg:flex-row gap-4">
                   {/* Search Bar */}
@@ -651,7 +672,7 @@ export default function CourseManagement() {
                       className="pl-10"
                     />
                   </div>
-                  
+
                   {/* Training Area Filter */}
                   <Select
                     value={filterTrainingAreaId?.toString() || "all"}
@@ -673,7 +694,7 @@ export default function CourseManagement() {
                       ))}
                     </SelectContent>
                   </Select>
-                  
+
                   {/* Module Filter */}
                   <Select
                     value={filterModuleId?.toString() || "all"}
@@ -744,7 +765,7 @@ export default function CourseManagement() {
                                       <p>Edit Course</p>
                                     </TooltipContent>
                                   </Tooltip>
-                                  
+
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Button
@@ -759,7 +780,7 @@ export default function CourseManagement() {
                                       <p>Duplicate Course</p>
                                     </TooltipContent>
                                   </Tooltip>
-                                  
+
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Button
