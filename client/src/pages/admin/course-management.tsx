@@ -74,6 +74,8 @@ const courseFormSchema = z.object({
   duration: z.coerce.number({
     required_error: "Please specify the duration in minutes.",
     invalid_type_error: "Duration must be a number.",
+  }).min(1, {
+    message: "Duration must be at least 1 minute.",
   }),
   showDuration: z.boolean().default(true),
   level: z.string({
@@ -150,7 +152,7 @@ export default function CourseManagement() {
       imageUrl: "",
       internalNote: "",
       courseType: "sequential",
-      duration: 0,
+      duration: 30,
       showDuration: true,
       level: "beginner",
       showLevel: true,
@@ -176,7 +178,7 @@ export default function CourseManagement() {
         imageUrl: "",
         internalNote: "",
         courseType: "sequential",
-        duration: 0,
+        duration: 30,
         showDuration: true,
         level: "beginner",
         showLevel: true,
@@ -214,7 +216,7 @@ export default function CourseManagement() {
         imageUrl: "",
         internalNote: "",
         courseType: "sequential",
-        duration: 0,
+        duration: 30,
         showDuration: true,
         level: "beginner",
         showLevel: true,
@@ -292,7 +294,7 @@ export default function CourseManagement() {
       imageUrl: "",
       internalNote: "",
       courseType: "sequential",
-      duration: 0,
+      duration: 30,
       showDuration: true,
       level: "beginner",
       showLevel: true,
@@ -472,7 +474,7 @@ export default function CourseManagement() {
                             value={field.value || ""}
                             label="Course Image"
                             onChange={field.onChange}
-                            
+
                             placeholder="Upload image or enter URL..."
                           />
                         </FormControl>
@@ -559,7 +561,7 @@ export default function CourseManagement() {
                           <FormControl>
                             <Input 
                               type="number" 
-                              min="0" 
+                              min="1" 
                               placeholder="e.g. 60"
                               {...field} 
                             />

@@ -78,8 +78,11 @@ const unitFormSchema = z.object({
   }).min(1, "Module is required."),
   courseIds: z.array(z.string()).min(1, "At least one course must be selected."),
   order: z.coerce.number().min(1).default(1),
-  duration: z.coerce.number().min(1, {
-    message: "Duration must be greater than 0 minutes.",
+  duration: z.coerce.number({
+    required_error: "Duration is required.",
+    invalid_type_error: "Duration must be a number.",
+  }).min(1, {
+    message: "Duration must be at least 1 minute.",
   }).default(30),
   showDuration: z.boolean().default(true),
   xpPoints: z.coerce.number().min(0).default(100),
@@ -695,11 +698,11 @@ export default function UnitsManagement() {
                         <FormItem>
                           <FormLabel>Duration (minutes)</FormLabel>
                           <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Duration..."
-                              value={field.value}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 30)}
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              placeholder="e.g. 30"
+                              {...field} 
                             />
                           </FormControl>
                           <FormMessage />

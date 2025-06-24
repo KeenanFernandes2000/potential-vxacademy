@@ -74,7 +74,7 @@ const assessmentFormSchema = z.object({
   passingScore: z.coerce.number().min(0).max(100).optional(),
   hasTimeLimit: z.boolean().default(false),
   timeLimit: z.coerce.number().min(1, {
-    message: "Time limit must be greater than 0 minutes.",
+    message: "Time limit must be at least 1 minute.",
   }).optional(),
   maxRetakes: z.coerce.number().min(0).default(3),
   hasCertificate: z.boolean().default(false),
@@ -96,18 +96,18 @@ type AssessmentFormData = z.infer<typeof assessmentFormSchema>;
 export default function AssessmentsManagement() {
   const { toast } = useToast();
   const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(null);
-  
+
   // Form state (separate from display filters)
   const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<number | null>(null);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [assessmentFor, setAssessmentFor] = useState<"course" | "unit">("unit");
-  
+
   // Display filter state (independent of form)
   const [displayFilter, setDisplayFilter] = useState<"all" | "unit" | "course">("all");
   const [filterUnitId, setFilterUnitId] = useState<number | null>(null);
   const [filterCourseId, setFilterCourseId] = useState<number | null>(null);
-  
+
   // Fetch training areas
   const { data: trainingAreas, isLoading: trainingAreasLoading } = useQuery<TrainingArea[]>({
     queryKey: ["/api/training-areas"],
@@ -128,7 +128,7 @@ export default function AssessmentsManagement() {
       ? data.filter(course => course.moduleId === selectedModuleId)
       : data,
   });
-  
+
   // Fetch units for dropdown with cache invalidation to ensure we get the latest data
   const { data: units, isLoading: unitsLoading } = useQuery<Unit[]>({
     queryKey: ["/api/units"],
@@ -141,7 +141,7 @@ export default function AssessmentsManagement() {
     // Force a refetch when the page is focused to get the latest unit names
     refetchOnWindowFocus: true,
   });
-  
+
   // Fetch all assessments (independent of form state)
   const { data: allAssessments, isLoading: assessmentsLoading } = useQuery<Assessment[]>({
     queryKey: ["/api/assessments"],
@@ -194,7 +194,7 @@ export default function AssessmentsManagement() {
     if (editingAssessment) {
       const assessmentFor = editingAssessment.courseId ? "course" : "unit";
       setAssessmentFor(assessmentFor);
-      
+
       form.reset({
         assessmentFor,
         trainingAreaId: assessmentFor === "course" && editingAssessment.trainingAreaId ? editingAssessment.trainingAreaId : undefined,
@@ -214,7 +214,7 @@ export default function AssessmentsManagement() {
         certificateTemplate: editingAssessment.certificateTemplate || "",
         xpPoints: editingAssessment.xpPoints,
       });
-      
+
       // Set state for hierarchical dropdowns
       if (assessmentFor === "course") {
         setSelectedTrainingAreaId(editingAssessment.trainingAreaId || null);
@@ -877,7 +877,7 @@ export default function AssessmentsManagement() {
               <CardDescription>
                 Manage all assessments across units and courses
               </CardDescription>
-              
+
               {/* Display Filter Controls (independent of form) */}
               <div className="flex gap-4 mt-4">
                 <div className="flex-1">
@@ -893,7 +893,7 @@ export default function AssessmentsManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {displayFilter === "unit" && (
                   <div className="flex-1">
                     <label className="text-sm font-medium">Filter by Unit</label>
@@ -912,7 +912,7 @@ export default function AssessmentsManagement() {
                     </Select>
                   </div>
                 )}
-                
+
                 {displayFilter === "course" && (
                   <div className="flex-1">
                     <label className="text-sm font-medium">Filter by Course</label>
