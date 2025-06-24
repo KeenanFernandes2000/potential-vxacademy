@@ -1,4 +1,3 @@
-typescript
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
