@@ -434,7 +434,7 @@ export default function EnhancedCourseDetail() {
 
                   {/* Units and their content */}
                   {units.map((unit, unitIndex) => {
-                    const unitBlocks = learningBlocks.filter(block => block.unitId === unit.id);
+                    const unitBlocks = blocks.filter(block => block.unitId === unit.id);
                     const unitSpecificAssessments = unitAssessments.filter(assessment => assessment.unitId === unit.id);
                     const isUnitExpanded = selectedUnit?.id === unit.id;
 
