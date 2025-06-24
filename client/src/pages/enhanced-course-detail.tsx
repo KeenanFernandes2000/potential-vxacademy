@@ -8,13 +8,36 @@ import { Course, Unit, LearningBlock, Assessment } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Trophy, CheckCircle, Clock, Award, AlertTriangle, Lock } from "lucide-react";
+import { 
+  Loader2, 
+  Trophy, 
+  CheckCircle, 
+  Clock, 
+  Award, 
+  AlertTriangle, 
+  Lock,
+  Play, 
+  FileText, 
+  Monitor, 
+  Zap, 
+  FileQuestion,
+  BookOpen,
+  ChevronDown,
+  ChevronRight
+} from "lucide-react";
 import { ComprehensiveAssessment } from "@/components/assessment/ComprehensiveAssessment";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
+import { LearningBlockRenderer } from "@/components/learning-blocks/LearningBlockRenderer";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -41,11 +64,13 @@ export default function EnhancedCourseDetail() {
   const [match, params] = useRoute("/courses/:id");
   const courseId = params?.id ? parseInt(params.id) : null;
   
-  const [activeUnitId, setActiveUnitId] = useState<number | null>(null);
-  const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
-  const [showAssessment, setShowAssessment] = useState(false);
-  const [currentAssessment, setCurrentAssessment] = useState<Assessment | null>(null);
-  const [completedAssessments, setCompletedAssessments] = useState<Set<number>>(new Set());
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+  const [selectedBlock, setSelectedBlock] = useState<LearningBlock | null>(null);
+  const [selectedContent, setSelectedContent] = useState<{
+    type: "block" | "assessment";
+    id: number;
+    data: any;
+  } | null>(null);
 
   // Fetch course details
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
@@ -85,26 +110,17 @@ export default function EnhancedCourseDetail() {
     enabled: !!courseId,
   });
 
-  // Fetch unit assessments
-  const { data: unitAssessments = [] } = useQuery<Assessment[]>({
-    queryKey: [`/api/units/${activeUnitId}/assessments`],
-    enabled: !!activeUnitId,
-  });
-
-  // Fetch current user
-  const { data: currentUser } = useQuery<any>({
-    queryKey: [`/api/user`],
-  });
-
-  // Fetch user progress
-  const { data: progress } = useQuery<any>({
-    queryKey: [`/api/progress`],
-  });
-
-  // Fetch course prerequisites
-  const { data: prerequisites = [] } = useQuery<Course[]>({
-    queryKey: [`/api/courses/${courseId}/prerequisites`],
-    enabled: !!courseId,
+  // Mutation for completing blocks
+  const blockCompletionMutation = useMutation({
+    mutationFn: async (blockId: number) => {
+      const res = await apiRequest("POST", `/api/blocks/${blockId}/complete`);
+      return res.json();
+    },
+    onSuccess: () => {
+      // Refresh progress data
+      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/blocks`] });
+    },
   });
 
   // Complete block mutation
@@ -279,6 +295,270 @@ export default function EnhancedCourseDetail() {
       </Layout>
     );
   }
+
+  return (
+    <Layout>
+      <div className="container mx-auto py-8">
+        {/* Course Header */}
+        <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {course.name}
+              </h1>
+              <p className="text-gray-600 mb-4">{course.description}</p>
+              <div className="flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  <span>
+                    {course.duration || course.estimatedDuration || "Self-paced"}
+                    {(course.duration || course.estimatedDuration) && " minutes"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Award className="h-4 w-4 text-green-600" />
+                  <span className="capitalize">
+                    {course.level || course.difficultyLevel || "Beginner"}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="lg:w-80">
+              <CourseProgressBar
+                units={units}
+                userProgress={userProgress}
+                unitAssessments={unitAssessments}
+                courseAssessments={courseAssessments}
+                blockCompletions={blockCompletions}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left Sidebar - Course Content */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                  Course Content
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-1">
+                  {/* Course-level assessments at the beginning */}
+                  {courseAssessments
+                    .filter(assessment => assessment.placement === "beginning")
+                    .map((assessment) => (
+                      <div
+                        key={`course-assessment-${assessment.id}`}
+                        className={`flex items-center gap-3 p-3 border-l-4 cursor-pointer transition-colors ${
+                          selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
+                            ? "bg-blue-50 border-l-blue-500"
+                            : "hover:bg-gray-50 border-l-transparent"
+                        }`}
+                        onClick={() => {
+                          setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
+                          setSelectedUnit(null);
+                          setSelectedBlock(null);
+                        }}
+                      >
+                        <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                        <span className="text-sm font-medium text-gray-900 truncate">
+                          {assessment.title}
+                        </span>
+                      </div>
+                    ))}
+
+                  {/* Units and their content */}
+                  {units.map((unit, unitIndex) => {
+                    const unitBlocks = learningBlocks.filter(block => block.unitId === unit.id);
+                    const unitSpecificAssessments = unitAssessments.filter(assessment => assessment.unitId === unit.id);
+                    const isUnitExpanded = selectedUnit?.id === unit.id;
+
+                    return (
+                      <div key={unit.id} className="border-b border-gray-100 last:border-b-0">
+                        {/* Unit Header */}
+                        <div
+                          className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
+                            isUnitExpanded ? "bg-blue-50" : "hover:bg-gray-50"
+                          }`}
+                          onClick={() => {
+                            if (isUnitExpanded) {
+                              setSelectedUnit(null);
+                            } else {
+                              setSelectedUnit(unit);
+                              // Auto-select first content item in unit
+                              const beginningAssessments = unitSpecificAssessments.filter(a => a.placement === "beginning");
+                              if (beginningAssessments.length > 0) {
+                                setSelectedContent({ type: "assessment", id: beginningAssessments[0].id, data: beginningAssessments[0] });
+                              } else if (unitBlocks.length > 0) {
+                                setSelectedContent({ type: "block", id: unitBlocks[0].id, data: unitBlocks[0] });
+                              }
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 text-xs font-semibold rounded-full">
+                              {unitIndex + 1}
+                            </span>
+                            <span className="font-medium text-gray-900">{unit.name}</span>
+                          </div>
+                          {isUnitExpanded ? (
+                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-gray-500" />
+                          )}
+                        </div>
+
+                        {/* Unit Content (when expanded) */}
+                        {isUnitExpanded && (
+                          <div className="pl-4 space-y-1">
+                            {/* Unit assessments at beginning */}
+                            {unitSpecificAssessments
+                              .filter(assessment => assessment.placement === "beginning")
+                              .map((assessment) => (
+                                <div
+                                  key={`unit-assessment-${assessment.id}`}
+                                  className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
+                                    selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
+                                      ? "bg-orange-50 text-orange-700"
+                                      : "hover:bg-gray-50"
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
+                                    setSelectedBlock(null);
+                                  }}
+                                >
+                                  <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                                  <span className="text-sm truncate">{assessment.title}</span>
+                                </div>
+                              ))}
+
+                            {/* Learning blocks */}
+                            {unitBlocks.map((block) => (
+                              <div
+                                key={`block-${block.id}`}
+                                className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
+                                  selectedContent?.type === "block" && selectedContent?.id === block.id
+                                    ? "bg-green-50 text-green-700"
+                                    : "hover:bg-gray-50"
+                                }`}
+                                onClick={() => {
+                                  setSelectedContent({ type: "block", id: block.id, data: block });
+                                  setSelectedBlock(block);
+                                }}
+                              >
+                                {block.type === "video" && <Play className="h-4 w-4 text-blue-600 flex-shrink-0" />}
+                                {block.type === "text" && <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />}
+                                {block.type === "scorm" && <Monitor className="h-4 w-4 text-purple-600 flex-shrink-0" />}
+                                {block.type === "interactive" && <Zap className="h-4 w-4 text-yellow-600 flex-shrink-0" />}
+                                <span className="text-sm truncate">{block.title}</span>
+                                {blockCompletions.some(completion => completion.blockId === block.id) && (
+                                  <CheckCircle className="h-4 w-4 text-green-600 ml-auto flex-shrink-0" />
+                                )}
+                              </div>
+                            ))}
+
+                            {/* Unit assessments at end */}
+                            {unitSpecificAssessments
+                              .filter(assessment => assessment.placement === "end")
+                              .map((assessment) => (
+                                <div
+                                  key={`unit-assessment-end-${assessment.id}`}
+                                  className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
+                                    selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
+                                      ? "bg-orange-50 text-orange-700"
+                                      : "hover:bg-gray-50"
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
+                                    setSelectedBlock(null);
+                                  }}
+                                >
+                                  <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                                  <span className="text-sm truncate">{assessment.title}</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Course-level assessments at the end */}
+                  {courseAssessments
+                    .filter(assessment => assessment.placement === "end")
+                    .map((assessment) => (
+                      <div
+                        key={`course-assessment-end-${assessment.id}`}
+                        className={`flex items-center gap-3 p-3 border-l-4 cursor-pointer transition-colors ${
+                          selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
+                            ? "bg-blue-50 border-l-blue-500"
+                            : "hover:bg-gray-50 border-l-transparent"
+                        }`}
+                        onClick={() => {
+                          setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
+                          setSelectedUnit(null);
+                          setSelectedBlock(null);
+                        }}
+                      >
+                        <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                        <span className="text-sm font-medium text-gray-900 truncate">
+                          {assessment.title}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Content Area */}
+          <div className="lg:col-span-3">
+            {selectedContent ? (
+              <div>
+                {selectedContent.type === "block" && selectedBlock && (
+                  <LearningBlockRenderer
+                    block={selectedBlock}
+                    onComplete={() => {
+                      // Handle block completion
+                      blockCompletionMutation.mutate(selectedBlock.id);
+                    }}
+                  />
+                )}
+                {selectedContent.type === "assessment" && (
+                  <ComprehensiveAssessment
+                    assessment={selectedContent.data}
+                    onComplete={() => {
+                      // Refresh data after assessment completion
+                      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+                      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/assessments`] });
+                    }}
+                  />
+                )}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Welcome to {course.name}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Select a unit or assessment from the course content to begin learning.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
 
   return (
     <Layout>
