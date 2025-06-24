@@ -181,16 +181,38 @@ export default function EnhancedCourseDetail() {
       const res = await apiRequest("POST", `/api/blocks/${blockId}/complete`, {});
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, blockId) => {
+      // Add completed block to local state immediately
+      setCompletedBlocks(prev => new Set(prev).add(blockId));
+      
+      // Invalidate and refetch progress data
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/block-completions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
+      
       // Move to next block or show assessment
-      if (blocks) {
+      if (blocks && blocks.length > 0) {
         const currentIndex = blocks.findIndex(b => b.id === activeBlockId);
         if (currentIndex < blocks.length - 1) {
-          setActiveBlockId(blocks[currentIndex + 1].id);
+          // Move to next block
+          const nextBlock = blocks[currentIndex + 1];
+          setActiveBlockId(nextBlock.id);
+          setSelectedBlock(nextBlock);
+          setSelectedContent({ type: "block", id: nextBlock.id, data: nextBlock });
         } else {
-          // Show unit assessments or end assessments
-          checkForAssessments();
+          // Check if there are more units to progress to
+          if (units && units.length > 0) {
+            const currentUnitIndex = units.findIndex(u => u.id === activeUnitId);
+            if (currentUnitIndex < units.length - 1) {
+              // Move to next unit
+              const nextUnit = units[currentUnitIndex + 1];
+              setActiveUnitId(nextUnit.id);
+              setSelectedUnit(nextUnit);
+            } else {
+              // Show unit assessments or end assessments
+              checkForAssessments();
+            }
+          }
         }
       }
     },
@@ -282,10 +304,59 @@ export default function EnhancedCourseDetail() {
   };
 
   const handleAssessmentComplete = (assessmentId: number) => {
+    // Add completed assessment to local state immediately
     setCompletedAssessments(prev => new Set(prev).add(assessmentId));
     setShowAssessment(false);
     setCurrentAssessment(null);
+    
+    // Invalidate and refetch progress data
     queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
+    queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/assessments`] });
+    
+    // Determine next action based on assessment type and placement
+    const completedAssessment = [...unitAssessments, ...courseAssessments].find(a => a.id === assessmentId);
+    
+    if (completedAssessment) {
+      if (completedAssessment.placement === "beginning") {
+        // After beginning assessment, start with first unit/block
+        if (units && units.length > 0) {
+          const firstUnit = units[0];
+          setActiveUnitId(firstUnit.id);
+          setSelectedUnit(firstUnit);
+          
+          // If unit has blocks, select first block
+          if (blocks && blocks.length > 0) {
+            const firstBlock = blocks[0];
+            setActiveBlockId(firstBlock.id);
+            setSelectedBlock(firstBlock);
+            setSelectedContent({ type: "block", id: firstBlock.id, data: firstBlock });
+          }
+        }
+      } else if (completedAssessment.placement === "end") {
+        // After end assessment, show completion state or move to next unit
+        if (units && units.length > 0) {
+          const currentUnitIndex = units.findIndex(u => u.id === activeUnitId);
+          if (currentUnitIndex < units.length - 1) {
+            // Move to next unit
+            const nextUnit = units[currentUnitIndex + 1];
+            setActiveUnitId(nextUnit.id);
+            setSelectedUnit(nextUnit);
+          }
+        }
+      } else {
+        // Regular unit assessment - continue with current flow
+        if (blocks && blocks.length > 0) {
+          const currentIndex = blocks.findIndex(b => b.id === activeBlockId);
+          if (currentIndex < blocks.length - 1) {
+            const nextBlock = blocks[currentIndex + 1];
+            setActiveBlockId(nextBlock.id);
+            setSelectedBlock(nextBlock);
+            setSelectedContent({ type: "block", id: nextBlock.id, data: nextBlock });
+          }
+        }
+      }
+    }
   };
 
   const handleCompleteBlock = (blockId: number) => {
@@ -518,50 +589,73 @@ export default function EnhancedCourseDetail() {
                               ))}
 
                             {/* Learning blocks */}
-                            {unitBlocks.map((block) => (
-                              <div
-                                key={`block-${block.id}`}
-                                className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
-                                  selectedContent?.type === "block" && selectedContent?.id === block.id
-                                    ? "bg-green-50 text-green-700"
-                                    : "hover:bg-gray-50"
-                                }`}
-                                onClick={() => {
-                                  setSelectedContent({ type: "block", id: block.id, data: block });
-                                  setSelectedBlock(block);
-                                }}
-                              >
-                                {block.type === "video" && <Play className="h-4 w-4 text-blue-600 flex-shrink-0" />}
-                                {block.type === "text" && <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />}
-                                {block.type === "scorm" && <Monitor className="h-4 w-4 text-purple-600 flex-shrink-0" />}
-                                {block.type === "interactive" && <Zap className="h-4 w-4 text-yellow-600 flex-shrink-0" />}
-                                <span className="text-sm truncate">{block.title}</span>
-                                {blockCompletions.some(completion => completion.blockId === block.id) && (
-                                  <CheckCircle className="h-4 w-4 text-green-600 ml-auto flex-shrink-0" />
-                                )}
-                              </div>
-                            ))}
+                            {unitBlocks.map((block) => {
+                              const isCompleted = completedBlocks.has(block.id);
+                              const isSelected = selectedContent?.type === "block" && selectedContent?.id === block.id;
+                              
+                              return (
+                                <div
+                                  key={`block-${block.id}`}
+                                  className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
+                                    isSelected
+                                      ? "bg-green-50 text-green-700 border-l-2 border-green-500"
+                                      : isCompleted
+                                      ? "bg-gray-50 text-gray-600"
+                                      : "hover:bg-gray-50"
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedContent({ type: "block", id: block.id, data: block });
+                                    setSelectedBlock(block);
+                                  }}
+                                >
+                                  {block.type === "video" && <Play className="h-4 w-4 text-blue-600 flex-shrink-0" />}
+                                  {block.type === "text" && <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />}
+                                  {block.type === "scorm" && <Monitor className="h-4 w-4 text-purple-600 flex-shrink-0" />}
+                                  {block.type === "interactive" && <Zap className="h-4 w-4 text-yellow-600 flex-shrink-0" />}
+                                  <span className={`text-sm truncate ${isCompleted ? 'line-through' : ''}`}>
+                                    {block.title}
+                                  </span>
+                                  {isCompleted && (
+                                    <CheckCircle className="h-4 w-4 text-green-600 ml-auto flex-shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })}
 
                             {/* Unit assessments at end */}
                             {unitSpecificAssessments
                               .filter(assessment => assessment.placement === "end")
-                              .map((assessment) => (
-                                <div
-                                  key={`unit-${unit.id}-end-assessment-${assessment.id}`}
-                                  className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
-                                    selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
-                                      ? "bg-orange-50 text-orange-700"
-                                      : "hover:bg-gray-50"
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
-                                    setSelectedBlock(null);
-                                  }}
-                                >
-                                  <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                                  <span className="text-sm truncate">{assessment.title}</span>
-                                </div>
-                              ))}
+                              .map((assessment) => {
+                                const isCompleted = completedAssessments.has(assessment.id);
+                                const isSelected = selectedContent?.type === "assessment" && selectedContent?.id === assessment.id;
+                                
+                                return (
+                                  <div
+                                    key={`unit-${unit.id}-end-assessment-${assessment.id}`}
+                                    className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
+                                      isSelected
+                                        ? "bg-orange-50 text-orange-700 border-l-2 border-orange-500"
+                                        : isCompleted
+                                        ? "bg-gray-50 text-gray-600"
+                                        : "hover:bg-gray-50"
+                                    }`}
+                                    onClick={() => {
+                                      if (!isCompleted) {
+                                        setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
+                                        setSelectedBlock(null);
+                                      }
+                                    }}
+                                  >
+                                    <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                                    <span className={`text-sm truncate ${isCompleted ? 'line-through' : ''}`}>
+                                      {assessment.title}
+                                    </span>
+                                    {isCompleted && (
+                                      <CheckCircle className="h-4 w-4 text-green-600 ml-auto flex-shrink-0" />
+                                    )}
+                                  </div>
+                                );
+                              })}
                           </div>
                         )}
                       </div>
@@ -623,23 +717,33 @@ export default function EnhancedCourseDetail() {
                         </div>
                       )}
                       <div className="mt-6">
-                        <Button
-                          onClick={() => blockCompletionMutation.mutate(selectedBlock.id)}
-                          disabled={blockCompletionMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {blockCompletionMutation.isPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Completing...
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Complete Block
-                            </>
-                          )}
-                        </Button>
+                        {completedBlocks.has(selectedBlock.id) ? (
+                          <Button
+                            disabled
+                            className="bg-green-600 text-white cursor-not-allowed opacity-75"
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Block Completed
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => completeBlockMutation.mutate(selectedBlock.id)}
+                            disabled={completeBlockMutation.isPending}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {completeBlockMutation.isPending ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Completing...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Complete Block
+                              </>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -647,11 +751,7 @@ export default function EnhancedCourseDetail() {
                 {selectedContent.type === "assessment" && (
                   <ComprehensiveAssessment
                     assessment={selectedContent.data}
-                    onComplete={() => {
-                      // Refresh data after assessment completion
-                      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
-                      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/assessments`] });
-                    }}
+                    onComplete={() => handleAssessmentComplete(selectedContent.id)}
                   />
                 )}
               </div>

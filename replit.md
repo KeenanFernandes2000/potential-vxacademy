@@ -114,6 +114,13 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 24, 2025: Enhanced Course Completion and Assessment Flow Complete
+  - Fixed course completion to properly disable buttons and show completed state
+  - Enhanced assessment completion to automatically open next learning block or unit
+  - Added visual completion indicators with checkmarks and strikethrough text for completed items
+  - Implemented automatic progress updates and cache invalidation for real-time UI updates
+  - Enhanced sidebar navigation with completion status and visual feedback
+  - Course and assessment completion now provides seamless progression through learning content
 - June 24, 2025: Course Assessment Duplication Fix Complete
   - Removed duplicate course assessment rendering causing same assessment to appear twice
   - Consolidated assessment display logic to prevent redundant UI elements
