@@ -251,9 +251,7 @@ export function ImageUpload({
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Image URL: {value}
-          </p>
+          
         </div>
       )}
 
