@@ -71,7 +71,7 @@ export function BulkUploadDialog({
   const handleDownloadTemplate = () => {
     // Create a download link for the Excel template
     const link = document.createElement('a');
-    link.href = '/api/admin/users/template';
+    link.href = '/assets/VX Academy Import Format.xlsx';
     link.download = 'VX_Academy_Import_Format.xlsx';
     document.body.appendChild(link);
     link.click();
@@ -184,8 +184,15 @@ export function BulkUploadDialog({
           {/* Instructions */}
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Make sure your Excel file follows the template format. Invalid data will be skipped during import.
+            <AlertDescription className="space-y-2">
+              <div><strong>Excel Format Requirements:</strong></div>
+              <ul className="text-sm space-y-1 ml-4">
+                <li>• Row 1 must contain headers that map to user fields</li>
+                <li>• Required fields: First Name, Email</li>
+                <li>• Optional fields: Last Name, Username, Password, Role, Language, Assets, etc.</li>
+                <li>• If no password is provided, email will be used as the password</li>
+                <li>• Invalid rows will be skipped with detailed error reporting</li>
+              </ul>
             </AlertDescription>
           </Alert>
         </div>

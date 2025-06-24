@@ -144,7 +144,7 @@ export default function UserManagementPage() {
 
   const bulkUploadMutation = useMutation({
     mutationFn: (formData: FormData) => 
-      fetch("/api/admin/users/upload", {
+      fetch("/api/admin/users/upload-excel", {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -156,10 +156,22 @@ export default function UserManagementPage() {
         return res.json();
       }),
     onSuccess: (result: any) => {
+      const successMessage = result.failed > 0 
+        ? `Created ${result.created} users successfully. ${result.failed} users failed to create.`
+        : `Successfully created ${result.created} users from Excel file.`;
+      
       toast({
-        title: "Upload successful",
-        description: `Successfully uploaded ${result.count} users`,
+        title: "Excel Upload Complete",
+        description: successMessage,
+        variant: result.failed > 0 ? "default" : "default",
       });
+      
+      // Show detailed results if there were failures
+      if (result.failed > 0 && result.failedUsers?.length > 0) {
+        console.log("Failed users:", result.failedUsers);
+        // You could show a detailed dialog here if needed
+      }
+      
       setIsBulkUploadOpen(false);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
     },
@@ -250,10 +262,8 @@ export default function UserManagementPage() {
     bulkCreateUsersMutation.mutate(data);
   };
 
-  const handleBulkUploadSubmit = (data: { file: File }) => {
-    const formData = new FormData();
-    formData.append("file", data.file);
-    // No default values - Excel template is the single source of truth
+  const handleBulkUploadSubmit = (formData: FormData) => {
+    // FormData is already properly constructed in the dialog
     bulkUploadMutation.mutate(formData);
   };
 

@@ -951,7 +951,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: `You scored ${score}% on "${assessment.title}". ${attemptsRemaining > 0 ? `You have ${attemptsRemaining} attempts remaining.` : 'No attempts remaining.'}`,
             read: false
           });
-        } catch (error) {
+        } catch (error)```python
+{
           console.log("Note: Could not create notification - table may not exist yet");
         }
       }
