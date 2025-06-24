@@ -512,26 +512,114 @@ export default function LearningBlocksManagement() {
 
                   <FormField
                     control={form.control}
+                    name="trainingAreaId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Training Area <span className="text-red-500">*</span></FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("moduleId", "");
+                            form.setValue("courseId", "");
+                            form.setValue("unitId", "");
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select training area" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {trainingAreas?.map((area) => (
+                              <SelectItem key={area.id} value={area.id.toString()}>
+                                {area.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="moduleId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Module <span className="text-red-500">*</span></FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("courseId", "");
+                            form.setValue("unitId", "");
+                          }}
+                          value={field.value}
+                          disabled={!form.watch("trainingAreaId")}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select module" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {modules?.filter(m => m.trainingAreaId.toString() === form.watch("trainingAreaId"))?.map((module) => (
+                              <SelectItem key={module.id} value={module.id.toString()}>
+                                {module.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="courseId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Course <span className="text-red-500">*</span></FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("unitId", "");
+                          }}
+                          value={field.value}
+                          disabled={!form.watch("moduleId")}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select course" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.map((course) => (
+                              <SelectItem key={course.id} value={course.id.toString()}>
+                                {course.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="unitId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Unit</FormLabel>
+                        <FormLabel>Unit <span className="text-red-500">*</span></FormLabel>
                         <Select
                           onValueChange={(value) => {
-                            // Make sure we have a valid number to parse
-                            if (value) {
-                              const unitId = parseInt(value);
-                              if (!isNaN(unitId)) {
-                                field.onChange(unitId);
-                                // Also update the selected unit for filtering
-                                if (!editingBlock) {
-                                  setSelectedUnitId(unitId);
-                                }
-                              }
-                            }
+                            field.onChange(parseInt(value));
                           }}
-                          defaultValue={field.value?.toString() || ""}
                           value={field.value?.toString() || ""}
+                          disabled={!form.watch("courseId")}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -544,7 +632,14 @@ export default function LearningBlocksManagement() {
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               </div>
                             ) : (
-                              units?.map((unit) => (
+                              units?.filter(unit => {
+                                // Filter units based on selected course
+                                if (form.watch("courseId")) {
+                                  const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId.toString()) || [];
+                                  return unitCourses.includes(form.watch("courseId"));
+                                }
+                                return false;
+                              })?.map((unit) => (
                                 <SelectItem
                                   key={unit.id}
                                   value={unit.id.toString()}
@@ -565,7 +660,7 @@ export default function LearningBlocksManagement() {
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Content Type</FormLabel>
+                        <FormLabel>Content Type <span className="text-red-500">*</span></FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -667,13 +762,28 @@ export default function LearningBlocksManagement() {
                       control={form.control}
                       name="imageUrl"
                       render={({ field }) => (
-                        <ImageUpload
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          label="Learning Block Image"
-                          placeholder="Image URL (will be set automatically after upload)"
-                          disabled={createMutation.isPending || updateMutation.isPending}
-                        />
+                        <FormItem>
+                          <FormLabel>Image Upload</FormLabel>
+                          <FormControl>
+                            <div className="w-full">
+                              <ImageUpload
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                placeholder="Upload an image for this learning block"
+                              />
+                              {field.value && (
+                                <div className="mt-2 p-2 border rounded-md bg-gray-50">
+                                  <img
+                                    src={field.value}
+                                    alt="Preview"
+                                    className="max-w-full h-32 object-contain rounded"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )}
                     />
                   )}

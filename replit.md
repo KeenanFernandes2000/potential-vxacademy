@@ -114,6 +114,15 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 24, 2025: Comprehensive Website-Wide Form Fixes Implementation Complete
+  - Implemented unique order number validation across Units, Learning Blocks, and Questions with backend API validation
+  - Added required field indicators (*) to all form fields in admin interface for better user guidance
+  - Enhanced hierarchical dropdown dependencies for Training Areas → Modules → Courses → Units throughout system
+  - Fixed popup behavior in User and Role Management forms with proper unsaved changes dialog
+  - Improved image sizing and validation with proper preview functionality in Learning Blocks
+  - Enhanced form validation schemas with Zod for consistent error handling across all admin forms
+  - Updated Assessment forms with proper context dropdowns and dependent field filtering
+  - Created UnsavedChangesDialog component for better form interaction experience
 - June 24, 2025: Final Progress Logic and Certificate Assignment Implementation Complete
   - Implemented real-time course progress bar with dynamic calculation based on completed blocks and assessments
   - Enhanced assessment completion to show disabled "Completed" state and prevent re-submission
