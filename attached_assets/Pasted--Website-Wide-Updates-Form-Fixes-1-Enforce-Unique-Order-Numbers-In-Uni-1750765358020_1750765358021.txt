@@ -1,0 +1,72 @@
+## 🌐 Website-Wide Updates & Form Fixes
+
+---
+
+### 🔢 1. Enforce Unique Order Numbers
+- In **Units** and **Learning Blocks**, ensure the **Display Order** field value cannot be duplicated.
+- If a duplicate is entered, show a clear validation error like:  
+  `"Order number must be unique."`
+
+---
+
+### 🧩 2. Add Required Dropdowns for Context Selection
+- **Unit and Assessment pages** must include:
+  - Training Area (dropdown, required)
+  - Module (dropdown, required)
+  - Unit (dropdown, required for Assessment page only)
+- These dropdowns must be **required** and validated.
+
+---
+
+### 🖼️ 3. Image Size Fit on “Add New” Forms
+- On **all Add New forms** across the site:
+  - Ensure uploaded images are **properly sized** and **fit within the designated preview area**
+  - Apply consistent styling across all pages
+
+---
+
+### 📥 4. Make Dropdowns Required
+- The following dropdowns must be marked as **required**:
+  - Training Area
+  - Module
+  - Course
+  - Unit
+- Ensure users **cannot submit** the form unless these are selected.
+
+---
+
+### ♻️ 5. Reset Form on Edit
+- On all pages where Edit is available (e.g., Units, Modules, Users):
+  - When editing and then cancelling or switching to a new edit, **reset the form** to clear previous values.
+
+---
+
+### ⏱️ 6. Duration Field Validation
+- On all forms with a **Duration** field:
+  - The value must be **greater than 0**
+  - If the user tries to enter `0`, show a validation error:
+    `"Duration must be greater than 0 minutes."`
+
+---
+
+### 🔎 7. Unit Page Filter Dependencies
+- On the **Units page**, the **Course filter** should be:
+  - Dynamically filtered by the selected **Training Area** and **Module**
+  - Show only the courses that belong to both selected values
+
+---
+
+### 🔒 8. Popup Behavior on User & Role Management Pages
+- On **User Management** and **Role Management** pages:
+  - Prevent popups from closing **when clicking outside** if the form has unsaved changes
+  - Prompt the user:
+    `"You have unsaved changes. Do you want to discard them?"`
+  - Ensure popups handle **scroll overflow properly**:
+    - Content inside the popup should scroll
+    - Not the entire page
+
+---
+
+### ✅ Goal:
+- Form experience should be stricter, clearer, and more consistent across the platform.
+- Popups and dropdowns behave predictably and safely for the user.
