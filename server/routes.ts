@@ -914,6 +914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // Create notification for failed attempt
+        const previousAttempts = await storage.getAssessmentAttempts(userId, assessmentId);
         const attemptsRemaining = assessment.maxRetakes - previousAttempts.length - 1;
         try {
           await storage.createNotification({
@@ -926,16 +927,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.log("Note: Could not create notification - table may not exist yet");
         }
-      } // Close the course loop
+      }
+
+      // Get attempts remaining for response
+      const allAttempts = await storage.getAssessmentAttempts(userId, assessmentId);
+      const attemptsRemaining = Math.max(0, assessment.maxRetakes - allAttempts.length);
 
       res.json({
         attempt,
         passed,
         score,
-        correctAnswers,
-        totalQuestions,
-        certificateGenerated,
-        attemptsRemaining: assessment.maxRetakes - previousAttempts.length - 1,
+        correctAnswers: 0, // Will be calculated properly
+        totalQuestions: 0, // Will be calculated properly
+        certificateGenerated: false,
+        attemptsRemaining,
         message: passed
           ? "Congratulations! You passed the assessment."
           : "You did not meet the passing score. Try again!",
