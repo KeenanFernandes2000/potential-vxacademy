@@ -114,6 +114,17 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 24, 2025: Comprehensive Bulk Excel Upload with Header-Based Validation Implementation Complete
+  - Implemented header-based Excel parsing using row 1 as headers and data processing starting from row 2
+  - Added comprehensive validation for all 10 required fields: First name*, Last name*, Email Address*, Language*, Nationality*, Years of Experience*, Asset*, Role Category*, Seniority*, Organization Name* (Sub-Category optional)
+  - Created robust dropdown value validation against predefined lists for Language, Asset, Role Category, Seniority, and Years of Experience
+  - Implemented duplicate detection by both email and username with detailed error reporting per row
+  - Added automatic password generation from email prefix (e.g., john.doe@company.com becomes username: john.doe, password: john.doe)
+  - Enhanced Excel template download functionality with proper header structure for admin users
+  - Integrated detailed success/failure reporting showing row numbers and specific validation errors
+  - Fixed getUserByEmail method in DatabaseStorage for proper duplicate detection
+  - Updated bulk upload mutation in frontend with enhanced error handling and detailed feedback
+  - System now processes Excel files row by row, validates each field, and provides comprehensive upload summary
 - June 24, 2025: Comprehensive Website-Wide Form Fixes Implementation Complete
   - Implemented unique order number validation across Units, Learning Blocks, and Questions with backend API validation
   - Added required field indicators (*) to all form fields in admin interface for better user guidance

@@ -1633,30 +1633,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload users via Excel file (admin and sub-admin)
-  app.post(
-    "/api/admin/users/upload-excel",
-    requireAdminOrSubAdmin,
-    async (req, res) => {
-      uploadExcel(req, res, async (err) => {
-        if (err) {
-          console.error("Excel upload error:", err);
-          return res.status(400).json({ message: err.message });
-        }
-
-        try {
-          // Process the Excel file and create users
-          await processExcelUpload(req, res, storage);
-        } catch (error) {
-          console.error("Error processing Excel upload:", error);
-          return res.status(500).json({
-            message: "Failed to process Excel file",
-            error: error instanceof Error ? error.message : "Unknown error",
-          });
-        }
-      });
-    },
-  );
+  // Redirect old upload endpoint to new one for compatibility
+  app.post("/api/admin/users/upload-excel", requireAdminOrSubAdmin, uploadExcel, (req: Request, res: Response) => {
+    processExcelUpload(req, res, storage);
+  });
 
   // Create multiple users in bulk (admin and sub-admin)
   app.post(
@@ -2740,6 +2720,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting notification:", error);
       res.status(500).json({ message: "Error deleting notification" });
+    }
+  });
+
+  // Excel upload endpoint for users
+  app.post("/api/admin/users/bulk-upload", requireAdminOrSubAdmin, uploadExcel, (req: Request, res: Response) => {
+    processExcelUpload(req, res, storage);
+  });
+
+  // Excel template download endpoint
+  app.get("/api/admin/users/template", requireAdminOrSubAdmin, (req: Request, res: Response) => {
+    const templatePath = path.join(__dirname, "../attached_assets/VX_Academy_Import_Format.xlsx");
+    if (fs.existsSync(templatePath)) {
+      res.download(templatePath, "VX_Academy_Import_Template.xlsx");
+    } else {
+      res.status(404).json({ message: "Template file not found" });
     }
   });
 
