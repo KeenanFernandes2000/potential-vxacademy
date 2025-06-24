@@ -26,33 +26,33 @@ async function comparePasswords(supplied: string, stored: string) {
     if (stored === "admin_special_password" && supplied === "password") {
       return true;
     }
-    
+
     // Check if stored password is in bcrypt format (starts with $2b$)
     if (stored.startsWith("$2b$")) {
       return await bcrypt.compare(supplied, stored);
     }
-    
+
     // Legacy scrypt format (hash.salt)
     if (stored.includes(".")) {
       const [hashed, salt] = stored.split(".");
-      
+
       if (!hashed || !salt) {
         console.error("Invalid stored password format - missing hash or salt");
         return false;
       }
-      
+
       const hashedBuf = Buffer.from(hashed, "hex");
       const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-      
+
       // Ensure both buffers have the same length before comparison
       if (hashedBuf.length !== suppliedBuf.length) {
         console.error(`Password buffer length mismatch: stored=${hashedBuf.length}, supplied=${suppliedBuf.length}`);
         return false;
       }
-      
+
       return timingSafeEqual(hashedBuf, suppliedBuf);
     }
-    
+
     console.error("Unknown password format:", stored.substring(0, 10) + "...");
     return false;
   } catch (error) {
@@ -88,7 +88,7 @@ export function setupAuth(app: Express) {
           // Check all user roles to find user by email
           const allRoles = ["admin", "sub-admin", "user"];
           let user = null;
-          
+
           for (const role of allRoles) {
             const usersWithRole = await storage.getUsersByRole(role);
             const foundUser = usersWithRole.find(u => u.email === email);
@@ -97,7 +97,7 @@ export function setupAuth(app: Express) {
               break;
             }
           }
-          
+
           if (!user || !(await comparePasswords(password, user.password))) {
             return done(null, false);
           } else {
@@ -115,6 +115,19 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     const user = await storage.getUser(id);
     done(null, user);
+  });
+
+  // Check if user is authenticated middleware
+  app.use((req, res, next) => {
+    req.isAuthenticated = () => {
+      return !!(req.session && req.session.userId && req.session.user);
+    };
+
+    if (req.session && req.session.userId && req.session.user) {
+      req.user = req.session.user;
+    }
+
+    next();
   });
 
   // Authentication check endpoint
@@ -142,7 +155,7 @@ export function setupAuth(app: Express) {
         ...await storage.getUsersByRole("admin"),
         ...await storage.getUsersByRole("sub-admin")
       ];
-      
+
       const emailExists = allUsers.some(user => user.email === email);
       if (emailExists) {
         return res.status(400).json({ message: "Email address already in use" });
@@ -178,23 +191,44 @@ export function setupAuth(app: Express) {
     passport.authenticate("local", (err: Error | null, user: any, info: any) => {
       if (err) return next(err);
       if (!user) return res.status(401).json({ message: "Invalid email or password" });
-      
+
       req.login(user, (err: Error | null) => {
         if (err) return next(err);
-        
-        // Force session save to ensure it persists immediately
+
+        // Set session data
+        req.session.userId = user.id;
+        req.session.user = {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+          xpPoints: user.xpPoints || 0,
+          avatar: user.avatar,
+          language: user.language,
+          nationality: user.nationality,
+          yearsOfExperience: user.yearsOfExperience,
+          assets: user.assets,
+          roleCategory: user.roleCategory,
+          subCategory: user.subCategory,
+          seniority: user.seniority,
+          organizationName: user.organizationName,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
+        };
+
+        // Save session explicitly and regenerate session ID for security
         req.session.save((err) => {
           if (err) {
-            console.error("Error saving session:", err);
-            return next(err);
+            console.error('Session save error:', err);
+            return res.status(500).json({ message: "Session error" });
           }
-          
-          console.log("Session saved successfully", req.sessionID);
-          console.log("User is authenticated:", req.isAuthenticated());
-          
-          // Remove password from response
+
+          console.log('Session saved successfully. User ID:', req.session.userId, 'Session ID:', req.sessionID);
           const { password, ...userWithoutPassword } = user;
-          res.status(200).json(userWithoutPassword);
+          res.json(userWithoutPassword);
         });
       });
     })(req, res, next);
@@ -207,11 +241,22 @@ export function setupAuth(app: Express) {
     });
   });
 
+  // Get current user
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
-    // Remove password from response
-    const { password, ...userWithoutPassword } = req.user as SelectUser;
+    console.log('GET /api/user - Session check:', {
+      sessionExists: !!req.session,
+      userId: req.session?.userId,
+      userExists: !!req.session?.user,
+      sessionID: req.sessionID,
+      isAuthenticated: req.isAuthenticated()
+    });
+
+    if (!req.isAuthenticated()) {
+      console.log('User not authenticated - Session details:', req.session);
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { password, ...userWithoutPassword } = req.user!;
     res.json(userWithoutPassword);
   });
 }
