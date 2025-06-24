@@ -1,0 +1,59 @@
+## 📥 Bulk Excel Upload: User Creation via Sheet Headers
+
+---
+
+### 📄 Excel Header Format (Row 1)
+
+The uploaded Excel sheet should contain the following headers (exact match):
+
+| Excel Header             | Required | Maps to DB Field        |
+|--------------------------|----------|--------------------------|
+| First name*              | ✅       | `firstName`              |
+| Last name*               | ✅       | `lastName`               |
+| Email Address*           | ✅       | `email`                  |
+| Language*                | ✅       | `language`               |
+| Nationality*             | ✅       | `nationality`            |
+| Years of Experience*     | ✅       | `experienceYears`        |
+| Asset*                   | ✅       | `assets` (can be array)  |
+| Role Category*           | ✅       | `roleCategory`           |
+| Sub-Category             | ❌       | `subCategory`            |
+| Seniority*               | ✅       | `seniority`              |
+| Organization Name*       | ✅       | `organizationName`       |
+
+---
+
+### 🧠 Task Instructions
+
+1. **Read the Excel File**
+   - Use a library like `xlsx` to parse the uploaded `.xlsx` file.
+   - Treat **row 1 as headers** — map them to the appropriate DB fields as shown above.
+
+2. **Iterate Through Each Row**
+   - For each row, extract values using the header mapping.
+   - Validate all fields marked as `Required`.
+   - Format fields like `Asset` to match DB structure (e.g. array or ID).
+
+3. **Create Users**
+   - Insert each valid row as a new user record in the database.
+   - Skip any row missing required fields and log why it failed.
+
+4. **Return a Summary**
+   - Number of successful inserts
+   - List of rows skipped with reasons (missing fields, email already exists, etc.)
+
+---
+
+### 🛑 Validation Rules
+
+- Do not allow user creation if any `Required` field is empty
+- Validate email format and uniqueness
+- Normalize case (e.g. language, nationality) before storing
+- Ensure dropdown values (like `Seniority`, `Language`) match allowed options
+
+---
+
+### ✅ Final Goal
+
+- Admin uploads an Excel sheet
+- All valid users are created and saved to DB
+- Admin receives feedback on success/failure per row

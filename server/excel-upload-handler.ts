@@ -62,15 +62,11 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
       return res.status(400).json({ message: "No file uploaded" });
     }
     
-    // Remove default values - all data comes from Excel template
-    console.log("Processing Excel upload with template as single source of truth");
+    console.log("Processing Excel upload with header-based validation");
     
-    // Read Excel file using the read method
+    // Read Excel file
     const fileBuffer = fs.readFileSync(req.file.path);
-    console.log("File read successfully. File size:", fileBuffer.length, "bytes");
-    
     const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
-    console.log("XLSX parsed successfully. Sheet names:", workbook.SheetNames);
     
     if (workbook.SheetNames.length === 0) {
       return res.status(400).json({ message: "Excel file does not contain any sheets" });
@@ -78,131 +74,220 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
     
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    console.log("Using sheet:", sheetName);
     
-    const data = XLSX.utils.sheet_to_json(worksheet);
-    console.log("Parsed data from sheet. Row count:", data.length);
+    // Parse data with headers as first row
+    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
     
-    if (!data || data.length === 0) {
-      // Delete the uploaded file
+    if (!data || data.length < 2) {
       fs.unlinkSync(req.file.path);
-      return res.status(400).json({ message: "No data found in the uploaded file" });
+      return res.status(400).json({ message: "File must contain at least a header row and one data row" });
+    }
+    
+    const headers = data[0] as string[];
+    const rows = data.slice(1) as any[][];
+    
+    console.log("Headers found:", headers);
+    console.log("Data rows count:", rows.length);
+    
+    // Required field mappings based on exact headers
+    const requiredHeaders = {
+      'First name': ['First name', 'firstName', 'First Name', 'FIRST NAME'],
+      'Last name': ['Last name', 'lastName', 'Last Name', 'LAST NAME'],
+      'Email Address': ['Email Address', 'email', 'Email', 'EMAIL'],
+      'Language': ['Language', 'language', 'LANGUAGE'],
+      'Nationality': ['Nationality', 'nationality', 'NATIONALITY'],
+      'Years of Experience': ['Years of Experience', 'yearsOfExperience', 'Experience'],
+      'Asset': ['Asset', 'assets', 'Asset Category'],
+      'Role Category': ['Role Category', 'roleCategory', 'Job Role'],
+      'Seniority': ['Seniority', 'seniority', 'Seniority Level'],
+      'Organization Name': ['Organization Name', 'organizationName', 'Organization']
+    };
+    
+    // Find header indices
+    const headerIndices: { [key: string]: number } = {};
+    
+    for (const [requiredField, variations] of Object.entries(requiredHeaders)) {
+      const foundIndex = headers.findIndex(header => 
+        variations.some(variation => 
+          header && header.toLowerCase().trim() === variation.toLowerCase().trim()
+        )
+      );
+      if (foundIndex !== -1) {
+        headerIndices[requiredField] = foundIndex;
+      }
+    }
+    
+    // Check for missing required headers
+    const missingHeaders = Object.keys(requiredHeaders).filter(field => 
+      headerIndices[field] === undefined
+    );
+    
+    if (missingHeaders.length > 0) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ 
+        message: `Missing required headers: ${missingHeaders.join(', ')}. Found headers: ${headers.join(', ')}` 
+      });
     }
     
     const createdUsers = [];
     const failedUsers = [];
     
-    // Process each row in the Excel file
-    for (const rowData of data) {
+    // Validation patterns
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const validLanguages = ['Arabic', 'English', 'Urdu', 'Hindi', 'Tagalog', 'Bengali', 'Malayalam', 'Tamil', 'Farsi'];
+    const validAssets = ['Museum', 'Culture site', 'Events', 'Mobility operators', 'Airports', 'Cruise terminals', 'Hospitality', 'Malls', 'Tour Guides & operators', 'Visitor information centers', 'Entertainment & Attractions'];
+    const validRoleCategories = ['Transport and parking staff', 'Welcome staff', 'Ticketing staff', 'Information desk staff', 'Guides', 'Events staff', 'Security personnel', 'Retail staff', 'F&B staff', 'Housekeeping & janitorial', 'Customer service', 'Emergency & medical services', 'Media and public relations', 'Logistics', 'Recreation and entertainment'];
+    const validSeniority = ['Manager', 'Staff'];
+    const validExperience = ['Less than 1 year', '1-5 years', '5-10 years', '10+ years'];
+    
+    // Process each data row
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowNumber = i + 2; // Account for header row and 0-based index
+      
       try {
-        const row = rowData as any;
+        // Extract required fields using header indices
+        const firstName = row[headerIndices['First name']]?.toString().trim();
+        const lastName = row[headerIndices['Last name']]?.toString().trim();
+        const email = row[headerIndices['Email Address']]?.toString().trim();
+        const language = row[headerIndices['Language']]?.toString().trim();
+        const nationality = row[headerIndices['Nationality']]?.toString().trim();
+        const yearsOfExperience = row[headerIndices['Years of Experience']]?.toString().trim();
+        const asset = row[headerIndices['Asset']]?.toString().trim();
+        const roleCategory = row[headerIndices['Role Category']]?.toString().trim();
+        const seniority = row[headerIndices['Seniority']]?.toString().trim();
+        const organizationName = row[headerIndices['Organization Name']]?.toString().trim();
         
-        // Enhanced column mapping for VX Academy Import Format
-        const firstName = row.firstName || row.FirstName || row['First Name'] || row['first_name'] || row['First name'] || row['FIRST NAME'] || row['Employee First Name'] || row['Given Name'];
-        const lastName = row.lastName || row.LastName || row['Last Name'] || row['last_name'] || row['Last name'] || row['LAST NAME'] || row['Employee Last Name'] || row['Family Name'] || row['Surname'];
-        const fullName = row.name || row.Name || row['Full Name'] || row['full_name'] || row['FULL NAME'] || row['Employee Name'] || row['User Name'] || row['Display Name'] || row['Complete Name'];
-        const email = row.email || row.Email || row['Email Address'] || row['E-mail'] || row['EMAIL'] || row['Email ID'] || row['Work Email'] || row['Business Email'] || row['Corporate Email'];
-        const username = row.username || row.Username || row['User Name'] || row['USERNAME'] || row['Login ID'] || row['Employee ID'] || row['User ID'] || row['Login Name'];
+        // Optional field
+        const subCategory = headerIndices['Sub-Category'] !== undefined ? 
+          row[headerIndices['Sub-Category']]?.toString().trim() : '';
         
-        // If we have a full name but no first/last, try to split it
-        let finalFirstName = firstName;
-        let finalLastName = lastName;
+        // Validation checks
+        const validationErrors = [];
         
-        if (!firstName && !lastName && fullName) {
-          const nameParts = fullName.trim().split(' ');
-          finalFirstName = nameParts[0] || '';
-          finalLastName = nameParts.slice(1).join(' ') || '';
-        }
+        if (!firstName) validationErrors.push('First name is required');
+        if (!lastName) validationErrors.push('Last name is required');
+        if (!email) validationErrors.push('Email Address is required');
+        else if (!emailRegex.test(email)) validationErrors.push('Invalid email format');
+        if (!language) validationErrors.push('Language is required');
+        else if (!validLanguages.includes(language)) validationErrors.push(`Invalid language. Must be one of: ${validLanguages.join(', ')}`);
+        if (!nationality) validationErrors.push('Nationality is required');
+        if (!yearsOfExperience) validationErrors.push('Years of Experience is required');
+        else if (!validExperience.includes(yearsOfExperience)) validationErrors.push(`Invalid experience. Must be one of: ${validExperience.join(', ')}`);
+        if (!asset) validationErrors.push('Asset is required');
+        else if (!validAssets.includes(asset)) validationErrors.push(`Invalid asset. Must be one of: ${validAssets.join(', ')}`);
+        if (!roleCategory) validationErrors.push('Role Category is required');
+        else if (!validRoleCategories.includes(roleCategory)) validationErrors.push(`Invalid role category. Must be one of: ${validRoleCategories.join(', ')}`);
+        if (!seniority) validationErrors.push('Seniority is required');
+        else if (!validSeniority.includes(seniority)) validationErrors.push(`Invalid seniority. Must be one of: ${validSeniority.join(', ')}`);
+        if (!organizationName) validationErrors.push('Organization Name is required');
         
-        console.log("Processing user row:", { originalRow: row, extractedFirstName: finalFirstName, extractedLastName: finalLastName, extractedEmail: email });
-        
-        if (!finalFirstName || !email) {
+        if (validationErrors.length > 0) {
           failedUsers.push({
-            name: `${finalFirstName} ${finalLastName}`.trim(),
+            row: rowNumber,
+            name: `${firstName || ''} ${lastName || ''}`.trim() || 'Unknown',
             email: email || '',
-            error: `Missing required fields (firstName or email). Found columns: ${Object.keys(row).join(', ')}`
+            error: validationErrors.join('; ')
           });
           continue;
         }
         
-        // Use username from Excel if provided, otherwise use email
-        const finalUsername = username || email;
-        
-        // Check if username already exists
-        console.log(`Checking if user with username ${finalUsername} already exists`);
-        
-        const existingUser = await storage.getUserByUsername(finalUsername);
+        // Check for duplicate email
+        const existingUser = await storage.getUserByEmail(email);
         if (existingUser) {
           failedUsers.push({
-            name: `${finalFirstName} ${finalLastName}`.trim(),
+            row: rowNumber,
+            name: `${firstName} ${lastName}`,
             email: email,
-            error: "Username already exists"
+            error: 'Email already exists in system'
           });
           continue;
         }
         
-        // Enhanced password field mapping - use email as password if no password provided
-        const password = row.password || row.Password || row['Password'] || row['Initial Password'] || row['Temp Password'] || email;
+        // Generate username from email (before @ symbol)
+        const username = email.split('@')[0];
+        
+        // Check if username already exists
+        const existingUsername = await storage.getUserByUsername(username);
+        if (existingUsername) {
+          failedUsers.push({
+            row: rowNumber,
+            name: `${firstName} ${lastName}`,
+            email: email,
+            error: 'Username already exists in system'
+          });
+          continue;
+        }
+        
+        // Generate password (use email prefix as default)
+        const password = username;
         const hashedPassword = await hashPassword(password);
         
-        // Enhanced field mapping for VX Academy Import Format
-        const role = row.role || row.Role || row['Platform Role'] || row['USER ROLE'] || row['Role Type'] || row['User Role'] || row['System Role'] || 'user';
-        const language = row.language || row.Language || row['Preferred Language'] || row['LANGUAGE'] || row['Primary Language'] || row['Default Language'] || 'English';
-        const assets = row.assets || row.Assets || row['Asset Category'] || row['ASSETS'] || row['Asset Type'] || row['Asset Group'] || row['Asset Assignment'] || row['Assigned Assets'] || '';
-        const roleCategory = row.roleCategory || row['Role Category'] || row['Job Role'] || row['ROLE CATEGORY'] || row['Position'] || row['Job Title'] || row['Professional Role'] || row['Work Role'] || '';
-        const seniority = row.seniority || row.Seniority || row['Seniority Level'] || row['SENIORITY'] || row['Experience Level'] || row['Level'] || row['Grade'] || row['Rank'] || '';
-        const organization = row.organization || row.Organization || row['Organization Name'] || row['ORGANIZATION'] || row['Company'] || row['Department'] || row['Business Unit'] || row['Division'] || '';
-        const nationality = row.nationality || row.Nationality || row['NATIONALITY'] || row['Country'] || row['Country of Origin'] || row['Citizenship'] || '';
-        const yearsOfExperience = row.yearsOfExperience || row['Years of Experience'] || row['Experience Years'] || row['YEARS OF EXPERIENCE'] || row['Work Experience'] || row['Total Experience'] || row['Professional Experience'] || '';
-
-        // Create the user with all data from Excel template
+        // Create the user
         const newUser = await storage.createUser({
-          username: finalUsername,
+          username: username,
           password: hashedPassword,
-          firstName: finalFirstName,
-          lastName: finalLastName || '',
+          firstName: firstName,
+          lastName: lastName,
           email: email,
-          role: role.toLowerCase() === 'sub-admin' ? 'sub-admin' : 'user',
+          role: 'user', // All bulk uploaded users are regular users
           language: language,
-          assets: assets,
-          roleCategory: roleCategory,
-          seniority: seniority,
-          organizationName: organization,
           nationality: nationality,
-          yearsOfExperience: String(yearsOfExperience || ''),
+          yearsOfExperience: yearsOfExperience,
+          assets: asset,
+          roleCategory: roleCategory,
+          subCategory: subCategory || '',
+          seniority: seniority,
+          organizationName: organizationName,
+          isActive: true
         });
         
-        // Include password in response if it was auto-generated or using email
-        const isPasswordFromEmail = !row.password && !row.Password && !row['Password'] && !row['Initial Password'] && !row['Temp Password'];
         createdUsers.push({
           ...newUser,
-          generatedPassword: isPasswordFromEmail ? `${password} (using email as password)` : (!row.password ? password : undefined)
+          generatedPassword: password, // Include for admin reference
+          row: rowNumber
         });
+        
+        console.log(`Successfully created user: ${firstName} ${lastName} (${email})`);
+        
       } catch (error) {
-        console.error("Error creating user from Excel:", error);
-        const rowDataAny = rowData as any;
-        const errorFirstName = rowDataAny.firstName || rowDataAny.FirstName || rowDataAny['First Name'] || '';
-        const errorLastName = rowDataAny.lastName || rowDataAny.LastName || rowDataAny['Last Name'] || '';
-        const errorFullName = rowDataAny.name || rowDataAny.Name || rowDataAny['Full Name'] || '';
+        console.error(`Error creating user from row ${rowNumber}:`, error);
+        const firstName = row[headerIndices['First name']] || '';
+        const lastName = row[headerIndices['Last name']] || '';
+        const email = row[headerIndices['Email Address']] || '';
         
         failedUsers.push({
-          name: errorFirstName && errorLastName ? `${errorFirstName} ${errorLastName}` : errorFullName,
-          email: rowDataAny.email || rowDataAny.Email || '',
-          username: rowDataAny.username || '',
-          error: "Failed to create user"
+          row: rowNumber,
+          name: `${firstName} ${lastName}`.trim() || 'Unknown',
+          email: email,
+          error: `System error: ${error.message || 'Failed to create user'}`
         });
       }
     }
     
-    // Delete the uploaded file after processing
+    // Clean up uploaded file
     fs.unlinkSync(req.file.path);
     
-    res.status(201).json({ 
+    // Prepare summary
+    const summary = {
+      totalRows: rows.length,
       created: createdUsers.length,
       failed: failedUsers.length,
-      users: createdUsers,
-      failedUsers: failedUsers
-    });
+      createdUsers: createdUsers.map(user => ({
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        username: user.username,
+        generatedPassword: user.generatedPassword,
+        row: user.row
+      })),
+      failedUsers: failedUsers,
+      message: `Processed ${rows.length} rows. Successfully created ${createdUsers.length} users. ${failedUsers.length} rows failed validation.`
+    };
+    
+    console.log("Upload summary:", summary);
+    
+    res.status(201).json(summary);
+    
   } catch (error) {
     console.error("Error processing Excel upload:", error);
     
@@ -211,6 +296,9 @@ export async function processExcelUpload(req: Request, res: Response, storage: I
       fs.unlinkSync(req.file.path);
     }
     
-    res.status(500).json({ message: "Failed to process Excel file" });
+    res.status(500).json({ 
+      message: "Failed to process Excel file",
+      error: error.message 
+    });
   }
 }

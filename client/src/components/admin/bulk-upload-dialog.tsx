@@ -62,17 +62,15 @@ export function BulkUploadDialog({
 
   const handleSubmit = (data: BulkUploadFormData) => {
     if (selectedFile) {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      onSubmit(formData);
+      onSubmit({ file: selectedFile });
     }
   };
 
   const handleDownloadTemplate = () => {
     // Create a download link for the Excel template
     const link = document.createElement('a');
-    link.href = '/assets/VX Academy Import Format.xlsx';
-    link.download = 'VX_Academy_Import_Format.xlsx';
+    link.href = '/api/admin/users/template';
+    link.download = 'VX_Academy_Import_Template.xlsx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
