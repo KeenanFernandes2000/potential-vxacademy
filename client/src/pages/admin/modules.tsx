@@ -115,6 +115,7 @@ export default function ModuleManagement() {
         imageUrl: "",
         trainingAreaId: undefined,
       });
+      form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
     },
     onError: (error: Error) => {
@@ -144,6 +145,7 @@ export default function ModuleManagement() {
         imageUrl: "",
         trainingAreaId: undefined,
       });
+      form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
     },
     onError: (error: Error) => {

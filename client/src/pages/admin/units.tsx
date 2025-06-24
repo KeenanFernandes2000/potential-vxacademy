@@ -93,13 +93,13 @@ export default function UnitsManagement() {
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   // Remove modal state - we'll use inline editing like courses page
-  
+
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState("all");
   const [selectedModuleId, setSelectedModuleId] = useState("all");
   const [selectedFilterCourseId, setSelectedFilterCourseId] = useState("all");
-  
+
   const { toast } = useToast();
 
   // Get courseId from URL if present
@@ -169,7 +169,7 @@ export default function UnitsManagement() {
 
     // Get courses that contain this unit
     const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId as number) || [];
-    
+
     // If no courses contain this unit, show it in "all" view only
     if (unitCourses.length === 0) {
       return selectedTrainingAreaId === "all" && selectedModuleId === "all" && selectedFilterCourseId === "all";
@@ -365,15 +365,15 @@ export default function UnitsManagement() {
   // Function to handle editing a unit (inline editing like courses page)
   const handleEdit = (unit: Unit) => {
     setEditingUnit(unit);
-    
+
     // Get courses associated with this unit
     const unitCourseIds = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId.toString()) || [];
-    
+
     // Find the training area and module for this unit's courses
     const firstCourse = courses?.find(c => unitCourseIds.includes(c.id.toString()));
     const trainingAreaId = firstCourse?.trainingAreaId?.toString() || "";
     const moduleId = firstCourse?.moduleId?.toString() || "";
-    
+
     // Populate the form with unit data
     form.reset({
       name: unit.name,
@@ -427,7 +427,7 @@ export default function UnitsManagement() {
             Units Management
           </h1>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Panel - Add New Unit Form */}
           <Card className="lg:col-span-1">
@@ -440,7 +440,7 @@ export default function UnitsManagement() {
                   </>
                 ) : (
                   <>
-                    
+
                     Add New Unit
                   </>
                 )}
@@ -557,7 +557,7 @@ export default function UnitsManagement() {
                         <FormDescription>
                           Select one or more courses for this unit
                         </FormDescription>
-                        
+
                         {/* Selected Courses Display */}
                         {field.value && field.value.length > 0 && (
                           <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md border">
@@ -585,7 +585,7 @@ export default function UnitsManagement() {
                             })}
                           </div>
                         )}
-                        
+
                         {/* Available Courses Selection */}
                         <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
                           {courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.length === 0 ? (
@@ -714,7 +714,7 @@ export default function UnitsManagement() {
                         <FormItem className="flex flex-col ">
                           <div className="space-y-2">
                             <FormLabel>Show Duration</FormLabel>
-                            
+
                           </div>
                           <FormControl>
                             <Switch

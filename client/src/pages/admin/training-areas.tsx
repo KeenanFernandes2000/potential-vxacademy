@@ -92,6 +92,7 @@ export default function TrainingAreaManagement() {
         description: "",
         imageUrl: "",
       });
+      form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/training-areas"] });
     },
     onError: (error: Error) => {
@@ -120,6 +121,7 @@ export default function TrainingAreaManagement() {
         description: "",
         imageUrl: "",
       });
+      form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/training-areas"] });
     },
     onError: (error: Error) => {

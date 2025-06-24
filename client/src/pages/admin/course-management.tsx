@@ -181,6 +181,7 @@ export default function CourseManagement() {
         level: "beginner",
         showLevel: true,
       });
+      form.clearErrors();
       setSelectedTrainingAreaId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
     },
@@ -218,6 +219,7 @@ export default function CourseManagement() {
         level: "beginner",
         showLevel: true,
       });
+      form.clearErrors();
       setSelectedTrainingAreaId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
     },
