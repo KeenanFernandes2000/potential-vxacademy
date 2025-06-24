@@ -206,6 +206,7 @@ export default function ModuleManagement() {
       imageUrl: "",
       trainingAreaId: undefined,
     });
+    form.clearErrors();
   }
 
   // Filter modules based on search term and selected training area
