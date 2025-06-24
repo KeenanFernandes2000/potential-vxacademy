@@ -64,6 +64,8 @@ export default function EnhancedCourseDetail() {
   const [match, params] = useRoute("/courses/:id");
   const courseId = params?.id ? parseInt(params.id) : null;
   
+  const [activeUnitId, setActiveUnitId] = useState<number | null>(null);
+  const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<LearningBlock | null>(null);
   const [selectedContent, setSelectedContent] = useState<{
@@ -71,6 +73,10 @@ export default function EnhancedCourseDetail() {
     id: number;
     data: any;
   } | null>(null);
+  const [showAssessment, setShowAssessment] = useState(false);
+  const [currentAssessment, setCurrentAssessment] = useState<Assessment | null>(null);
+  const [completedAssessments, setCompletedAssessments] = useState<Set<number>>(new Set());
+  const [completedBlocks, setCompletedBlocks] = useState<Set<number>>(new Set());
 
   // Fetch course details
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
@@ -85,9 +91,42 @@ export default function EnhancedCourseDetail() {
   });
 
   // Fetch learning blocks for active unit
-  const { data: blocks = [] } = useQuery<LearningBlock[]>({
+  const { data: blocks = [], isLoading: blocksLoading } = useQuery<LearningBlock[]>({
     queryKey: [`/api/units/${activeUnitId}/blocks`],
     enabled: !!activeUnitId,
+  });
+
+  // Fetch user progress
+  const { data: progress = [] } = useQuery({
+    queryKey: ["/api/progress"],
+  });
+
+  // Fetch user progress for all courses
+  const { data: userProgress = [] } = useQuery({
+    queryKey: ["/api/user/progress"],
+  });
+
+  // Fetch course prerequisites
+  const { data: prerequisites = [] } = useQuery({
+    queryKey: [`/api/courses/${courseId}/prerequisites`],
+    enabled: !!courseId,
+  });
+
+  // Fetch unit assessments
+  const { data: unitAssessments = [] } = useQuery<Assessment[]>({
+    queryKey: [`/api/units/${activeUnitId}/assessments`],
+    enabled: !!activeUnitId,
+  });
+
+  // Fetch course assessments
+  const { data: courseAssessments = [] } = useQuery<Assessment[]>({
+    queryKey: [`/api/courses/${courseId}/assessments`],
+    enabled: !!courseId,
+  });
+
+  // Fetch block completions
+  const { data: blockCompletions = [] } = useQuery({
+    queryKey: ["/api/block-completions"],
   });
 
   // Fetch beginning assessments (placement = "beginning")
@@ -162,14 +201,33 @@ export default function EnhancedCourseDetail() {
     if (units.length > 0 && !activeUnitId) {
       const firstUnit = units[0];
       setActiveUnitId(firstUnit.id);
+      setSelectedUnit(firstUnit);
     }
   }, [units, activeUnitId]);
 
   useEffect(() => {
     if (blocks.length > 0 && !activeBlockId) {
       setActiveBlockId(blocks[0].id);
+      setSelectedBlock(blocks[0]);
     }
   }, [blocks, activeBlockId]);
+
+  // Initialize completed assessments and blocks from progress data
+  useEffect(() => {
+    if (progress && Array.isArray(progress)) {
+      const courseProgress = progress.find((p: any) => p.courseId === courseId);
+      if (courseProgress && courseProgress.completedAssessments) {
+        setCompletedAssessments(new Set(courseProgress.completedAssessments));
+      }
+    }
+  }, [progress, courseId]);
+
+  useEffect(() => {
+    if (blockCompletions && Array.isArray(blockCompletions)) {
+      const completedBlockIds = blockCompletions.map((completion: any) => completion.blockId);
+      setCompletedBlocks(new Set(completedBlockIds));
+    }
+  }, [blockCompletions]);
 
   const courseProgress = progress && Array.isArray(progress)
     ? progress.find((p: any) => p.courseId === courseId)
