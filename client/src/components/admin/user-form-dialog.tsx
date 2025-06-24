@@ -583,7 +583,28 @@ export function UserFormDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  form.reset({
+                    firstName: "",
+                    lastName: "",
+                    email: "",
+                    username: "",
+                    password: "",
+                    role: "user",
+                    language: "English",
+                    nationality: "",
+                    yearsOfExperience: "",
+                    assets: "",
+                    roleCategory: "",
+                    subCategory: "",
+                    seniority: "",
+                    organizationName: "",
+                    isActive: true,
+                    courseIds: [],
+                  });
+                  form.clearErrors();
+                  onOpenChange(false);
+                }}
                 disabled={isLoading}
               >
                 Cancel

@@ -670,7 +670,26 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  form.reset({
+                    firstName: "",
+                    lastName: "",
+                    email: "",
+                    username: "",
+                    password: "",
+                    role: "user",
+                    language: "en",
+                    nationality: "",
+                    yearsOfExperience: "",
+                    assets: "",
+                    roleCategory: "",
+                    subCategory: "",
+                    seniority: "",
+                    organizationName: "",
+                  });
+                  form.clearErrors();
+                  onOpenChange(false);
+                }}
                 disabled={isSubmitting}
               >
                 Cancel

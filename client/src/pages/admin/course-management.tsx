@@ -297,6 +297,8 @@ export default function CourseManagement() {
       level: "beginner",
       showLevel: true,
     });
+    // Clear any form errors
+    form.clearErrors();
   }
 
   function handleDuplicate(course: Course) {

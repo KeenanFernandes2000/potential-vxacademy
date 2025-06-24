@@ -377,6 +377,7 @@ export default function AssessmentsManagement() {
       certificateTemplate: "",
       xpPoints: 50,
     });
+    form.clearErrors();
   };
 
 
