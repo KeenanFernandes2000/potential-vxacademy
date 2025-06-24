@@ -359,7 +359,7 @@ export default function CourseManagement() {
                             setSelectedTrainingAreaId(id);
                             form.resetField("moduleId");
                           }}
-                          value={field.value?.toString()}
+                          value={field.value?.toString() || ""}
                         >
                           <FormControl>
                             <SelectTrigger>

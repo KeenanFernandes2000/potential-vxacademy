@@ -256,8 +256,7 @@ export default function ModuleManagement() {
                               field.onChange(numericValue);
                             }
                           }}
-                          defaultValue={field.value ? field.value.toString() : undefined}
-                          value={field.value ? field.value.toString() : undefined}
+                          value={field.value ? field.value.toString() : ""}
                         >
                           <FormControl>
                             <SelectTrigger>
