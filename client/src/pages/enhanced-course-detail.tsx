@@ -111,22 +111,7 @@ export default function EnhancedCourseDetail() {
     queryKey: ["/api/user/progress"],
   });
 
-  // Calculate course progress
-  const courseProgressData = useMemo(() => {
-    if (!units || !blocks || !userProgress) return { percentComplete: 0, completed: false };
-    
-    const totalBlocks = blocks.length;
-    const totalAssessments = [...unitAssessments, ...courseAssessments].length;
-    const totalItems = totalBlocks + totalAssessments;
-    
-    if (totalItems === 0) return { percentComplete: 100, completed: true };
-    
-    const completedItemsCount = completedBlocks.size + completedAssessments.size;
-    const percentComplete = Math.round((completedItemsCount / totalItems) * 100);
-    const completed = percentComplete === 100;
-    
-    return { percentComplete, completed, totalItems, completedItems: completedItemsCount };
-  }, [units, blocks, unitAssessments, courseAssessments, completedBlocks, completedAssessments]);
+
 
   // Certificate generation mutation
   const generateCertificateMutation = useMutation({
@@ -151,6 +136,23 @@ export default function EnhancedCourseDetail() {
     queryKey: [`/api/units/${activeUnitId}/assessments`],
     enabled: !!activeUnitId,
   });
+
+  // Calculate course progress
+  const courseProgressData = useMemo(() => {
+    if (!units || !blocks) return { percentComplete: 0, completed: false, totalItems: 0, completedItems: 0 };
+    
+    const totalBlocks = blocks.length;
+    const totalAssessments = [...(unitAssessments || []), ...(courseAssessments || [])].length;
+    const totalItems = totalBlocks + totalAssessments;
+    
+    if (totalItems === 0) return { percentComplete: 100, completed: true, totalItems: 0, completedItems: 0 };
+    
+    const completedItemsCount = completedBlocks.size + completedAssessments.size;
+    const percentComplete = Math.round((completedItemsCount / totalItems) * 100);
+    const completed = percentComplete === 100;
+    
+    return { percentComplete, completed, totalItems, completedItems: completedItemsCount };
+  }, [units, blocks, unitAssessments, courseAssessments, completedBlocks, completedAssessments]);
 
   // Fetch course assessments
   const { data: courseAssessments = [] } = useQuery<Assessment[]>({
