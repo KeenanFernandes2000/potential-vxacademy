@@ -63,6 +63,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(permissions);
   });
 
+  // Order validation endpoints
+  app.post("/api/validate/unit-order", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    try {
+      const { order, excludeId } = req.body;
+      const isUnique = await storage.checkUniqueUnitOrder(order, excludeId);
+      res.json({ isUnique });
+    } catch (error) {
+      res.status(500).json({ message: "Error validating order" });
+    }
+  });
+
+  app.post("/api/validate/learning-block-order", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    try {
+      const { unitId, order, excludeId } = req.body;
+      const isUnique = await storage.checkUniqueLearningBlockOrder(unitId, order, excludeId);
+      res.json({ isUnique });
+    } catch (error) {
+      res.status(500).json({ message: "Error validating order" });
+    }
+  });
+
   // API routes
   // Courses - Protected for admin only
   app.get("/api/courses", async (req, res) => {

@@ -52,8 +52,12 @@ const assessmentFormSchema = z.object({
   assessmentFor: z.enum(["course", "unit"], {
     required_error: "Please select if this assessment is for a course or unit.",
   }),
-  trainingAreaId: z.coerce.number().optional(),
-  moduleId: z.coerce.number().optional(),
+  trainingAreaId: z.coerce.number({
+    required_error: "Training Area is required.",
+  }),
+  moduleId: z.coerce.number({
+    required_error: "Module is required.",
+  }),
   courseId: z.coerce.number().optional(),
   unitId: z.coerce.number().optional(),
   title: z.string().min(2, {
@@ -67,11 +71,22 @@ const assessmentFormSchema = z.object({
   showCorrectAnswers: z.boolean().default(false),
   passingScore: z.coerce.number().min(0).max(100).optional(),
   hasTimeLimit: z.boolean().default(false),
-  timeLimit: z.coerce.number().min(0).optional(),
+  timeLimit: z.coerce.number().min(1, {
+    message: "Time limit must be greater than 0 minutes.",
+  }).optional(),
   maxRetakes: z.coerce.number().min(0).default(3),
   hasCertificate: z.boolean().default(false),
   certificateTemplate: z.string().optional(),
   xpPoints: z.coerce.number().min(0).default(50),
+}).refine((data) => {
+  if (data.assessmentFor === "course") {
+    return !!data.courseId;
+  } else {
+    return !!data.unitId;
+  }
+}, {
+  message: "Course is required for course assessments, Unit is required for unit assessments.",
+  path: ["courseId"],
 });
 
 type AssessmentFormData = z.infer<typeof assessmentFormSchema>;

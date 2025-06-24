@@ -70,11 +70,17 @@ const unitFormSchema = z.object({
   }),
   description: z.string().optional(),
   internalNote: z.string().optional(),
-  trainingAreaId: z.string().optional(),
-  moduleId: z.string().optional(),
-  courseIds: z.array(z.string()).optional().default([]),
-  order: z.coerce.number().default(1),
-  duration: z.coerce.number().min(1).default(30),
+  trainingAreaId: z.string({
+    required_error: "Training Area is required.",
+  }).min(1, "Training Area is required."),
+  moduleId: z.string({
+    required_error: "Module is required.",
+  }).min(1, "Module is required."),
+  courseIds: z.array(z.string()).min(1, "At least one course must be selected."),
+  order: z.coerce.number().min(1).default(1),
+  duration: z.coerce.number().min(1, {
+    message: "Duration must be greater than 0 minutes.",
+  }).default(30),
   showDuration: z.boolean().default(true),
   xpPoints: z.coerce.number().min(0).default(100),
 });

@@ -12,7 +12,7 @@ import { users, type User, type InsertUser, modules, type Module, type InsertMod
   mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, desc, and, inArray } from "drizzle-orm";
+import { eq, asc, desc, and, inArray, ne } from "drizzle-orm";
 import session from "express-session";
 import { IStorage } from "./storage";
 import connectPg from "connect-pg-simple";
@@ -598,6 +598,41 @@ export class DatabaseStorage implements IStorage {
       })
       .from(courseUnits)
       .orderBy(asc(courseUnits.order));
+  }
+
+  // Order validation
+  async checkUniqueUnitOrder(order: number, excludeId?: number): Promise<boolean> {
+    let whereCondition = eq(units.order, order);
+    
+    if (excludeId) {
+      whereCondition = and(eq(units.order, order), ne(units.id, excludeId));
+    }
+    
+    const results = await db
+      .select({ id: units.id })
+      .from(units)
+      .where(whereCondition);
+    
+    return results.length === 0;
+  }
+
+  async checkUniqueLearningBlockOrder(unitId: number, order: number, excludeId?: number): Promise<boolean> {
+    let whereCondition = and(eq(learningBlocks.unitId, unitId), eq(learningBlocks.order, order));
+    
+    if (excludeId) {
+      whereCondition = and(
+        eq(learningBlocks.unitId, unitId), 
+        eq(learningBlocks.order, order),
+        ne(learningBlocks.id, excludeId)
+      );
+    }
+    
+    const results = await db
+      .select({ id: learningBlocks.id })
+      .from(learningBlocks)
+      .where(whereCondition);
+    
+    return results.length === 0;
   }
 
   // Learning Blocks

@@ -97,6 +97,10 @@ export interface IStorage {
   getUnitsForCourse(courseId: number): Promise<Unit[]>;
   getCoursesForUnit(unitId: number): Promise<Course[]>;
   
+  // Order validation
+  checkUniqueUnitOrder(order: number, excludeId?: number): Promise<boolean>;
+  checkUniqueLearningBlockOrder(unitId: number, order: number, excludeId?: number): Promise<boolean>;
+  
   // Learning Blocks
   getLearningBlocks(unitId: number): Promise<LearningBlock[]>;
   getLearningBlock(id: number): Promise<LearningBlock | undefined>;
