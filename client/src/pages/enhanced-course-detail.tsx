@@ -419,35 +419,37 @@ export default function EnhancedCourseDetail() {
                 <div className="space-y-1">
                   {/* Course Assessment at Beginning */}
                   {showCourseAssessmentAtBeginning && (
-                    <Card key="course-assessment-beginning" className="mb-6">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          Course Assessment
-                        </CardTitle>
-                        <CardDescription>
-                          Complete this assessment before proceeding with the course
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {courseAssessments
-                          ?.filter(assessment => assessment.placement === 'beginning')
-                          .map((assessment) => (
-                            <div key={`course-assessment-beginning-${assessment.id}`} className="mb-4">
-                              <h4 className="font-medium mb-2">{assessment.title}</h4>
-                              <p className="text-sm text-muted-foreground mb-3">
-                                {assessment.description}
-                              </p>
-                              <Button 
-                                onClick={() => handleStartAssessment(assessment)}
-                                className="w-full"
-                              >
-                                Start Assessment
-                              </Button>
-                            </div>
-                          ))}
-                      </CardContent>
-                    </Card>
+                    <div key="course-assessment-beginning-wrapper" className="mb-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            Course Assessment
+                          </CardTitle>
+                          <CardDescription>
+                            Complete this assessment before proceeding with the course
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {courseAssessments
+                            ?.filter(assessment => assessment.placement === 'beginning')
+                            .map((assessment) => (
+                              <div key={`course-beginning-assessment-${assessment.id}`} className="mb-4">
+                                <h4 className="font-medium mb-2">{assessment.title}</h4>
+                                <p className="text-sm text-muted-foreground mb-3">
+                                  {assessment.description}
+                                </p>
+                                <Button 
+                                  onClick={() => handleStartAssessment(assessment)}
+                                  className="w-full"
+                                >
+                                  Start Assessment
+                                </Button>
+                              </div>
+                            ))}
+                        </CardContent>
+                      </Card>
+                    </div>
                   )}
 
                   {/* Units and their content */}
@@ -499,7 +501,7 @@ export default function EnhancedCourseDetail() {
                               .filter(assessment => assessment.placement === "beginning")
                               .map((assessment) => (
                                 <div
-                                  key={`unit-assessment-${assessment.id}`}
+                                  key={`unit-${unit.id}-beginning-assessment-${assessment.id}`}
                                   className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
                                     selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
                                       ? "bg-orange-50 text-orange-700"
@@ -545,7 +547,7 @@ export default function EnhancedCourseDetail() {
                               .filter(assessment => assessment.placement === "end")
                               .map((assessment) => (
                                 <div
-                                  key={`unit-assessment-end-${assessment.id}`}
+                                  key={`unit-${unit.id}-end-assessment-${assessment.id}`}
                                   className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
                                     selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
                                       ? "bg-orange-50 text-orange-700"
@@ -568,35 +570,37 @@ export default function EnhancedCourseDetail() {
 
                   {/* Course Assessment at End */}
                   {showCourseAssessmentAtEnd && (
-                    <Card key="course-final-assessments" className="mt-6">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="h-5 w-5" />
-                          Course Assessment
-                        </CardTitle>
-                        <CardDescription>
-                          Complete this final assessment to finish the course
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {courseAssessments
-                          ?.filter(assessment => assessment.placement === 'end')
-                          .map((assessment) => (
-                            <div key={`final-assessment-${assessment.id}`} className="mb-4">
-                              <h4 className="font-medium mb-2">{assessment.title}</h4>
-                              <p className="text-sm text-muted-foreground mb-3">
-                                {assessment.description}
-                              </p>
-                              <Button 
-                                onClick={() => handleStartAssessment(assessment)}
-                                className="w-full"
-                              >
-                                Start Assessment
-                              </Button>
-                            </div>
-                          ))}
-                      </CardContent>
-                    </Card>
+                    <div key="course-final-assessments-wrapper" className="mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Award className="h-5 w-5" />
+                            Course Assessment
+                          </CardTitle>
+                          <CardDescription>
+                            Complete this final assessment to finish the course
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {courseAssessments
+                            ?.filter(assessment => assessment.placement === 'end')
+                            .map((assessment) => (
+                              <div key={`course-end-assessment-${assessment.id}`} className="mb-4">
+                                <h4 className="font-medium mb-2">{assessment.title}</h4>
+                                <p className="text-sm text-muted-foreground mb-3">
+                                  {assessment.description}
+                                </p>
+                                <Button 
+                                  onClick={() => handleStartAssessment(assessment)}
+                                  className="w-full"
+                                >
+                                  Start Assessment
+                                </Button>
+                              </div>
+                            ))}
+                        </CardContent>
+                      </Card>
+                    </div>
                   )}
                 </div>
               </CardContent>
