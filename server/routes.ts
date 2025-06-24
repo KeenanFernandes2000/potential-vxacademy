@@ -912,11 +912,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
+      } else {
+        // Create notification for failed attempt
+        const attemptsRemaining = assessment.maxRetakes - previousAttempts.length - 1;
+        try {
+          await storage.createNotification({
+            userId,
+            type: "assessment-failed",
+            title: "Assessment Not Passed",
+            message: `You scored ${score}% on "${assessment.title}". ${attemptsRemaining > 0 ? `You have ${attemptsRemaining} attempts remaining.` : 'No attempts remaining.'}`,
+            read: false
+          });
+        } catch (error) {
+          console.log("Note: Could not create notification - table may not exist yet");
+        }
       } // Close the course loop
 
       res.json({
         attempt,
         passed,
+        score,
+        correctAnswers,
+        totalQuestions,
+        certificateGenerated,
+        attemptsRemaining: assessment.maxRetakes - previousAttempts.length - 1,
         message: passed
           ? "Congratulations! You passed the assessment."
           : "You did not meet the passing score. Try again!",
@@ -939,8 +958,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/user/badges", async (req, res) => {
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+      return res.status(401).json({ message: "Not authenticated" });    }
 
     try {
       const userId = req.user!.id;
@@ -2404,7 +2422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const assessmentId = parseInt(req.params.assessmentId);
       const userId = parseInt(req.params.userId);
-      
+
       // Ensure user can only access their own attempts (unless admin)
       if (req.user!.id !== userId && req.user!.role !== "admin") {
         return res.status(403).json({ message: "Access denied" });
@@ -2495,11 +2513,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (courseId) {
               // Check if certificate already exists
               const existingCertificate = await storage.getCertificateByCourseAndUser(userId, courseId);
-              
+
               if (!existingCertificate) {
                 const course = await storage.getCourse(courseId);
                 const user = await storage.getUser(userId);
-                
+
                 if (course && user) {
                   const certificate = await storage.createCertificate({
                     userId,
@@ -2576,11 +2594,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get course-level assessments
       const courseAssessments = await storage.getAssessments(courseId);
-      
+
       // Get unit-level assessments for this course
       const units = await storage.getUnitsForCourse(courseId);
       let unitAssessments: any[] = [];
-      
+
       for (const unit of units) {
         const assessments = await storage.getAssessments(unit.id);
         unitAssessments.push(...assessments);
