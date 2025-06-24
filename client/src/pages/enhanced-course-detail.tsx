@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+typescript
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -63,7 +64,7 @@ const Layout = ({ children }: LayoutProps) => {
 export default function EnhancedCourseDetail() {
   const [match, params] = useRoute("/courses/:id");
   const courseId = params?.id ? parseInt(params.id) : null;
-  
+
   const [activeUnitId, setActiveUnitId] = useState<number | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
@@ -165,13 +166,13 @@ export default function EnhancedCourseDetail() {
   // Check if course is accessible (for sequential courses)
   const isCourseAccessible = () => {
     if (!course || course.courseType === "free") return true;
-    
+
     if (course.courseType === "sequential" && prerequisites.length > 0) {
       // Check if all prerequisites are completed
       const completedCourseIds = userProgress?.filter((p: any) => p.completed).map((p: any) => p.courseId) || [];
       return prerequisites.every(prereq => completedCourseIds.includes(prereq.id));
     }
-    
+
     return true;
   };
 
@@ -292,6 +293,15 @@ export default function EnhancedCourseDetail() {
     completeBlockMutation.mutate(blockId);
   };
 
+  // Check if course assessment should be shown at the end
+  const showCourseAssessmentAtEnd = useMemo(() => {
+    return courseAssessments?.some(assessment => assessment.placement === 'end') || false;
+  }, [courseAssessments]);
+
+  // Check if course assessment should be shown at the beginning
+  const showCourseAssessmentAtBeginning = useMemo(() => {
+    return courseAssessments?.some(assessment => assessment.placement === 'beginning') || false;
+  }, [courseAssessments]);
 
 
   const courseStarted = beginningAssessments.length === 0 || 
@@ -408,29 +418,38 @@ export default function EnhancedCourseDetail() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="space-y-1">
-                  {/* Course-level assessments at the beginning */}
-                  {courseAssessments
-                    .filter(assessment => assessment.placement === "beginning")
-                    .map((assessment) => (
-                      <div
-                        key={`course-assessment-${assessment.id}`}
-                        className={`flex items-center gap-3 p-3 border-l-4 cursor-pointer transition-colors ${
-                          selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
-                            ? "bg-blue-50 border-l-blue-500"
-                            : "hover:bg-gray-50 border-l-transparent"
-                        }`}
-                        onClick={() => {
-                          setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
-                          setSelectedUnit(null);
-                          setSelectedBlock(null);
-                        }}
-                      >
-                        <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                        <span className="text-sm font-medium text-gray-900 truncate">
-                          {assessment.title}
-                        </span>
-                      </div>
-                    ))}
+                  {/* Course Assessment at Beginning */}
+                  {showCourseAssessmentAtBeginning && (
+                    <Card key="course-assessment-beginning" className="mb-6">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          Course Assessment
+                        </CardTitle>
+                        <CardDescription>
+                          Complete this assessment before proceeding with the course
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {courseAssessments
+                          ?.filter(assessment => assessment.placement === 'beginning')
+                          .map((assessment) => (
+                            <div key={`course-assessment-beginning-${assessment.id}`} className="mb-4">
+                              <h4 className="font-medium mb-2">{assessment.title}</h4>
+                              <p className="text-sm text-muted-foreground mb-3">
+                                {assessment.description}
+                              </p>
+                              <Button 
+                                onClick={() => handleStartAssessment(assessment)}
+                                className="w-full"
+                              >
+                                Start Assessment
+                              </Button>
+                            </div>
+                          ))}
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Units and their content */}
                   {units.map((unit, unitIndex) => {
@@ -548,29 +567,38 @@ export default function EnhancedCourseDetail() {
                     );
                   })}
 
-                  {/* Course-level assessments at the end */}
-                  {courseAssessments
-                    .filter(assessment => assessment.placement === "end")
-                    .map((assessment) => (
-                      <div
-                        key={`course-assessment-end-${assessment.id}`}
-                        className={`flex items-center gap-3 p-3 border-l-4 cursor-pointer transition-colors ${
-                          selectedContent?.type === "assessment" && selectedContent?.id === assessment.id
-                            ? "bg-blue-50 border-l-blue-500"
-                            : "hover:bg-gray-50 border-l-transparent"
-                        }`}
-                        onClick={() => {
-                          setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
-                          setSelectedUnit(null);
-                          setSelectedBlock(null);
-                        }}
-                      >
-                        <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                        <span className="text-sm font-medium text-gray-900 truncate">
-                          {assessment.title}
-                        </span>
-                      </div>
-                    ))}
+                  {/* Course Assessment at End */}
+                  {showCourseAssessmentAtEnd && (
+                    <Card key="course-assessment-end" className="mt-6">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Award className="h-5 w-5" />
+                          Course Assessment
+                        </CardTitle>
+                        <CardDescription>
+                          Complete this final assessment to finish the course
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {courseAssessments
+                          ?.filter(assessment => assessment.placement === 'end')
+                          .map((assessment) => (
+                            <div key={`course-assessment-end-${assessment.id}`} className="mb-4">
+                              <h4 className="font-medium mb-2">{assessment.title}</h4>
+                              <p className="text-sm text-muted-foreground mb-3">
+                                {assessment.description}
+                              </p>
+                              <Button 
+                                onClick={() => handleStartAssessment(assessment)}
+                                className="w-full"
+                              >
+                                Start Assessment
+                              </Button>
+                            </div>
+                          ))}
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </CardContent>
             </Card>
