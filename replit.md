@@ -114,6 +114,24 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 24, 2025: Course Header Section Restoration Complete
+  - Restored original course header design to match initial layout with title, duration, and difficulty level
+  - Added course metadata display with Clock and Award icons for duration and difficulty
+  - Enhanced course description layout with proper spacing and typography
+  - Integrated course progress tracking within the header section
+  - Fixed JSX syntax errors in enhanced course detail page
+  - Course page now displays comprehensive header information prominently at the top
+- June 24, 2025: Assessment Submission Error Resolution Complete
+  - Fixed critical previousAttempts variable scope issue causing 500 errors on assessment submission
+  - Resolved syntax errors in routes.ts that were preventing server startup
+  - Assessment submissions now work properly for both unit and course level assessments
+  - Application running successfully with all assessment functionality restored
+- June 24, 2025: Course Assessment Creation Fix Complete
+  - Fixed course-level assessment creation issue by updating database fetching logic
+  - Added getAllAssessments method to retrieve both unit and course level assessments
+  - Updated API endpoint to properly fetch all assessment types instead of only unit assessments
+  - Enhanced storage interface with comprehensive assessment methods
+  - All assessment types now display correctly in admin panel
 - June 23, 2025: Comprehensive Assessment Logic Implementation Complete
   - Implemented complete assessment system with placement controls (beginning/end of course flow)
   - Added timer functionality with countdown display and automatic submission on timeout

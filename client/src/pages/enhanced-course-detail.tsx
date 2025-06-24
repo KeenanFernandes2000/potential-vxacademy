@@ -235,26 +235,41 @@ export default function EnhancedCourseDetail() {
         <main className="flex-1 lg:ml-64">
           <div className="container mx-auto py-8 px-4">
             {course && (
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.name}</h1>
-                {course.description && (
-                  <p className="text-gray-600 mb-4">{course.description}</p>
-                )}
-                
-                {/* Course Progress */}
-                {courseProgress && (
-                  <Card className="mb-6">
-                    <CardContent className="p-4">
+              <>
+                {/* Course Header Section - Restored from original design */}
+                <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-3">{course.name}</h1>
+                  
+                  {/* Course metadata row */}
+                  <div className="flex items-center gap-6 mb-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span>{course.estimatedDuration || "2h 30m"}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Award className="h-4 w-4" />
+                      <span>{course.difficultyLevel || "Beginner"}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Course description */}
+                  {course.description && (
+                    <p className="text-gray-700 leading-relaxed mb-4">{course.description}</p>
+                  )}
+                  
+                  {/* Course Progress */}
+                  {courseProgress && (
+                    <div className="mt-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">Course Progress</span>
+                        <span className="text-sm font-medium text-gray-700">Course Progress</span>
                         <span className="text-sm text-gray-500">
                           {courseProgress.percentComplete}% complete
                         </span>
                       </div>
                       <Progress value={courseProgress.percentComplete} className="h-2" />
-                    </CardContent>
-                  </Card>
-                )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Beginning Assessment Notice */}
                 {beginningAssessments.length > 0 && !courseStarted && (
@@ -504,7 +519,7 @@ export default function EnhancedCourseDetail() {
                     )}
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </main>
