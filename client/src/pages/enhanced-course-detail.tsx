@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { ComprehensiveAssessment } from "@/components/assessment/ComprehensiveAssessment";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
-import { LearningBlockRenderer } from "@/components/learning-blocks/LearningBlockRenderer";
+
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -523,13 +523,70 @@ export default function EnhancedCourseDetail() {
             {selectedContent ? (
               <div>
                 {selectedContent.type === "block" && selectedBlock && (
-                  <LearningBlockRenderer
-                    block={selectedBlock}
-                    onComplete={() => {
-                      // Handle block completion
-                      blockCompletionMutation.mutate(selectedBlock.id);
-                    }}
-                  />
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        {selectedBlock.type === 'video' && <Play className="mr-2 h-5 w-5 text-blue-600" />}
+                        {selectedBlock.type === 'text' && <FileText className="mr-2 h-5 w-5 text-green-600" />}
+                        {selectedBlock.type === 'scorm' && <Monitor className="mr-2 h-5 w-5 text-purple-600" />}
+                        {selectedBlock.type === 'interactive' && <Zap className="mr-2 h-5 w-5 text-yellow-600" />}
+                        {selectedBlock.title}
+                      </CardTitle>
+                      {selectedBlock.description && (
+                        <CardDescription>{selectedBlock.description}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      {selectedBlock.type === 'text' && (
+                        <div
+                          className="prose max-w-none"
+                          dangerouslySetInnerHTML={{ __html: selectedBlock.content || '' }}
+                        />
+                      )}
+                      {selectedBlock.type === 'video' && selectedBlock.videoUrl && (
+                        <div className="aspect-video">
+                          <iframe
+                            src={selectedBlock.videoUrl}
+                            className="w-full h-full rounded-lg"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+                      {selectedBlock.type === 'scorm' && (
+                        <div className="text-center p-8 bg-purple-50 rounded-lg">
+                          <Monitor className="mx-auto h-12 w-12 text-purple-600 mb-4" />
+                          <h3 className="text-lg font-medium text-purple-900 mb-2">
+                            Interactive Content
+                          </h3>
+                          <p className="text-purple-700 mb-4">
+                            Launch the interactive SCORM content to continue learning
+                          </p>
+                          <Button className="bg-purple-600 hover:bg-purple-700">
+                            Launch Content
+                          </Button>
+                        </div>
+                      )}
+                      <div className="mt-6">
+                        <Button
+                          onClick={() => blockCompletionMutation.mutate(selectedBlock.id)}
+                          disabled={blockCompletionMutation.isPending}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {blockCompletionMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Completing...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Complete Block
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
                 {selectedContent.type === "assessment" && (
                   <ComprehensiveAssessment
@@ -557,352 +614,6 @@ export default function EnhancedCourseDetail() {
             )}
           </div>
         </div>
-      </div>
-    </Layout>
-  );
-}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.name}</h1>
-                    
-                    {/* Course metadata */}
-                    <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
-                      {course.showDuration && (
-                        <div className="flex items-center">
-                          <Clock className="mr-1 h-4 w-4" />
-                          <span>{course.duration} min</span>
-                        </div>
-                      )}
-                      {course.showLevel && (
-                        <div className="flex items-center">
-                          <Award className="mr-1 h-4 w-4" />
-                          <span className="capitalize">{course.level}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center">
-                        <Trophy className="mr-1 h-4 w-4" />
-                        <span className="capitalize">{course.courseType}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {course.description && (
-                  <p className="text-gray-700 leading-relaxed mb-4">{course.description}</p>
-                )}
-                
-                {/* Enhanced Course Progress */}
-                <CourseProgressBar
-                  completedUnits={detailedProgress.completedUnits}
-                  totalUnits={detailedProgress.totalUnits}
-                  percent={detailedProgress.percent}
-                  hasEndAssessment={endAssessments.length > 0}
-                  endAssessmentAvailable={detailedProgress.percent >= 80}
-                />
-              </div>
-
-              {/* Start Assessment - Placed at top when placement = "beginning" */}
-              {beginningAssessments.length > 0 && !courseStarted && (
-                <div className="mb-6">
-                  <Alert className="mb-4 border-blue-200 bg-blue-50">
-                    <Trophy className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-700">
-                      This course requires completing an initial assessment before you can access the content.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Trophy className="mr-2 h-5 w-5 text-blue-600" />
-                        Initial Assessment
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {beginningAssessments.map((assessment) => (
-                        <div key={assessment.id} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-medium">{assessment.title}</h3>
-                              <p className="text-sm text-gray-600 mt-1">{assessment.description}</p>
-                              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                                {assessment.hasTimeLimit && (
-                                  <span className="flex items-center">
-                                    <Clock className="mr-1 h-3 w-3" />
-                                    {assessment.timeLimit} min
-                                  </span>
-                                )}
-                                {assessment.hasCertificate && (
-                                  <span className="flex items-center text-green-600">
-                                    <Award className="mr-1 h-3 w-3" />
-                                    Certificate Available
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <Button
-                              onClick={() => handleStartAssessment(assessment)}
-                              disabled={completedAssessments.has(assessment.id)}
-                              className={
-                                completedAssessments.has(assessment.id)
-                                  ? "bg-green-600"
-                                  : "bg-blue-600 hover:bg-blue-700"
-                              }
-                            >
-                              {completedAssessments.has(assessment.id) ? (
-                                <>
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Completed
-                                </>
-                              ) : (
-                                "Start Assessment"
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Course Content */}
-              <div className="space-y-6">
-                {courseStarted ? (
-                  <>
-                    {/* Learning Blocks */}
-                    {blocks.length > 0 && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Learning Content</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {blocks.map((block) => (
-                            <div key={block.id} className="mb-6 last:mb-0">
-                              <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-semibold">{block.title}</h3>
-                                <Button
-                                  onClick={() => handleCompleteBlock(block.id)}
-                                  size="sm"
-                                  variant="outline"
-                                >
-                                  Complete
-                                </Button>
-                              </div>
-                              {block.content && (
-                                <div className="prose max-w-none">
-                                  <p>{block.content}</p>
-                                </div>
-                              )}
-                              {block.type === "video" && block.mediaUrl && (
-                                <div className="mt-4">
-                                  <video controls className="w-full rounded-lg">
-                                    <source src={block.mediaUrl} type="video/mp4" />
-                                    Your browser does not support the video tag.
-                                  </video>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Unit Assessments */}
-                    {unitAssessments.length > 0 && (
-                      <Card className="mb-6">
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Trophy className="mr-2 h-5 w-5 text-blue-600" />
-                            Unit Assessments
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {unitAssessments.map((assessment) => (
-                            <div key={assessment.id} className="p-4 border rounded-lg mb-4 border-gray-200">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h3 className="font-semibold">{assessment.title}</h3>
-                                  {assessment.description && (
-                                    <p className="text-gray-600 mt-1">{assessment.description}</p>
-                                  )}
-                                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                                    <span>XP: {assessment.xpPoints}</span>
-                                    {assessment.hasTimeLimit && (
-                                      <span className="flex items-center">
-                                        <Clock className="mr-1 h-3 w-3" />
-                                        {assessment.timeLimit} min
-                                      </span>
-                                    )}
-                                    {assessment.hasCertificate && (
-                                      <span className="flex items-center text-green-600">
-                                        <Award className="mr-1 h-3 w-3" />
-                                        Certificate
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                                <Button
-                                  onClick={() => handleStartAssessment(assessment)}
-                                  disabled={completedAssessments.has(assessment.id)}
-                                  className={
-                                    completedAssessments.has(assessment.id)
-                                      ? "bg-green-600"
-                                      : "bg-blue-600 hover:bg-blue-700"
-                                  }
-                                >
-                                  {completedAssessments.has(assessment.id) ? (
-                                    <>
-                                      <CheckCircle className="mr-2 h-4 w-4" />
-                                      Completed
-                                    </>
-                                  ) : (
-                                    "Start Assessment"
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </CardContent>
-                      </Card>
-                    )}
-                  </>
-                ) : (
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <Trophy className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Complete Initial Assessment</h3>
-                      <p className="text-gray-600">
-                        You need to complete the initial assessment to access the course content.
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Final Assessment Section - Placed at bottom when placement = "end" */}
-                {endAssessments.length > 0 && courseStarted && (
-                  <div className="mt-8 border-t pt-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Trophy className="mr-2 h-5 w-5 text-green-600" />
-                          Final Quiz
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {endAssessments.map((assessment) => (
-                          <div key={assessment.id} className="p-4 border rounded-lg mb-4 border-gray-200">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="font-semibold">{assessment.title}</h3>
-                                {assessment.description && (
-                                  <p className="text-gray-600 mt-1">{assessment.description}</p>
-                                )}
-                                <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                                  <span>XP: {assessment.xpPoints}</span>
-                                  {assessment.hasTimeLimit && (
-                                    <span className="flex items-center">
-                                      <Clock className="mr-1 h-3 w-3" />
-                                      {assessment.timeLimit} min
-                                    </span>
-                                  )}
-                                  {assessment.hasCertificate && (
-                                    <span className="flex items-center text-green-600">
-                                      <Award className="mr-1 h-3 w-3" />
-                                      Certificate Available
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                onClick={() => handleStartAssessment(assessment)}
-                                disabled={completedAssessments.has(assessment.id) || detailedProgress.percent < 80}
-                                className={
-                                  completedAssessments.has(assessment.id)
-                                    ? "bg-green-600"
-                                    : detailedProgress.percent < 80
-                                    ? "bg-gray-400"
-                                    : "bg-blue-600 hover:bg-blue-700"
-                                }
-                              >
-                                {completedAssessments.has(assessment.id) ? (
-                                  <>
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Completed
-                                  </>
-                                ) : detailedProgress.percent < 80 ? (
-                                  "Complete Course First"
-                                ) : (
-                                  "Take Assessment"
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Course Content</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {units.map((unit, index) => (
-                      <button
-                        key={unit.id}
-                        onClick={() => setActiveUnitId(unit.id)}
-                        className={`w-full text-left p-3 rounded-lg transition-colors ${
-                          activeUnitId === unit.id
-                            ? "bg-blue-100 text-blue-700 border border-blue-200"
-                            : "hover:bg-gray-100"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">
-                              {index + 1}. {unit.name}
-                            </span>
-                            {unit.showDuration && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                {unit.duration} min
-                              </div>
-                            )}
-                          </div>
-                          {activeUnitId === unit.id && (
-                            <CheckCircle className="h-4 w-4 text-blue-600" />
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        {/* Assessment Dialog */}
-        <Dialog open={showAssessment} onOpenChange={setShowAssessment}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{currentAssessment?.title}</DialogTitle>
-            </DialogHeader>
-            {currentAssessment && (
-              <ComprehensiveAssessment
-                assessmentId={currentAssessment.id}
-                onComplete={() => handleAssessmentComplete(currentAssessment.id)}
-                onCancel={() => setShowAssessment(false)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </Layout>
   );
