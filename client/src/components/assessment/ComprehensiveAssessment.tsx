@@ -315,17 +315,54 @@ export function ComprehensiveAssessment({
             <RadioGroup
               value={selectedAnswers[currentQuestion.id.toString()] || ""}
               onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
+              className="space-y-3"
             >
-              {Array.isArray(currentQuestion.options) && 
-                (currentQuestion.options as string[]).map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
+              {(() => {
+                let options = currentQuestion.options;
+                
+                // Handle different option formats
+                if (typeof options === 'string') {
+                  try {
+                    options = JSON.parse(options);
+                  } catch {
+                    options = [options];
+                  }
+                }
+                
+                if (!Array.isArray(options)) {
+                  return <div className="text-red-600">No options available</div>;
+                }
+                
+                return options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                     <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                    <Label htmlFor={`option-${index}`} className="cursor-pointer">
+                    <Label htmlFor={`option-${index}`} className="cursor-pointer flex-1">
                       {String(option)}
                     </Label>
                   </div>
-                ))
-              }
+                ));
+              })()}
+            </RadioGroup>
+          )}
+
+          {currentQuestion.questionType === "true_false" && (
+            <RadioGroup
+              value={selectedAnswers[currentQuestion.id.toString()] || ""}
+              onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                <RadioGroupItem value="true" id="option-true" />
+                <Label htmlFor="option-true" className="cursor-pointer flex-1">
+                  True
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                <RadioGroupItem value="false" id="option-false" />
+                <Label htmlFor="option-false" className="cursor-pointer flex-1">
+                  False
+                </Label>
+              </div>
             </RadioGroup>
           )}
         </CardContent>

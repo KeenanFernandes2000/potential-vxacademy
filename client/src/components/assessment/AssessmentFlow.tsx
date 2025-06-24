@@ -46,11 +46,11 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
     onSuccess: (result) => {
       setIsSubmitting(false);
       onComplete(result.passed, result.score, result.certificateGenerated);
-      
+
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/user/progress`] });
-      
+
       if (result.certificateGenerated) {
         queryClient.invalidateQueries({ queryKey: [`/api/user/certificates`] });
       }
@@ -90,7 +90,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
   const handleSubmitAssessment = () => {
     if (timeExpired || Object.keys(selectedAnswers).length === questions?.length) {
       setIsSubmitting(true);
-      
+
       submitAssessmentMutation.mutate({
         answers: selectedAnswers,
         timeExpired,
@@ -157,7 +157,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
           {assessment.description && (
             <p className="text-gray-600">{assessment.description}</p>
           )}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <h4 className="font-semibold">Assessment Details:</h4>
@@ -173,7 +173,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
                 </div>
               )}
             </div>
-            
+
             <div className="space-y-2">
               <h4 className="font-semibold">Attempt Information:</h4>
               <p><strong>Attempts used:</strong> {attemptsUsed} / {assessment.maxRetakes}</p>
@@ -265,15 +265,54 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
             <RadioGroup
               value={selectedAnswers[currentQuestion.id.toString()] || ""}
               onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
+              className="space-y-3"
             >
-              {Array.isArray(currentQuestion.options) && (currentQuestion.options as string[]).map((option, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="cursor-pointer">
-                    {option}
-                  </Label>
-                </div>
-              ))}
+              {(() => {
+                let options = currentQuestion.options;
+
+                // Handle different option formats
+                if (typeof options === 'string') {
+                  try {
+                    options = JSON.parse(options);
+                  } catch {
+                    options = [options];
+                  }
+                }
+
+                if (!Array.isArray(options)) {
+                  return <div className="text-red-600">No options available</div>;
+                }
+
+                return options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                    <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                    <Label htmlFor={`option-${index}`} className="cursor-pointer flex-1">
+                      {String(option)}
+                    </Label>
+                  </div>
+                ));
+              })()}
+            </RadioGroup>
+          )}
+
+          {currentQuestion.questionType === "true_false" && (
+            <RadioGroup
+              value={selectedAnswers[currentQuestion.id.toString()] || ""}
+              onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                <RadioGroupItem value="true" id="option-true" />
+                <Label htmlFor="option-true" className="cursor-pointer flex-1">
+                  True
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                <RadioGroupItem value="false" id="option-false" />
+                <Label htmlFor="option-false" className="cursor-pointer flex-1">
+                  False
+                </Label>
+              </div>
             </RadioGroup>
           )}
         </CardContent>
