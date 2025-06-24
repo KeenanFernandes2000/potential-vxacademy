@@ -106,6 +106,35 @@ export default function EnhancedCourseDetail() {
     queryKey: ["/api/user/progress"],
   });
 
+  // Calculate course progress
+  const courseProgressData = useMemo(() => {
+    if (!units || !blocks || !userProgress) return { percentComplete: 0, completed: false };
+    
+    const totalBlocks = blocks.length;
+    const totalAssessments = [...unitAssessments, ...courseAssessments].length;
+    const totalItems = totalBlocks + totalAssessments;
+    
+    if (totalItems === 0) return { percentComplete: 100, completed: true };
+    
+    const completedItemsCount = completedBlocks.size + completedAssessments.size;
+    const percentComplete = Math.round((completedItemsCount / totalItems) * 100);
+    const completed = percentComplete === 100;
+    
+    return { percentComplete, completed, totalItems, completedItems: completedItemsCount };
+  }, [units, blocks, unitAssessments, courseAssessments, completedBlocks, completedAssessments]);
+
+  // Certificate generation mutation
+  const generateCertificateMutation = useMutation({
+    mutationFn: async (data: { courseId: number; assessmentId: number }) => {
+      const res = await apiRequest("POST", `/api/certificates/generate`, data);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/certificates"] });
+      // Show success notification or redirect to achievements
+    }
+  });
+
   // Fetch course prerequisites
   const { data: prerequisites = [] } = useQuery({
     queryKey: [`/api/courses/${courseId}/prerequisites`],
@@ -303,9 +332,26 @@ export default function EnhancedCourseDetail() {
     setShowAssessment(true);
   };
 
-  const handleAssessmentComplete = (assessmentId: number) => {
-    // Add completed assessment to local state immediately
-    setCompletedAssessments(prev => new Set(prev).add(assessmentId));
+  const handleAssessmentComplete = (result: { 
+    passed: boolean; 
+    score: number; 
+    certificateGenerated?: boolean; 
+    attemptsRemaining: number;
+    assessmentId: number;
+  }) => {
+    const { passed, assessmentId, certificateGenerated } = result;
+    
+    if (passed) {
+      // Add completed assessment to local state immediately
+      setCompletedAssessments(prev => new Set(prev).add(assessmentId));
+      
+      // Check if certificate should be generated
+      const assessment = [...unitAssessments, ...courseAssessments].find(a => a.id === assessmentId);
+      if (assessment?.hasCertificate && !certificateGenerated) {
+        generateCertificateMutation.mutate({ courseId: parseInt(courseId), assessmentId });
+      }
+    }
+    
     setShowAssessment(false);
     setCurrentAssessment(null);
     
@@ -314,45 +360,47 @@ export default function EnhancedCourseDetail() {
     queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
     queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/assessments`] });
     
-    // Determine next action based on assessment type and placement
-    const completedAssessment = [...unitAssessments, ...courseAssessments].find(a => a.id === assessmentId);
-    
-    if (completedAssessment) {
-      if (completedAssessment.placement === "beginning") {
-        // After beginning assessment, start with first unit/block
-        if (units && units.length > 0) {
-          const firstUnit = units[0];
-          setActiveUnitId(firstUnit.id);
-          setSelectedUnit(firstUnit);
-          
-          // If unit has blocks, select first block
+    if (passed) {
+      // Determine next action based on assessment type and placement
+      const completedAssessment = [...unitAssessments, ...courseAssessments].find(a => a.id === assessmentId);
+      
+      if (completedAssessment) {
+        if (completedAssessment.placement === "beginning") {
+          // After beginning assessment, start with first unit/block
+          if (units && units.length > 0) {
+            const firstUnit = units[0];
+            setActiveUnitId(firstUnit.id);
+            setSelectedUnit(firstUnit);
+            
+            // If unit has blocks, select first block
+            if (blocks && blocks.length > 0) {
+              const firstBlock = blocks[0];
+              setActiveBlockId(firstBlock.id);
+              setSelectedBlock(firstBlock);
+              setSelectedContent({ type: "block", id: firstBlock.id, data: firstBlock });
+            }
+          }
+        } else if (completedAssessment.placement === "end") {
+          // After end assessment, show completion state or move to next unit
+          if (units && units.length > 0) {
+            const currentUnitIndex = units.findIndex(u => u.id === activeUnitId);
+            if (currentUnitIndex < units.length - 1) {
+              // Move to next unit
+              const nextUnit = units[currentUnitIndex + 1];
+              setActiveUnitId(nextUnit.id);
+              setSelectedUnit(nextUnit);
+            }
+          }
+        } else {
+          // Regular unit assessment - continue with current flow
           if (blocks && blocks.length > 0) {
-            const firstBlock = blocks[0];
-            setActiveBlockId(firstBlock.id);
-            setSelectedBlock(firstBlock);
-            setSelectedContent({ type: "block", id: firstBlock.id, data: firstBlock });
-          }
-        }
-      } else if (completedAssessment.placement === "end") {
-        // After end assessment, show completion state or move to next unit
-        if (units && units.length > 0) {
-          const currentUnitIndex = units.findIndex(u => u.id === activeUnitId);
-          if (currentUnitIndex < units.length - 1) {
-            // Move to next unit
-            const nextUnit = units[currentUnitIndex + 1];
-            setActiveUnitId(nextUnit.id);
-            setSelectedUnit(nextUnit);
-          }
-        }
-      } else {
-        // Regular unit assessment - continue with current flow
-        if (blocks && blocks.length > 0) {
-          const currentIndex = blocks.findIndex(b => b.id === activeBlockId);
-          if (currentIndex < blocks.length - 1) {
-            const nextBlock = blocks[currentIndex + 1];
-            setActiveBlockId(nextBlock.id);
-            setSelectedBlock(nextBlock);
-            setSelectedContent({ type: "block", id: nextBlock.id, data: nextBlock });
+            const currentIndex = blocks.findIndex(b => b.id === activeBlockId);
+            if (currentIndex < blocks.length - 1) {
+              const nextBlock = blocks[currentIndex + 1];
+              setActiveBlockId(nextBlock.id);
+              setSelectedBlock(nextBlock);
+              setSelectedContent({ type: "block", id: nextBlock.id, data: nextBlock });
+            }
           }
         }
       }
@@ -464,13 +512,24 @@ export default function EnhancedCourseDetail() {
               </div>
             </div>
             <div className="lg:w-80">
-              <CourseProgressBar
-                units={units}
-                userProgress={userProgress}
-                unitAssessments={unitAssessments}
-                courseAssessments={courseAssessments}
-                blockCompletions={blockCompletions}
-              />
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Course Progress</span>
+                  <span className="text-sm text-gray-500">
+                    {courseProgressData.completedItems}/{courseProgressData.totalItems} items
+                  </span>
+                </div>
+                <Progress value={courseProgressData.percentComplete} className="w-full mb-2" />
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>{courseProgressData.percentComplete}% Complete</span>
+                  {courseProgressData.completed && (
+                    <div className="flex items-center gap-1 text-green-600">
+                      <CheckCircle className="h-3 w-3" />
+                      <span>Completed</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -749,10 +808,31 @@ export default function EnhancedCourseDetail() {
                   </Card>
                 )}
                 {selectedContent.type === "assessment" && (
-                  <ComprehensiveAssessment
-                    assessment={selectedContent.data}
-                    onComplete={() => handleAssessmentComplete(selectedContent.id)}
-                  />
+                  <div>
+                    {completedAssessments.has(selectedContent.id) ? (
+                      <Card>
+                        <CardContent className="p-6 text-center">
+                          <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            Assessment Completed
+                          </h3>
+                          <p className="text-gray-600">
+                            You have successfully completed this assessment.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <ComprehensiveAssessment
+                        assessment={selectedContent.data}
+                        userId={user.id}
+                        onComplete={(result) => handleAssessmentComplete({ ...result, assessmentId: selectedContent.id })}
+                        onCancel={() => {
+                          setShowAssessment(false);
+                          setCurrentAssessment(null);
+                        }}
+                      />
+                    )}
+                  </div>
                 )}
               </div>
             ) : (
