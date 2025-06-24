@@ -519,16 +519,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all assessments for admin management
   app.get("/api/assessments", async (req, res) => {
     try {
-      // Get all units to fetch their assessments
-      const allUnits = await storage.getAllUnits();
-      const allAssessments = [];
-
-      // Get assessments for each unit
-      for (const unit of allUnits) {
-        const unitAssessments = await storage.getAssessments(unit.id);
-        allAssessments.push(...unitAssessments);
-      }
-
+      // Use the new getAllAssessments method to fetch both unit and course level assessments
+      const allAssessments = await storage.getAllAssessments();
       console.log("Fetched all assessments:", allAssessments.length);
       res.json(allAssessments);
     } catch (error) {

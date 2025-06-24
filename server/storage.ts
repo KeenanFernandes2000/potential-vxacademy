@@ -100,6 +100,8 @@ export interface IStorage {
   
   // Assessments
   getAssessments(unitId: number): Promise<Assessment[]>;
+  getAllAssessments(): Promise<Assessment[]>;
+  getAssessmentsByCourse(courseId: number): Promise<Assessment[]>;
   getAssessment(id: number): Promise<Assessment | undefined>;
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment | undefined>;
