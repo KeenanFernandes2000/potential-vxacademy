@@ -63,7 +63,7 @@ export function BulkUploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
@@ -71,13 +71,13 @@ export function BulkUploadDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6"></div>
           {/* Template Download Section */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Step 1: Download Template</CardTitle>
               <CardDescription>
-                Download the VX Academy Import Format template. Required fields: First Name, Email. Optional: Last Name, Username, Password (if not provided, email will be used as password), Role, Language, Assets, Role Category, Seniority, Organization, Nationality, Years of Experience.
+                Download the VX Academy Import Format template and fill in your user data.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -131,24 +131,7 @@ export function BulkUploadDialog({
                     </div>
                   )}
 
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <div className="space-y-2">
-                        <p><strong>Required fields:</strong> First Name (or Full Name), Email</p>
-                        <p><strong>Password:</strong> If no password field is provided, the email address will be used as the password.</p>
-                        <p><strong>Supported field names include:</strong></p>
-                        <ul className="text-xs space-y-1 ml-4 list-disc">
-                          <li>Names: First Name, Last Name, Full Name, Employee Name</li>
-                          <li>Contact: Email, Email Address, Work Email</li>
-                          <li>Login: Username, Login ID, Employee ID</li>
-                          <li>Security: Password, Initial Password, Temp Password</li>
-                          <li>Profile: Role, Assets, Role Category, Seniority, Organization, Nationality, Years of Experience</li>
-                        </ul>
-                        <p className="text-xs text-muted-foreground">Field names are case-insensitive and support various formats.</p>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
+                  
 
                   <div className="flex gap-2 pt-4">
                     <Button
