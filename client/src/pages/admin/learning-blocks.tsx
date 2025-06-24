@@ -115,6 +115,11 @@ export default function LearningBlocksManagement() {
   const [selectedFilterUnitId, setSelectedFilterUnitId] =
     useState<string>("all");
 
+  // Form context states (separate from filter states)
+  const [formTrainingAreaId, setFormTrainingAreaId] = useState<string>("");
+  const [formModuleId, setFormModuleId] = useState<string>("");
+  const [formCourseId, setFormCourseId] = useState<string>("");
+
   // Fetch all data for filters and dropdowns
   const { data: trainingAreas } = useQuery<TrainingArea[]>({
     queryKey: ["/api/training-areas"],

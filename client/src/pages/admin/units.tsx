@@ -289,8 +289,29 @@ export default function UnitsManagement() {
     },
   });
 
+  // Validate unique order on submission
+  const validateUniqueOrder = async (order: number) => {
+    try {
+      const response = await apiRequest("POST", "/api/validate/unit-order", {
+        order,
+        excludeId: editingUnit?.id,
+      });
+      const { isUnique } = await response.json();
+      return isUnique;
+    } catch {
+      return true; // Allow if validation fails
+    }
+  };
+
   // Form submission handler
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
+    // Validate unique order
+    const isOrderUnique = await validateUniqueOrder(data.order);
+    if (!isOrderUnique) {
+      form.setError("order", { message: "Order number must be unique." });
+      return;
+    }
+
     // Transform form data to proper unit data
     const unitData = {
       name: data.name,
@@ -443,7 +464,7 @@ export default function UnitsManagement() {
                     name="trainingAreaId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Training Area</FormLabel>
+                        <FormLabel>Training Area <span className="text-red-500">*</span></FormLabel>
                         <Select
                           value={field.value || ""}
                           onValueChange={(value) => {
@@ -475,7 +496,7 @@ export default function UnitsManagement() {
                     name="moduleId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Module</FormLabel>
+                        <FormLabel>Module <span className="text-red-500">*</span></FormLabel>
                         <Select
                           value={field.value || ""}
                           onValueChange={(value) => {
@@ -507,7 +528,7 @@ export default function UnitsManagement() {
                     name="courseIds"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Courses</FormLabel>
+                        <FormLabel>Courses <span className="text-red-500">*</span></FormLabel>
                         <FormDescription>
                           Select one or more courses for this unit
                         </FormDescription>
