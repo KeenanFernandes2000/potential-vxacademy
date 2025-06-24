@@ -229,32 +229,6 @@ export function ImageUpload({
         </Tabs>
       </FormControl>
 
-      {/* Image Preview */}
-      {value && (
-        <div className="mt-4">
-          <div className="relative inline-block">
-            <img 
-              src={value} 
-              alt="Preview" 
-              className="max-w-xs max-h-48 object-cover rounded-lg border shadow-sm"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-            <Button
-              variant="destructive"
-              size="sm"
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-              onClick={clearImage}
-              disabled={disabled}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-          
-        </div>
-      )}
-
       <FormMessage />
     </FormItem>
   );
