@@ -199,6 +199,13 @@ export default function UnitsManagement() {
   // Units for the selected course (for form dropdown)
   const units = allUnits || [];
 
+  // Calculate next available order
+  const getNextOrder = () => {
+    if (!allUnits || allUnits.length === 0) return 1;
+    const maxOrder = Math.max(...allUnits.map(unit => unit.order));
+    return maxOrder + 1;
+  };
+
   // Form setup
   const form = useForm<UnitFormData>({
     resolver: zodResolver(unitFormSchema),
@@ -216,6 +223,13 @@ export default function UnitsManagement() {
     },
   });
 
+  // Update order when units data changes (for new units)
+  useEffect(() => {
+    if (!editingUnit && allUnits) {
+      form.setValue("order", getNextOrder());
+    }
+  }, [allUnits, editingUnit]);
+
   // Create unit mutation
   const createMutation = useMutation({
     mutationFn: async (unitData: any) => {
@@ -225,7 +239,18 @@ export default function UnitsManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/units"] });
       queryClient.invalidateQueries({ queryKey: ["/api/course-units"] });
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        internalNote: "",
+        trainingAreaId: "",
+        moduleId: "",
+        courseIds: [],
+        order: getNextOrder() + 1, // Next order after the one just created
+        duration: 30,
+        showDuration: true,
+        xpPoints: 100,
+      });
       toast({
         title: "Unit created",
         description: "The unit has been created successfully.",
@@ -374,7 +399,7 @@ export default function UnitsManagement() {
       trainingAreaId: "",
       moduleId: "",
       courseIds: [],
-      order: 1,
+      order: getNextOrder(),
       duration: 30,
       showDuration: true,
       xpPoints: 100,
@@ -628,8 +653,15 @@ export default function UnitsManagement() {
                               placeholder="Order..."
                               value={field.value}
                               onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                              readOnly={!editingUnit}
+                              className={!editingUnit ? "bg-muted" : ""}
                             />
                           </FormControl>
+                          {!editingUnit && (
+                            <FormDescription>
+                              Auto-assigned next available order
+                            </FormDescription>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
