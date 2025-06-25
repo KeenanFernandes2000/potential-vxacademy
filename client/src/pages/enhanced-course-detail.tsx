@@ -248,19 +248,19 @@ export default function EnhancedCourseDetail() {
 
   // Set initial active unit and block
   useEffect(() => {
-    if (units.length > 0 && !activeUnitId) {
+    if (units && units.length > 0 && !activeUnitId) {
       const firstUnit = units[0];
       setActiveUnitId(firstUnit.id);
       setSelectedUnit(firstUnit);
     }
-  }, [units.length, activeUnitId]);
+  }, [units, activeUnitId]);
 
   useEffect(() => {
-    if (blocks.length > 0 && !activeBlockId) {
+    if (blocks && blocks.length > 0 && !activeBlockId) {
       setActiveBlockId(blocks[0].id);
       setSelectedBlock(blocks[0]);
     }
-  }, [blocks.length, activeBlockId]);
+  }, [blocks, activeBlockId]);
 
   // Initialize completed assessments and blocks from progress data
   useEffect(() => {
@@ -270,7 +270,7 @@ export default function EnhancedCourseDetail() {
         setCompletedAssessments(new Set(courseProgress.completedAssessments));
       }
     }
-  }, [progress?.length, courseId]);
+  }, [progress, courseId]);
 
   useEffect(() => {
     if (blockCompletions && Array.isArray(blockCompletions)) {
@@ -440,7 +440,7 @@ export default function EnhancedCourseDetail() {
       console.log("Auto-enrolling user in course", courseId);
       enrollMutation.mutate(courseId);
     }
-  }, [courseId, course, progress, isLoadingProgress, enrollMutation]);
+  }, [courseId, course, isLoadingProgress, progress]);
 
   if (courseLoading || unitsLoading || blocksLoading) {
     return (

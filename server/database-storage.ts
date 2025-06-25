@@ -924,8 +924,7 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
-  ```python
-async deleteNotification(id: number): Promise<boolean> {
+  async deleteNotification(id: number): Promise<boolean> {
     const result = await db
       .delete(notifications)
       .where(eq(notifications.id, id));
