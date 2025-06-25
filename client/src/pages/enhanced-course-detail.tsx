@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Assessment, Course, Unit, LearningBlock, UserProgress } from "@shared/schema";
@@ -286,31 +286,31 @@ export default function EnhancedCourseDetail() {
       setActiveUnitId(firstUnit.id);
       setSelectedUnit(firstUnit);
     }
-  }, [units, activeUnitId]);
+  }, [units.length, activeUnitId]);
 
   useEffect(() => {
     if (blocks.length > 0 && !activeBlockId) {
       setActiveBlockId(blocks[0].id);
       setSelectedBlock(blocks[0]);
     }
-  }, [blocks, activeBlockId]);
+  }, [blocks.length, activeBlockId]);
 
   // Initialize completed assessments and blocks from progress data
   useEffect(() => {
-    if (progress && Array.isArray(progress)) {
+    if (progress && Array.isArray(progress) && courseId) {
       const courseProgress = progress.find((p: any) => p.courseId === courseId);
-      if (courseProgress && courseProgress.completedAssessments) {
+      if (courseProgress?.completedAssessments) {
         setCompletedAssessments(new Set(courseProgress.completedAssessments));
       }
     }
-  }, [progress, courseId]);
+  }, [progress?.length, courseId]);
 
   useEffect(() => {
     if (blockCompletions && Array.isArray(blockCompletions)) {
       const completedBlockIds = blockCompletions.map((completion: any) => completion.blockId);
       setCompletedBlocks(new Set(completedBlockIds));
     }
-  }, [blockCompletions]);
+  }, [blockCompletions?.length]);
 
   const courseProgress = progress && Array.isArray(progress)
     ? progress.find((p: any) => p.courseId === courseId)
@@ -461,16 +461,16 @@ export default function EnhancedCourseDetail() {
     return detailedProgress.percent >= 80;
   };
 
-  // Check for course progress
-  const courseProgressData = progress?.find(p => p.courseId === courseId);
+
 
   // Auto-enroll if user accesses course but has no progress record
   useEffect(() => {
-    if (courseId && course && !isLoadingProgress && progress && !courseProgressData && !enrollMutation.isPending) {
+    const userCourseProgress = progress?.find(p => p.courseId === courseId);
+    if (courseId && course && !isLoadingProgress && progress && !userCourseProgress && !enrollMutation.isPending) {
       console.log("Auto-enrolling user in course", courseId);
       enrollMutation.mutate(courseId);
     }
-  }, [courseId, course, progress, courseProgressData, isLoadingProgress, enrollMutation]);
+  }, [courseId, course, progress, isLoadingProgress, enrollMutation]);
 
   if (courseLoading || unitsLoading || blocksLoading) {
     return (
