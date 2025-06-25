@@ -11,6 +11,7 @@ import {
   ChevronDown,
   User,
   LogOut,
+  X,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -72,6 +73,38 @@ export function Header({ toggleSidebar }: HeaderProps) {
       queryClient.setQueryData(["/api/notifications/count"], (oldData: { count: number } | undefined) => {
         if (!oldData) return { count: 0 };
         return { count: Math.max(0, oldData.count - 1) };
+      });
+      
+      // Also invalidate to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
+    },
+  });
+
+  // Delete notification mutation
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (notificationId: number) => {
+      const response = await fetch(`/api/notifications/${notificationId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Failed to delete notification");
+      return response.json();
+    },
+    onSuccess: (_, notificationId) => {
+      // Remove the notification from the list
+      queryClient.setQueryData(["/api/notifications"], (oldData: Notification[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.filter(notification => notification.id !== notificationId);
+      });
+      
+      // Update the notification count if it was unread
+      queryClient.setQueryData(["/api/notifications/count"], (oldData: { count: number } | undefined) => {
+        if (!oldData) return { count: 0 };
+        const notificationToDelete = (queryClient.getQueryData(["/api/notifications"]) as Notification[] || [])
+          .find(n => n.id === notificationId);
+        const wasUnread = notificationToDelete && !notificationToDelete.read;
+        return { count: Math.max(0, oldData.count - (wasUnread ? 1 : 0)) };
       });
       
       // Also invalidate to ensure consistency
@@ -214,7 +247,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
                 notifications.map((notification) => (
                   <DropdownMenuItem
                     key={notification.id}
-                    className="cursor-pointer hover:bg-slate-50 p-3"
+                    className="cursor-pointer hover:bg-slate-50 p-3 group relative"
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <div
@@ -238,6 +271,16 @@ export function Header({ toggleSidebar }: HeaderProps) {
                         <div className="w-2 h-2 bg-teal-500 rounded-full mt-2"></div>
                       )}
                     </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotificationMutation.mutate(notification.id);
+                      }}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600"
+                      disabled={deleteNotificationMutation.isPending}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </DropdownMenuItem>
                 ))
               )}
