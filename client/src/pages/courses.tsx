@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { CourseProgressBar } from "@/components/course/CourseProgressBar";
 import {
   Select,
   SelectContent,
@@ -187,16 +188,14 @@ export default function Courses() {
 
                       {course.progress ? (
                         <>
-                          <div className="w-full bg-neutrals-200 rounded-full h-2 mb-3">
-                            <div 
-                              className="bg-secondary h-2 rounded-full" 
-                              style={{ width: `${course.progress.percentComplete || 0}%` }}
-                            ></div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-neutrals-600">
-                              {course.progress.percentComplete || 0}% Complete
-                            </span>
+                          <CourseProgressBar
+                            completedUnits={Math.floor(((course.progress.percentComplete || 0) / 100) * 4)}
+                            totalUnits={4}
+                            percent={course.progress.percentComplete || 0}
+                            hasEndAssessment={false}
+                            endAssessmentAvailable={false}
+                          />
+                          <div className="flex items-center justify-between mt-3">
                             {course.progress.completed ? (
                               <span className="px-2 py-1 bg-success bg-opacity-10 text-success text-xs font-medium rounded-md flex items-center">
                                 <span className="material-icons text-xs mr-1">check_circle</span>
@@ -204,7 +203,7 @@ export default function Courses() {
                               </span>
                             ) : (
                               <Link href={`/courses/${course.id}`}>
-                                <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors">
+                                <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors ml-auto">
                                   {course.progress.percentComplete > 0 ? "Continue" : "Start"}
                                 </a>
                               </Link>
