@@ -365,17 +365,21 @@ export default function EnhancedCourseDetail() {
       // Check if certificate should be generated
       const assessment = [...unitAssessments, ...courseAssessments].find(a => a.id === assessmentId);
       if (assessment?.hasCertificate && !certificateGenerated) {
-        generateCertificateMutation.mutate({ courseId: parseInt(courseId), assessmentId });
+        generateCertificateMutation.mutate({ courseId: courseId!, assessmentId });
       }
     }
 
     setShowAssessment(false);
     setCurrentAssessment(null);
 
-    // Invalidate and refetch progress data
+    // Invalidate and refetch progress data to update UI
     queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
     queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/block-completions"] });
+    queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+    queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/units`] });
     queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/assessments`] });
+    queryClient.invalidateQueries({ queryKey: [`/api/units/${activeUnitId}/assessments`] });
 
     if (passed) {
       // Determine next action based on assessment type and placement
