@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Course, UserProgress } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CourseProgressBar } from "@/components/course/CourseProgressBar";
 
 export function ProgressSection() {
   const [activeCourses, setActiveCourses] = useState<(Course & { progress?: UserProgress })[]>([]);
@@ -134,16 +135,14 @@ export function ProgressSection() {
                   <span>{course.level}</span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
-                <div className="w-full bg-neutrals-200 rounded-full h-2 mb-3">
-                  <div 
-                    className="bg-secondary h-2 rounded-full" 
-                    style={{ width: `${course.progress?.percentComplete || 0}%` }}
-                  ></div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-neutrals-600">
-                    {course.progress?.percentComplete || 0}% Complete
-                  </span>
+                <CourseProgressBar
+                  completedUnits={Math.floor(((course.progress?.percentComplete || 0) / 100) * 4)} // Estimate based on percentage
+                  totalUnits={4} // Default estimate for dashboard display
+                  percent={course.progress?.percentComplete || 0}
+                  hasEndAssessment={false} // We don't have this data in the dashboard context
+                  endAssessmentAvailable={false}
+                />
+                <div className="flex items-center justify-end mt-2">
                   <span className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors">
                     Continue
                   </span>
