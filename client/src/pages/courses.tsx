@@ -70,6 +70,28 @@ export default function Courses() {
     queryKey: ["/api/progress"],
   });
 
+  // Fetch units for all courses to get actual unit counts
+  const { data: allUnits } = useQuery({
+    queryKey: ["/api/courses/units"],
+    queryFn: async () => {
+      if (!courses) return {};
+      const unitsData: Record<number, any[]> = {};
+      await Promise.all(
+        courses.map(async (course) => {
+          try {
+            const res = await apiRequest("GET", `/api/courses/${course.id}/units`);
+            unitsData[course.id] = await res.json();
+          } catch (error) {
+            console.error(`Failed to fetch units for course ${course.id}:`, error);
+            unitsData[course.id] = [];
+          }
+        })
+      );
+      return unitsData;
+    },
+    enabled: !!courses && courses.length > 0,
+  });
+
   // Format minutes into hours and minutes
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -79,12 +101,13 @@ export default function Courses() {
 
   const isLoading = isLoadingCourses || isLoadingProgress;
 
-  // Combine courses with progress data
+  // Combine courses with progress data and units
   const coursesWithProgress = !isLoading && courses
     ? courses.map(course => {
         // Even if progress data isn't available, include the course
         const courseProgress = progress?.find(p => p.courseId === course.id);
-        return { ...course, progress: courseProgress };
+        const courseUnits = allUnits?.[course.id] || [];
+        return { ...course, progress: courseProgress, units: courseUnits };
       })
     : [];
 
@@ -189,8 +212,8 @@ export default function Courses() {
                       {course.progress ? (
                         <>
                           <CourseProgressBar
-                            completedUnits={Math.floor(((course.progress.percentComplete || 0) / 100) * 4)}
-                            totalUnits={4}
+                            completedUnits={Math.floor(((course.progress.percentComplete || 0) / 100) * course.units.length)}
+                            totalUnits={course.units.length}
                             percent={course.progress.percentComplete || 0}
                             hasEndAssessment={false}
                             endAssessmentAvailable={false}
