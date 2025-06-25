@@ -114,6 +114,13 @@ The VX Academy is an AI-powered training platform designed for hospitality and t
 - **Image Handling**: UUID-based naming with multiple format support
 
 ## Recent Changes
+- June 25, 2025: Course Progress Database Update Fix Complete
+  - Fixed course progress not updating when completing learning blocks or assessments
+  - Implemented upsert pattern in updateCourseProgress function to create progress records if they don't exist
+  - Enhanced frontend cache invalidation to refresh progress data after block completions
+  - Consolidated duplicate mutation handlers (blockCompletionMutation and completeBlockMutation)
+  - Course progress now properly saves to database and updates in real-time on frontend
+  - Fixed silent database update failures when user progress records didn't exist
 - June 25, 2025: Critical Application Syntax Error Resolution Complete
   - Fixed fatal syntax error in server/routes.ts preventing application startup
   - Removed misplaced 'else' statement at line 971 causing "Expected 'finally' but found 'else'" compilation error

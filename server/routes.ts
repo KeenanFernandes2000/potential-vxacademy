@@ -114,12 +114,24 @@ async function updateCourseProgress(userId: number, courseId: number) {
     const percentComplete = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 100;
     const completed = percentComplete === 100;
 
-    // Update user progress
-    await storage.updateUserProgress(userId, courseId, {
-      percentComplete,
-      completed,
-      lastAccessed: new Date()
-    });
+    // Update or create user progress record
+    const existingProgress = await storage.getUserProgress(userId, courseId);
+    if (existingProgress) {
+      await storage.updateUserProgress(userId, courseId, {
+        percentComplete,
+        completed,
+        lastAccessed: new Date()
+      });
+    } else {
+      // Create new progress record if it doesn't exist
+      await storage.createUserProgress({
+        userId,
+        courseId,
+        percentComplete,
+        completed,
+        lastAccessed: new Date()
+      });
+    }
 
     console.log(`Updated course progress for user ${userId}, course ${courseId}: ${percentComplete}% (${completedItems}/${totalItems} items)`);
   } catch (error) {
