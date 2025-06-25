@@ -44,6 +44,89 @@ import {
   canManageUser,
 } from "./permissions";
 
+// Helper function to calculate and update course progress
+async function updateCourseProgress(userId: number, courseId: number) {
+  try {
+    // Get all units for this course
+    const units = await storage.getUnits(courseId);
+    
+    if (units.length === 0) {
+      // No units in course, mark as complete
+      await storage.updateUserProgress(userId, courseId, {
+        percentComplete: 100,
+        completed: true,
+        lastAccessed: new Date()
+      });
+      return;
+    }
+
+    let totalItems = 0;
+    let completedItems = 0;
+
+    // Calculate progress for each unit
+    for (const unit of units) {
+      // Get blocks for this unit
+      const blocks = await storage.getLearningBlocks(unit.id);
+      totalItems += blocks.length;
+
+      // Count completed blocks
+      for (const block of blocks) {
+        const blockCompletion = await storage.getBlockCompletion(userId, block.id);
+        if (blockCompletion && blockCompletion.completed) {
+          completedItems++;
+        }
+      }
+
+      // Get assessments for this unit
+      const assessments = await storage.getAssessments(unit.id);
+      totalItems += assessments.length;
+
+      // Count passed assessments
+      for (const assessment of assessments) {
+        const attempts = await storage.getAssessmentAttempts(userId, assessment.id);
+        if (attempts.some(attempt => attempt.passed)) {
+          completedItems++;
+        }
+      }
+    }
+
+    // Get course-level assessments
+    let courseAssessments = [];
+    try {
+      // Try to get course assessments - they should be stored with courseId field
+      const allAssessments = await storage.getAllAssessments();
+      courseAssessments = allAssessments.filter(assessment => assessment.courseId === courseId);
+    } catch (error) {
+      console.error("Error fetching course assessments:", error);
+      courseAssessments = [];
+    }
+    totalItems += courseAssessments.length;
+
+    // Count passed course assessments
+    for (const assessment of courseAssessments) {
+      const attempts = await storage.getAssessmentAttempts(userId, assessment.id);
+      if (attempts.some(attempt => attempt.passed)) {
+        completedItems++;
+      }
+    }
+
+    // Calculate percentage
+    const percentComplete = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 100;
+    const completed = percentComplete === 100;
+
+    // Update user progress
+    await storage.updateUserProgress(userId, courseId, {
+      percentComplete,
+      completed,
+      lastAccessed: new Date()
+    });
+
+    console.log(`Updated course progress for user ${userId}, course ${courseId}: ${percentComplete}% (${completedItems}/${totalItems} items)`);
+  } catch (error) {
+    console.error("Error calculating course progress:", error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
@@ -526,6 +609,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Update course progress after block completion
+      try {
+        // Get the unit this block belongs to
+        const unit = await storage.getUnit(block.unitId);
+        if (unit) {
+          // Get all courses this unit belongs to
+          const coursesForUnit = await storage.getCoursesForUnit(unit.id);
+          
+          for (const course of coursesForUnit) {
+            // Calculate updated progress for this course
+            await updateCourseProgress(userId, course.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error updating course progress after block completion:", error);
+      }
+
       res.json(completion);
     } catch (error) {
       res.status(500).json({ message: "Error completing block" });
@@ -823,81 +923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Update progress for each course this unit belongs to
           for (const course of unitCourses) {
-            const progress = await storage.getUserProgress(userId, course.id);
-
-            if (progress) {
-              // Get all units for this course
-              const courseUnits = await storage.getUnits(course.id);
-
-              // Check if all units have learning blocks and assessments completed
-              let allCompleted = true;
-              let totalUnits = courseUnits.length;
-              let completedUnits = 0;
-
-              for (const courseUnit of courseUnits) {
-                // Get blocks for this unit
-                const blocks = await storage.getLearningBlocks(courseUnit.id);
-
-                // Check block completions
-                let allBlocksCompleted = blocks.length === 0 ? true : false; // Default to true only if no blocks
-                let completedBlocks = 0;
-
-                for (const block of blocks) {
-                  const blockCompletion = await storage.getBlockCompletion(
-                    userId,
-                    block.id,
-                  );
-                  if (blockCompletion && blockCompletion.completed) {
-                    completedBlocks++;
-                  }
-                }
-
-                // If all blocks are completed or no blocks exist, mark blocks as completed
-                if (blocks.length === 0 || completedBlocks === blocks.length) {
-                  allBlocksCompleted = true;
-                }
-
-                // Get assessments for this unit
-                const unitAssessments = await storage.getAssessments(
-                  courseUnit.id,
-                );
-
-                // Check if user has passed any assessment for this unit
-                let assessmentPassed =
-                  unitAssessments.length === 0 ? true : false; // Default to true only if no assessments
-
-                for (const unitAssessment of unitAssessments) {
-                  const attempts = await storage.getAssessmentAttempts(
-                    userId,
-                    unitAssessment.id,
-                  );
-                  if (attempts.some((a) => a.passed)) {
-                    assessmentPassed = true;
-                    break;
-                  }
-                }
-
-                // Unit is completed if blocks are completed AND assessment is passed (if any)
-                const unitCompleted = allBlocksCompleted && assessmentPassed;
-
-                if (unitCompleted) {
-                  completedUnits++;
-                } else {
-                  allCompleted = false;
-                }
-              }
-
-              // Calculate percentage complete
-              const percentComplete =
-                totalUnits > 0
-                  ? Math.round((completedUnits / totalUnits) * 100)
-                  : 0;
-
-              // Update progress
-              await storage.updateUserProgress(userId, course.id, {
-                percentComplete,
-                completed: allCompleted,
-              });
+            await updateCourseProgress(userId, course.id);
 
               // Award course completion badge if all units completed
               if (allCompleted) {
@@ -2516,6 +2542,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateUser(userId, { 
             xpPoints: (user.xpPoints || 0) + assessment.xpPoints 
           });
+        }
+
+        // Update course progress
+        try {
+          let courseId = assessment.courseId;
+          if (!courseId && assessment.unitId) {
+            // Get course from unit if assessment is unit-level
+            const courses = await storage.getCoursesForUnit(assessment.unitId);
+            courseId = courses[0]?.id;
+          }
+
+          if (courseId) {
+            await updateCourseProgress(userId, courseId);
+          }
+        } catch (error) {
+          console.error("Error updating course progress after assessment:", error);
         }
 
         // Generate certificate if enabled and user passed
