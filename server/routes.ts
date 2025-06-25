@@ -584,6 +584,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's block completions
+  app.get("/api/block-completions", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const userId = req.user!.id;
+      const completions = await storage.getUserBlockCompletions(userId);
+      res.json(completions);
+    } catch (error) {
+      console.error("Error fetching block completions:", error);
+      res.status(500).json({ message: "Error fetching block completions" });
+    }
+  });
+
   // Block Completions
   app.post("/api/blocks/:blockId/complete", async (req, res) => {
     if (!req.isAuthenticated()) {

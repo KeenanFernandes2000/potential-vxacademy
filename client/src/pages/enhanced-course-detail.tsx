@@ -228,6 +228,9 @@ export default function EnhancedCourseDetail() {
     },
   });
 
+  // Alias for backward compatibility
+  const completeBlockMutation = blockCompletionMutation;
+
   // Check if course is accessible (for sequential courses)
   const isCourseAccessible = () => {
     if (!course || course.courseType === "free") return true;
@@ -271,10 +274,13 @@ export default function EnhancedCourseDetail() {
 
   useEffect(() => {
     if (blockCompletions && Array.isArray(blockCompletions)) {
-      const completedBlockIds = blockCompletions.map((completion: any) => completion.blockId);
+      const completedBlockIds = blockCompletions
+        .filter((completion: any) => completion && completion.blockId)
+        .map((completion: any) => completion.blockId);
       setCompletedBlocks(new Set(completedBlockIds));
+      console.log("Updated completed blocks:", completedBlockIds);
     }
-  }, [blockCompletions?.length]);
+  }, [blockCompletions]);
 
   const courseProgress = progress && Array.isArray(progress)
     ? progress.find((p: any) => p.courseId === courseId)
@@ -404,7 +410,7 @@ export default function EnhancedCourseDetail() {
   };
 
   const handleCompleteBlock = (blockId: number) => {
-    completeBlockMutation.mutate(blockId);
+    blockCompletionMutation.mutate(blockId);
   };
 
   // Check if course assessment should be shown at the end

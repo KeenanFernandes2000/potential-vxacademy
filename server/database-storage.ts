@@ -29,27 +29,27 @@ export class DatabaseStorage implements IStorage {
       createTableIfMissing: true 
     });
   }
-  
+
   // Role Management
   async getRole(id: number): Promise<Role | undefined> {
     const [role] = await db.select().from(roles).where(eq(roles.id, id));
     return role;
   }
-  
+
   async getRoleByName(name: string): Promise<Role | undefined> {
     const [role] = await db.select().from(roles).where(eq(roles.name, name));
     return role;
   }
-  
+
   async getRoles(): Promise<Role[]> {
     return await db.select().from(roles);
   }
-  
+
   async createRole(role: InsertRole): Promise<Role> {
     const [newRole] = await db.insert(roles).values(role).returning();
     return newRole;
   }
-  
+
   async updateRole(id: number, roleData: Partial<Role>): Promise<Role | undefined> {
     const [updatedRole] = await db
       .update(roles)
@@ -58,35 +58,35 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedRole;
   }
-  
+
   async deleteRole(id: number): Promise<boolean> {
     try {
       // First check if the role exists
       const roleToDelete = await this.getRole(id);
       if (!roleToDelete) return false;
-      
+
       // For system roles, we'll handle differently - allow deletion regardless of user assignment
       const isSystemRole = ["admin", "supervisor", "content_creator", "frontliner"].includes(roleToDelete.name);
-      
+
       if (!isSystemRole) {
         // Only check for users if it's not a system role
         const userResults = await db
           .select()
           .from(users)
           .where(eq(users.role, roleToDelete.name));
-        
+
         // If users are using this non-system role, don't allow deletion
         if (userResults.length > 0) {
           return false; // Can't delete a non-system role that's in use
         }
       }
-      
+
       // Delete any mandatory courses for this role
       await db.delete(roleMandatoryCourses).where(eq(roleMandatoryCourses.roleId, id));
-      
+
       // Now we can safely delete the role
       const deleteResult = await db.delete(roles).where(eq(roles.id, id));
-      
+
       // Return true if at least one row was affected
       return deleteResult.rowCount !== null && deleteResult.rowCount > 0;
     } catch (error) {
@@ -94,7 +94,7 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
-  
+
   // Role Mandatory Courses
   async getRoleMandatoryCourses(roleId: number): Promise<Course[]> {
     try {
@@ -103,7 +103,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(roleMandatoryCourses)
         .where(eq(roleMandatoryCourses.roleId, roleId));
-      
+
       // If there are no mandatory courses, return empty array
       if (mandatoryCourseIds.length === 0) {
         return [];
@@ -128,16 +128,16 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async addMandatoryCourseToRole(data: InsertRoleMandatoryCourse): Promise<RoleMandatoryCourse> {
     // Check if role and course exist
     const role = await this.getRole(data.roleId);
     const course = await this.getCourse(data.courseId);
-    
+
     if (!role || !course) {
       throw new Error("Role or course not found");
     }
-    
+
     // Check if this role-course relation already exists
     const existingRelations = await db
       .select()
@@ -146,21 +146,21 @@ export class DatabaseStorage implements IStorage {
         eq(roleMandatoryCourses.roleId, data.roleId),
         eq(roleMandatoryCourses.courseId, data.courseId)
       ));
-    
+
     // If it already exists, return the existing relation
     if (existingRelations.length > 0) {
       return existingRelations[0];
     }
-    
+
     // Otherwise create a new one
     const [newEntry] = await db
       .insert(roleMandatoryCourses)
       .values(data)
       .returning();
-    
+
     return newEntry;
   }
-  
+
   async removeMandatoryCourseFromRole(roleId: number, courseId: number): Promise<boolean> {
     const result = await db
       .delete(roleMandatoryCourses)
@@ -170,18 +170,18 @@ export class DatabaseStorage implements IStorage {
           eq(roleMandatoryCourses.courseId, courseId)
         )
       );
-    
+
     return result.rowCount > 0;
   }
-  
+
   async getMandatoryCoursesForUser(userId: number): Promise<Course[]> {
     const user = await this.getUser(userId);
     if (!user) return [];
-    
+
     // Find the role by name
     const role = await this.getRoleByName(user.role);
     if (!role) return [];
-    
+
     // Get mandatory courses for this role
     return this.getRoleMandatoryCourses(role.id);
   }
@@ -215,35 +215,35 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedUser;
   }
-  
+
   async deleteUser(id: number): Promise<boolean> {
     try {
       // First, delete related data to avoid foreign key constraint issues
-      
+
       // Delete user progress
       await db.delete(userProgress).where(eq(userProgress.userId, id));
-      
+
       // Delete user badges
       await db.delete(userBadges).where(eq(userBadges.userId, id));
-      
+
       // Delete block completions
       await db.delete(blockCompletions).where(eq(blockCompletions.userId, id));
-      
+
       // Delete assessment attempts
       await db.delete(assessmentAttempts).where(eq(assessmentAttempts.userId, id));
-      
+
       // Delete AI tutor conversations
       await db.delete(aiTutorConversations).where(eq(aiTutorConversations.userId, id));
-      
+
       // Delete certificates
       await db.delete(certificates).where(eq(certificates.userId, id));
-      
+
       // Delete SCORM tracking data
       await db.delete(scormTrackingData).where(eq(scormTrackingData.userId, id));
-      
+
       // Finally, delete the user
       const result = await db.delete(users).where(eq(users.id, id));
-      
+
       return result.rowCount !== null && result.rowCount > 0;
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -298,7 +298,7 @@ export class DatabaseStorage implements IStorage {
     const [newBadge] = await db.insert(badges).values(badge).returning();
     return newBadge;
   }
-  
+
   async updateBadge(id: number, data: Partial<Badge>): Promise<Badge | undefined> {
     const [updatedBadge] = await db
       .update(badges)
@@ -317,7 +317,7 @@ export class DatabaseStorage implements IStorage {
         eq(userProgress.userId, userId),
         eq(userProgress.courseId, courseId)
       ));
-    
+
     return result[0];
   }
 
@@ -354,12 +354,19 @@ export class DatabaseStorage implements IStorage {
     return completion;
   }
 
-  async createBlockCompletion(completion: InsertBlockCompletion): Promise<BlockCompletion> {
+  async createBlockCompletion(completion: { userId: number; blockId: number; completed: boolean }): Promise<any> {
     const [newCompletion] = await db
       .insert(blockCompletions)
       .values(completion)
       .returning();
     return newCompletion;
+  }
+
+  async getUserBlockCompletions(userId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(blockCompletions)
+      .where(eq(blockCompletions.userId, userId));
   }
 
   // User Badges
@@ -608,22 +615,22 @@ export class DatabaseStorage implements IStorage {
   // Order validation
   async checkUniqueUnitOrder(order: number, excludeId?: number): Promise<boolean> {
     let whereCondition = eq(units.order, order);
-    
+
     if (excludeId) {
       whereCondition = and(eq(units.order, order), ne(units.id, excludeId));
     }
-    
+
     const results = await db
       .select({ id: units.id })
       .from(units)
       .where(whereCondition);
-    
+
     return results.length === 0;
   }
 
   async checkUniqueLearningBlockOrder(unitId: number, order: number, excludeId?: number): Promise<boolean> {
     let whereCondition = and(eq(learningBlocks.unitId, unitId), eq(learningBlocks.order, order));
-    
+
     if (excludeId) {
       whereCondition = and(
         eq(learningBlocks.unitId, unitId), 
@@ -631,12 +638,12 @@ export class DatabaseStorage implements IStorage {
         ne(learningBlocks.id, excludeId)
       );
     }
-    
+
     const results = await db
       .select({ id: learningBlocks.id })
       .from(learningBlocks)
       .where(whereCondition);
-    
+
     return results.length === 0;
   }
 
@@ -647,14 +654,14 @@ export class DatabaseStorage implements IStorage {
         console.error("Invalid unit ID provided to getLearningBlocks:", unitId);
         return [];
       }
-      
+
       console.log(`Executing database query for learning blocks with unitId: ${unitId}`);
       const results = await db
         .select()
         .from(learningBlocks)
         .where(eq(learningBlocks.unitId, unitId))
         .orderBy(asc(learningBlocks.order));
-      
+
       console.log(`Database returned ${results?.length || 0} learning blocks`);
       return results || [];
     } catch (error) {
@@ -672,7 +679,7 @@ export class DatabaseStorage implements IStorage {
     const [newBlock] = await db.insert(learningBlocks).values(block).returning();
     return newBlock;
   }
-  
+
   async updateLearningBlock(id: number, data: Partial<LearningBlock>): Promise<LearningBlock | undefined> {
     const [updatedBlock] = await db
       .update(learningBlocks)
@@ -681,7 +688,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedBlock;
   }
-  
+
   async deleteLearningBlock(id: number): Promise<boolean> {
     const result = await db
       .delete(learningBlocks)
@@ -720,7 +727,7 @@ export class DatabaseStorage implements IStorage {
     const [newAssessment] = await db.insert(assessments).values(assessment).returning();
     return newAssessment;
   }
-  
+
   async updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment | undefined> {
     const [updatedAssessment] = await db
       .update(assessments)
@@ -729,7 +736,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedAssessment;
   }
-  
+
   async deleteAssessment(id: number): Promise<boolean> {
     const result = await db
       .delete(assessments)
@@ -778,17 +785,17 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(users.xpPoints))
       .limit(limit);
   }
-  
+
   // Certificates
   async getUserCertificates(userId: number): Promise<Certificate[]> {
     return await db.select().from(certificates).where(eq(certificates.userId, userId));
   }
-  
+
   async getCertificate(id: number): Promise<Certificate | undefined> {
     const [certificate] = await db.select().from(certificates).where(eq(certificates.id, id));
     return certificate;
   }
-  
+
   async getCertificateByCourseAndUser(userId: number, courseId: number): Promise<Certificate | undefined> {
     const [certificate] = await db.select().from(certificates)
       .where(and(
@@ -797,12 +804,12 @@ export class DatabaseStorage implements IStorage {
       ));
     return certificate;
   }
-  
+
   async createCertificate(certificate: InsertCertificate): Promise<Certificate> {
     const [newCertificate] = await db.insert(certificates).values(certificate).returning();
     return newCertificate;
   }
-  
+
   async updateCertificate(id: number, data: Partial<Certificate>): Promise<Certificate | undefined> {
     const [updatedCertificate] = await db.update(certificates)
       .set(data)
@@ -917,7 +924,8 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async deleteNotification(id: number): Promise<boolean> {
+  ```python
+async deleteNotification(id: number): Promise<boolean> {
     const result = await db
       .delete(notifications)
       .where(eq(notifications.id, id));
@@ -973,7 +981,7 @@ export class DatabaseStorage implements IStorage {
       .from(coursePrerequisites)
       .innerJoin(courses, eq(courses.id, coursePrerequisites.prerequisiteCourseId))
       .where(eq(coursePrerequisites.courseId, courseId));
-    
+
     return prerequisites;
   }
 
@@ -1006,10 +1014,10 @@ export class DatabaseStorage implements IStorage {
 
     // Get all courses
     const allCourses = await this.getCourses();
-    
+
     // Filter courses based on prerequisites
     const accessibleCourses = [];
-    
+
     for (const course of allCourses) {
       if (course.courseType === "free") {
         // Free courses are always accessible
@@ -1020,13 +1028,13 @@ export class DatabaseStorage implements IStorage {
         const allPrerequisitesCompleted = prerequisites.every(prereq => 
           completedCourseIds.includes(prereq.id)
         );
-        
+
         if (prerequisites.length === 0 || allPrerequisitesCompleted) {
           accessibleCourses.push(course);
         }
       }
     }
-    
+
     return accessibleCourses;
   }
 }
