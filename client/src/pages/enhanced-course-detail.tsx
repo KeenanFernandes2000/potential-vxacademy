@@ -216,10 +216,15 @@ export default function EnhancedCourseDetail() {
       const res = await apiRequest("POST", `/api/blocks/${blockId}/complete`);
       return res.json();
     },
-    onSuccess: () => {
-      // Refresh progress data
+    onSuccess: (data, blockId) => {
+      // Add completed block to local state immediately
+      setCompletedBlocks(prev => new Set(prev).add(blockId));
+
+      // Invalidate all relevant queries to update progress
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/blocks`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/block-completions"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
     },
   });
 
@@ -236,48 +241,7 @@ export default function EnhancedCourseDetail() {
     return true;
   };
 
-  // Complete block mutation
-  const completeBlockMutation = useMutation({
-    mutationFn: async (blockId: number) => {
-      const res = await apiRequest("POST", `/api/blocks/${blockId}/complete`, {});
-      return res.json();
-    },
-    onSuccess: (data, blockId) => {
-      // Add completed block to local state immediately
-      setCompletedBlocks(prev => new Set(prev).add(blockId));
-
-      // Invalidate and refetch progress data
-      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/block-completions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
-
-      // Move to next block or show assessment
-      if (blocks && blocks.length > 0) {
-        const currentIndex = blocks.findIndex(b => b.id === activeBlockId);
-        if (currentIndex < blocks.length - 1) {
-          // Move to next block
-          const nextBlock = blocks[currentIndex + 1];
-          setActiveBlockId(nextBlock.id);
-          setSelectedBlock(nextBlock);
-          setSelectedContent({ type: "block", id: nextBlock.id, data: nextBlock });
-        } else {
-          // Check if there are more units to progress to
-          if (units && units.length > 0) {
-            const currentUnitIndex = units.findIndex(u => u.id === activeUnitId);
-            if (currentUnitIndex < units.length - 1) {
-              // Move to next unit
-              const nextUnit = units[currentUnitIndex + 1];
-              setActiveUnitId(nextUnit.id);
-              setSelectedUnit(nextUnit);
-            } else {
-              // Show unit assessments or end assessments
-              checkForAssessments();
-            }
-          }
-        }
-      }
-    },
-  });
+  // Complete block mutation (consolidated with blockCompletionMutation above)
 
   // Set initial active unit and block
   useEffect(() => {
@@ -872,11 +836,11 @@ export default function EnhancedCourseDetail() {
                           </Button>
                         ) : (
                           <Button
-                            onClick={() => completeBlockMutation.mutate(selectedBlock.id)}
-                            disabled={completeBlockMutation.isPending}
+                            onClick={() => blockCompletionMutation.mutate(selectedBlock.id)}
+                            disabled={blockCompletionMutation.isPending}
                             className="bg-green-600 hover:bg-green-700"
                           >
-                            {completeBlockMutation.isPending ? (
+                            {blockCompletionMutation.isPending ? (
                               <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Completing...
