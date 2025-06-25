@@ -113,7 +113,7 @@ export function ProgressSection() {
         ) : activeCourses.length > 0 ? (
           // Course cards
           activeCourses.map(course => (
-            <div key={course.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <Link key={course.id} href={`/courses/${course.id}`} className="bg-white rounded-xl shadow-sm overflow-hidden block hover:shadow-md transition-shadow">
               <div className="h-32 bg-neutrals-300 relative">
                 {course.imageUrl ? (
                   <img src={course.imageUrl} alt={course.name} className="w-full h-full object-cover" />
@@ -143,12 +143,12 @@ export function ProgressSection() {
                   <span className="text-sm text-neutrals-600">
                     {course.progress?.percentComplete || 0}% Complete
                   </span>
-                  <Link href={`/courses/${course.id}`} className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                  <span className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors">
                     Continue
-                  </Link>
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         ) : (
           // Empty state
