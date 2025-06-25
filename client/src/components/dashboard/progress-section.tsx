@@ -159,10 +159,10 @@ export function ProgressSection() {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
                 <CourseProgressBar
-                  completedUnits={Math.floor(((course.progress?.percentComplete || 0) / 100) * 4)} // Estimate based on percentage
-                  totalUnits={4} // Default estimate for dashboard display
+                  completedUnits={Math.floor(((course.progress?.percentComplete || 0) / 100) * (allUnits?.[course.id]?.length || 1))}
+                  totalUnits={allUnits?.[course.id]?.length || 1}
                   percent={course.progress?.percentComplete || 0}
-                  hasEndAssessment={false} // We don't have this data in the dashboard context
+                  hasEndAssessment={false}
                   endAssessmentAvailable={false}
                 />
                 <div className="flex items-center justify-end mt-2">
