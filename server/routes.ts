@@ -2652,11 +2652,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const courseId = parseInt(req.params.courseId);
       const placement = req.query.placement as string;
 
-      // Get course-level assessments
-      const courseAssessments = await storage.getAssessments(courseId);
+      console.log(`Fetching assessments for course ${courseId}, placement: ${placement}`);
+
+      // Get all assessments and filter for course-level ones
+      const allAssessments = await storage.getAllAssessments();
+      const courseAssessments = allAssessments.filter(assessment => assessment.courseId === courseId);
+
+      console.log(`Found ${courseAssessments.length} course-level assessments for course ${courseId}`);
 
       // Get unit-level assessments for this course
-      const units = await storage.getUnitsForCourse(courseId);
+      const units = await storage.getUnits(courseId);
       let unitAssessments: any[] = [];
 
       for (const unit of units) {
@@ -2664,14 +2669,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         unitAssessments.push(...assessments);
       }
 
-      let allAssessments = [...courseAssessments, ...unitAssessments];
+      console.log(`Found ${unitAssessments.length} unit-level assessments for course ${courseId}`);
+
+      let finalAssessments = [...courseAssessments, ...unitAssessments];
 
       // Filter by placement if specified
       if (placement) {
-        allAssessments = allAssessments.filter(assessment => assessment.placement === placement);
+        finalAssessments = finalAssessments.filter(assessment => assessment.placement === placement);
+        console.log(`After filtering by placement '${placement}': ${finalAssessments.length} assessments`);
       }
 
-      res.json(allAssessments);
+      res.json(finalAssessments);
     } catch (error) {
       console.error("Error fetching course assessments:", error);
       res.status(500).json({ message: "Error fetching course assessments" });
