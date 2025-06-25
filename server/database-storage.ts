@@ -924,6 +924,14 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+    async getNotification(notificationId: number): Promise<Notification | undefined> {
+    const [notification] = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.id, notificationId));
+    return notification;
+  }
+
   async deleteNotification(id: number): Promise<boolean> {
     const result = await db
       .delete(notifications)

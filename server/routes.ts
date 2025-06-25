@@ -2741,6 +2741,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const notificationId = parseInt(req.params.id);
+      const userId = req.user!.id;
+
+      // Verify the notification belongs to the user before deleting
+      const notification = await storage.getNotification(notificationId);
+      if (!notification || notification.userId !== userId) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+
       const success = await storage.deleteNotification(notificationId);
 
       if (!success) {
