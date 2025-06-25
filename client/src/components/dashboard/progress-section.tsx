@@ -17,8 +17,39 @@ export function ProgressSection() {
 
   useEffect(() => {
     if (courses) {
-      // If there's no progress data or it's empty, show the first 3 courses anyway
-      if (!progress || progress.length === 0) {
+      // Always try to match courses with their progress data
+      const coursesWithProgress = courses.map(course => {
+        const courseProgress = progress?.find(p => p.courseId === course.id);
+        return { 
+          ...course, 
+          progress: courseProgress || {
+            courseId: course.id,
+            percentComplete: 0,
+            completed: false,
+            lastAccessed: new Date(),
+            userId: 0,
+            id: 0,
+            createdAt: null
+          }
+        };
+      });
+
+      // Filter to get courses that have actual progress or recently accessed courses
+      const activeCoursesFiltered = coursesWithProgress
+        .filter(course => {
+          // Include if has actual progress record OR if it's in the top courses by ID (for new courses)
+          return course.progress && (course.progress.id > 0 || course.progress.percentComplete > 0);
+        })
+        .sort((a, b) => {
+          // Sort by last accessed time, most recent first
+          const timeA = a.progress?.lastAccessed ? new Date(a.progress.lastAccessed).getTime() : 0;
+          const timeB = b.progress?.lastAccessed ? new Date(b.progress.lastAccessed).getTime() : 0;
+          return timeB - timeA;
+        })
+        .slice(0, 3); // Take top 3
+
+      // If no courses have progress, show the first 3 available courses with mock progress
+      if (activeCoursesFiltered.length === 0) {
         console.log("No progress data found, showing first 3 courses", courses);
         const firstThreeCourses = courses.slice(0, 3).map(course => ({
           ...course,
@@ -34,43 +65,11 @@ export function ProgressSection() {
         }));
         setActiveCourses(firstThreeCourses);
       } else {
-        // Find courses that have progress (including completed courses)
-        const inProgressCourses = courses
-          .map(course => {
-            const courseProgress = progress.find(p => p.courseId === course.id);
-            return { ...course, progress: courseProgress };
-          })
-          .filter(course => course.progress) // Include all courses with progress
-          .sort((a, b) => {
-            // Sort by last accessed time, most recent first
-            const timeA = a.progress?.lastAccessed ? new Date(a.progress.lastAccessed).getTime() : 0;
-            const timeB = b.progress?.lastAccessed ? new Date(b.progress.lastAccessed).getTime() : 0;
-            return timeB - timeA;
-          })
-          .slice(0, 3); // Take top 3
-
-        // If no courses have progress, show the first 3 available courses
-        if (inProgressCourses.length === 0) {
-          const firstThreeCourses = courses.slice(0, 3).map(course => ({
-            ...course,
-            progress: {
-              courseId: course.id,
-              percentComplete: 0,
-              completed: false,
-              lastAccessed: new Date(),
-              userId: 0,
-              id: 0,
-              createdAt: null
-            }
-          }));
-          setActiveCourses(firstThreeCourses);
-        } else {
-          setActiveCourses(inProgressCourses);
-        }
-
-        console.log("Active courses:", inProgressCourses);
-        console.log("All progress data:", progress);
+        setActiveCourses(activeCoursesFiltered);
       }
+
+      console.log("Active courses:", activeCoursesFiltered);
+      console.log("All progress data:", progress);
     }
   }, [courses, progress]);
 
