@@ -57,7 +57,24 @@ export function Header({ toggleSidebar }: HeaderProps) {
       if (!response.ok) throw new Error("Failed to mark notification as read");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, notificationId) => {
+      // Optimistically update the notifications list
+      queryClient.setQueryData(["/api/notifications"], (oldData: Notification[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true }
+            : notification
+        );
+      });
+      
+      // Update the notification count
+      queryClient.setQueryData(["/api/notifications/count"], (oldData: { count: number } | undefined) => {
+        if (!oldData) return { count: 0 };
+        return { count: Math.max(0, oldData.count - 1) };
+      });
+      
+      // Also invalidate to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
     },
@@ -76,6 +93,16 @@ export function Header({ toggleSidebar }: HeaderProps) {
       return response.json();
     },
     onSuccess: () => {
+      // Optimistically update all notifications to read
+      queryClient.setQueryData(["/api/notifications"], (oldData: Notification[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map(notification => ({ ...notification, read: true }));
+      });
+      
+      // Reset notification count to 0
+      queryClient.setQueryData(["/api/notifications/count"], { count: 0 });
+      
+      // Also invalidate to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
     },
@@ -157,7 +184,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-80 bg-white/95 backdrop-blur-xl border border-slate-200/50"
+              className="w-80 bg-white/95 backdrop-blur-xl border border-slate-200/50 max-h-96 overflow-y-auto"
             >
               <DropdownMenuLabel className="flex items-center justify-between">
                 <span className="font-semibold text-slate-800">
