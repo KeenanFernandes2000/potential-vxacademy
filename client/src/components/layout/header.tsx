@@ -88,28 +88,42 @@ export function Header({ toggleSidebar }: HeaderProps) {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
-      if (!response.ok) throw new Error("Failed to delete notification");
-      return response.json();
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Notification already deleted, return success
+          return { success: true };
+        }
+        throw new Error("Failed to delete notification");
+      }
+      return { success: true };
     },
     onSuccess: (_, notificationId) => {
+      // Get current notifications before updating
+      const currentNotifications = queryClient.getQueryData(["/api/notifications"]) as Notification[] || [];
+      const notificationToDelete = currentNotifications.find(n => n.id === notificationId);
+      const wasUnread = notificationToDelete && !notificationToDelete.read;
+
       // Remove the notification from the list
       queryClient.setQueryData(["/api/notifications"], (oldData: Notification[] | undefined) => {
-        if (!oldData) return oldData;
+        if (!oldData) return [];
         return oldData.filter(notification => notification.id !== notificationId);
       });
       
       // Update the notification count if it was unread
-      queryClient.setQueryData(["/api/notifications/count"], (oldData: { count: number } | undefined) => {
-        if (!oldData) return { count: 0 };
-        const notificationToDelete = (queryClient.getQueryData(["/api/notifications"]) as Notification[] || [])
-          .find(n => n.id === notificationId);
-        const wasUnread = notificationToDelete && !notificationToDelete.read;
-        return { count: Math.max(0, oldData.count - (wasUnread ? 1 : 0)) };
-      });
+      if (wasUnread) {
+        queryClient.setQueryData(["/api/notifications/count"], (oldData: { count: number } | undefined) => {
+          if (!oldData) return { count: 0 };
+          return { count: Math.max(0, oldData.count - 1) };
+        });
+      }
       
-      // Also invalidate to ensure consistency
+      // Invalidate queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
+    },
+    onError: (error) => {
+      console.error("Error deleting notification:", error);
+      // Optionally show a toast error message here
     },
   });
 
@@ -274,10 +288,13 @@ export function Header({ toggleSidebar }: HeaderProps) {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteNotificationMutation.mutate(notification.id);
+                        if (!deleteNotificationMutation.isPending) {
+                          deleteNotificationMutation.mutate(notification.id);
+                        }
                       }}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={deleteNotificationMutation.isPending}
+                      title="Delete notification"
                     >
                       <X className="h-3 w-3" />
                     </button>
