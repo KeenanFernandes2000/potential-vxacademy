@@ -103,27 +103,33 @@ export function Header({ toggleSidebar }: HeaderProps) {
       const notificationToDelete = currentNotifications.find(n => n.id === notificationId);
       const wasUnread = notificationToDelete && !notificationToDelete.read;
 
-      // Remove the notification from the list
+      // Remove the notification from the list immediately
       queryClient.setQueryData(["/api/notifications"], (oldData: Notification[] | undefined) => {
         if (!oldData) return [];
-        return oldData.filter(notification => notification.id !== notificationId);
+        const filtered = oldData.filter(notification => notification.id !== notificationId);
+        console.log('Notifications after delete:', filtered.length);
+        return filtered;
       });
       
       // Update the notification count if it was unread
       if (wasUnread) {
         queryClient.setQueryData(["/api/notifications/count"], (oldData: { count: number } | undefined) => {
           if (!oldData) return { count: 0 };
-          return { count: Math.max(0, oldData.count - 1) };
+          const newCount = Math.max(0, oldData.count - 1);
+          console.log('Updated notification count:', newCount);
+          return { count: newCount };
         });
       }
       
-      // Invalidate queries to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
+      // Force refetch to ensure UI is in sync
+      queryClient.refetchQueries({ queryKey: ["/api/notifications"] });
+      queryClient.refetchQueries({ queryKey: ["/api/notifications/count"] });
     },
     onError: (error) => {
       console.error("Error deleting notification:", error);
-      // Optionally show a toast error message here
+      // Refetch on error to ensure UI consistency
+      queryClient.refetchQueries({ queryKey: ["/api/notifications"] });
+      queryClient.refetchQueries({ queryKey: ["/api/notifications/count"] });
     },
   });
 
