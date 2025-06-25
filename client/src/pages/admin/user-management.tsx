@@ -530,7 +530,7 @@ export default function UserManagementPage() {
         {/* User Details Dialog */}
         {selectedUser && (
           <Dialog open={isViewDetailsOpen} onOpenChange={setIsViewDetailsOpen}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
               <DialogHeader>
                 <DialogTitle>User Details</DialogTitle>
               </DialogHeader>

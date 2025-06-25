@@ -24,7 +24,7 @@ const bulkAddSchema = z.object({
   defaultOrganization: z.string().optional(),
   defaultRole: z.enum(["user", "sub-admin"]).default("user"),
   courseIds: z.array(z.number()).default([]),
-  
+
   // Individual user data
   users: z.array(z.object({
     firstName: z.string().min(1, "First name is required"),
@@ -163,7 +163,7 @@ export function BulkAddDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />

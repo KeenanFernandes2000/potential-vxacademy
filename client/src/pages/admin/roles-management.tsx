@@ -543,7 +543,7 @@ export default function RolesManagement() {
 
         {/* Role Form Dialog */}
         <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle>
                 {editingRole ? "Edit Role" : "Create Role"}
@@ -667,7 +667,7 @@ export default function RolesManagement() {
 
         {/* Unit Assignment Dialog */}
         <Dialog open={isUnitAssignmentOpen} onOpenChange={setIsUnitAssignmentOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle>
                 Assign Units to {selectedRole?.name}

@@ -260,7 +260,7 @@ export function UserFormDialog({
   const handleSubmit = (data: UserFormData) => {
     console.log("handleSubmit called with data:", data);
     console.log("isEditing:", isEditing, "user:", user);
-    
+
     if (isEditing && user) {
       // For updates, include the user ID
       console.log("Submitting update for user:", user.id);
@@ -276,7 +276,7 @@ export function UserFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit User" : "Add New User"}</DialogTitle>
         </DialogHeader>

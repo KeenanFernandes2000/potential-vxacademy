@@ -45,7 +45,7 @@ export function BulkUploadDialog({
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
         form.setError("file", { 
           type: "manual", 
@@ -53,7 +53,7 @@ export function BulkUploadDialog({
         });
         return;
       }
-      
+
       setSelectedFile(file);
       form.setValue("file", event.target.files);
       form.clearErrors("file");
@@ -78,7 +78,7 @@ export function BulkUploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
