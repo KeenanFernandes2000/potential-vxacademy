@@ -211,7 +211,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
                   No notifications yet
                 </div>
               ) : (
-                notifications.slice(0, 5).map((notification) => (
+                notifications.map((notification) => (
                   <DropdownMenuItem
                     key={notification.id}
                     className="cursor-pointer hover:bg-slate-50 p-3"
@@ -242,14 +242,14 @@ export function Header({ toggleSidebar }: HeaderProps) {
                 ))
               )}
 
-              {notifications.length > 5 && (
+              {/* {notifications.length > 5 && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="justify-center text-teal-600 font-medium cursor-pointer hover:bg-teal-50">
                     View all notifications
                   </DropdownMenuItem>
                 </>
-              )}
+              )} */}
             </DropdownMenuContent>
           </DropdownMenu>
 
