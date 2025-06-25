@@ -253,21 +253,28 @@ export default function EnhancedCourseDetail() {
       setActiveUnitId(firstUnit.id);
       setSelectedUnit(firstUnit);
     }
-  }, [units, activeUnitId]);
+  }, [units]);
 
   useEffect(() => {
     if (blocks && blocks.length > 0 && !activeBlockId) {
       setActiveBlockId(blocks[0].id);
       setSelectedBlock(blocks[0]);
     }
-  }, [blocks, activeBlockId]);
+  }, [blocks]);
 
   // Initialize completed assessments and blocks from progress data
   useEffect(() => {
     if (progress && Array.isArray(progress) && courseId) {
       const courseProgress = progress.find((p: any) => p.courseId === courseId);
       if (courseProgress?.completedAssessments) {
-        setCompletedAssessments(new Set(courseProgress.completedAssessments));
+        setCompletedAssessments(prev => {
+          const newSet = new Set(courseProgress.completedAssessments);
+          // Only update if the set is actually different
+          if (prev.size !== newSet.size || [...prev].some(id => !newSet.has(id))) {
+            return newSet;
+          }
+          return prev;
+        });
       }
     }
   }, [progress, courseId]);
@@ -277,8 +284,16 @@ export default function EnhancedCourseDetail() {
       const completedBlockIds = blockCompletions
         .filter((completion: any) => completion && completion.blockId)
         .map((completion: any) => completion.blockId);
-      setCompletedBlocks(new Set(completedBlockIds));
-      console.log("Updated completed blocks:", completedBlockIds);
+      
+      setCompletedBlocks(prev => {
+        const newSet = new Set(completedBlockIds);
+        // Only update if the set is actually different
+        if (prev.size !== newSet.size || [...prev].some(id => !newSet.has(id))) {
+          console.log("Updated completed blocks:", completedBlockIds);
+          return newSet;
+        }
+        return prev;
+      });
     }
   }, [blockCompletions]);
 
