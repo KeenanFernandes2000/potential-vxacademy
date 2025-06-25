@@ -77,7 +77,7 @@ export function ProgressSection() {
     }
   }, [courses, progress]);
 
-  // Fetch units for active courses to get actual unit counts
+  // Fetch units, blocks, assessments and completions for progress calculation
   const { data: allUnits } = useQuery({
     queryKey: ["/api/courses/units"],
     queryFn: async () => {
@@ -98,6 +98,33 @@ export function ProgressSection() {
     },
     enabled: !!activeCourses && activeCourses.length > 0,
   });
+
+  // Fetch block completions
+  const { data: blockCompletions = [] } = useQuery({
+    queryKey: ["/api/block-completions"],
+  });
+
+  // Calculate actual progress for each course like in course detail page
+  const calculateCourseProgress = (courseId: number) => {
+    const units = allUnits?.[courseId] || [];
+    if (units.length === 0) return { percentComplete: 0 };
+
+    // Get all blocks for this course from all units
+    const allBlocks = units.flatMap((unit: any) => unit.blocks || []);
+    const totalBlocks = allBlocks.length;
+
+    if (totalBlocks === 0) return { percentComplete: 100 };
+
+    // Count completed blocks
+    const completedBlocks = blockCompletions.filter((completion: any) => 
+      allBlocks.some((block: any) => block.id === completion.blockId && completion.completed)
+    );
+
+    const percentComplete = Math.round((completedBlocks.length / totalBlocks) * 100);
+    console.log(`Course ${courseId} calculated progress: ${completedBlocks.length}/${totalBlocks} blocks = ${percentComplete}%`);
+    
+    return { percentComplete };
+  };
 
   const isLoading = isLoadingCourses || isLoadingProgress;
 
@@ -159,9 +186,9 @@ export function ProgressSection() {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
                 <CourseProgressBar
-                  completedUnits={Math.floor(((course.progress?.percentComplete || 0) / 100) * (allUnits?.[course.id]?.length || 1))}
+                  completedUnits={Math.floor(((calculateCourseProgress(course.id).percentComplete || 0) / 100) * (allUnits?.[course.id]?.length || 1))}
                   totalUnits={allUnits?.[course.id]?.length || 1}
-                  percent={course.progress?.percentComplete || 0}
+                  percent={calculateCourseProgress(course.id).percentComplete || 0}
                   hasEndAssessment={false}
                   endAssessmentAvailable={false}
                 />
