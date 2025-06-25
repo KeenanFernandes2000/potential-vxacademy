@@ -526,7 +526,7 @@ export default function EnhancedCourseDetail() {
 
   return (
     <Layout>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 pl-[36px] pr-[36px]">
         {/* Course Header */}
         <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
