@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { Course, UserProgress } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
+import { apiRequest } from "@shared/utils/api";
 
 export function ProgressSection() {
   const [activeCourses, setActiveCourses] = useState<(Course & { progress?: UserProgress })[]>([]);
@@ -75,6 +76,28 @@ export function ProgressSection() {
       console.log("All progress data:", progress);
     }
   }, [courses, progress]);
+
+  // Fetch units for active courses to get actual unit counts
+  const { data: allUnits } = useQuery({
+    queryKey: ["/api/courses/units"],
+    queryFn: async () => {
+      if (!activeCourses || activeCourses.length === 0) return {};
+      const unitsData: Record<number, any[]> = {};
+      await Promise.all(
+        activeCourses.map(async (course) => {
+          try {
+            const res = await apiRequest("GET", `/api/courses/${course.id}/units`);
+            unitsData[course.id] = await res.json();
+          } catch (error) {
+            console.error(`Failed to fetch units for course ${course.id}:`, error);
+            unitsData[course.id] = [];
+          }
+        })
+      );
+      return unitsData;
+    },
+    enabled: !!activeCourses && activeCourses.length > 0,
+  });
 
   const isLoading = isLoadingCourses || isLoadingProgress;
 
