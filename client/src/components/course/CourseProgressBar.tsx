@@ -21,7 +21,7 @@ export const CourseProgressBar = ({
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-medium text-gray-700">Course Progress</span>
         <span className="text-sm text-gray-500">
-          {completedUnits}/{totalUnits} units • {percent}% complete
+          {percent}% Complete
         </span>
       </div>
       <Progress value={percent} className="h-3" />
@@ -30,7 +30,7 @@ export const CourseProgressBar = ({
       <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
         <div className="flex items-center gap-2">
           <CheckCircle className="h-3 w-3" />
-          <span>Units: {completedUnits}/{totalUnits}</span>
+          <span>{percent}% Complete</span>
         </div>
         {hasEndAssessment && (
           <div className="flex items-center gap-1">
