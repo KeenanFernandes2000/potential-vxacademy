@@ -268,16 +268,30 @@ export default function AssessmentsManagement() {
         description: "Assessment updated successfully.",
       });
       setEditingAssessment(null);
+      setAssessmentFor("unit");
+      setSelectedTrainingAreaId(null);
+      setSelectedModuleId(null);
+      setSelectedCourseId(null);
       form.reset({
         assessmentFor: "unit",
+        trainingAreaId: undefined,
+        moduleId: undefined,
+        courseId: undefined,
+        unitId: undefined,
         title: "",
         description: "",
         placement: "end",
         isGraded: true,
+        showCorrectAnswers: false,
         passingScore: 70,
+        hasTimeLimit: false,
         timeLimit: 30,
+        maxRetakes: 3,
+        hasCertificate: false,
+        certificateTemplate: "",
         xpPoints: 50,
       });
+      form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
     onError: (error) => {
