@@ -25,7 +25,7 @@ export default function MediaManagementPage() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto py-6 px-6">
         <MediaManagement />
       </div>
     </AdminLayout>
