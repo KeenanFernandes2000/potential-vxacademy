@@ -553,22 +553,13 @@ export default function EnhancedCourseDetail() {
             </div>
             <div className="lg:w-80">
               <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Course Progress</span>
-                  <span className="text-sm text-gray-500">
-                    {courseProgressData.completedItems}/{courseProgressData.totalItems} items
-                  </span>
-                </div>
-                <Progress value={courseProgressData.percentComplete} className="w-full mb-2" />
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>{courseProgressData.percentComplete}% Complete</span>
-                  {courseProgressData.completed && (
-                    <div className="flex items-center gap-1 text-green-600">
-                      <CheckCircle className="h-3 w-3" />
-                      <span>Completed</span>
-                    </div>
-                  )}
-                </div>
+                <CourseProgressBar
+                  completedUnits={detailedProgress.completedUnits}
+                  totalUnits={detailedProgress.totalUnits}
+                  percent={courseProgressData.percentComplete}
+                  hasEndAssessment={endAssessments.length > 0}
+                  endAssessmentAvailable={detailedProgress.percent >= 80 && endAssessments.length > 0}
+                />
               </div>
             </div>
           </div>
