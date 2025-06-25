@@ -461,6 +461,47 @@ export default function EnhancedCourseDetail() {
     }
   }, [courseId, course, isLoadingProgress, progress]);
 
+  // Auto-select initial content when course loads
+  useEffect(() => {
+    if (!selectedContent && courseAssessments && units && blocks) {
+      // Priority 1: Beginning course assessment (if not completed)
+      const beginningAssessment = courseAssessments.find(
+        assessment => assessment.placement === 'beginning' && !completedAssessments.has(assessment.id)
+      );
+      
+      if (beginningAssessment) {
+        setSelectedContent({ type: "assessment", id: beginningAssessment.id, data: beginningAssessment });
+        return;
+      }
+
+      // Priority 2: First unit's beginning assessment or first block
+      if (units.length > 0) {
+        const firstUnit = units[0];
+        const firstUnitBlocks = blocks.filter(block => block.unitId === firstUnit.id);
+        const firstUnitAssessments = unitAssessments.filter(assessment => assessment.unitId === firstUnit.id);
+        
+        // Check for beginning unit assessment first
+        const beginningUnitAssessment = firstUnitAssessments.find(
+          assessment => assessment.placement === "beginning" && !completedAssessments.has(assessment.id)
+        );
+        
+        if (beginningUnitAssessment) {
+          setSelectedUnit(firstUnit);
+          setSelectedContent({ type: "assessment", id: beginningUnitAssessment.id, data: beginningUnitAssessment });
+          return;
+        }
+        
+        // Otherwise select first block
+        if (firstUnitBlocks.length > 0) {
+          const firstBlock = firstUnitBlocks[0];
+          setSelectedUnit(firstUnit);
+          setSelectedContent({ type: "block", id: firstBlock.id, data: firstBlock });
+          setSelectedBlock(firstBlock);
+        }
+      }
+    }
+  }, [selectedContent, courseAssessments, units, blocks, unitAssessments, completedAssessments]);
+
   if (courseLoading || unitsLoading || blocksLoading) {
     return (
       <Layout>
@@ -579,39 +620,45 @@ export default function EnhancedCourseDetail() {
               <CardContent className="p-0">
                 <div className="space-y-1">
                   {/* Course Assessment at Beginning */}
-                  {showCourseAssessmentAtBeginning && (
-                    <div key="course-assessment-beginning-wrapper" className="mb-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <FileText className="h-5 w-5" />
-                            Course Assessment
-                          </CardTitle>
-                          <CardDescription>
-                            Complete this assessment before proceeding with the course
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          {courseAssessments
-                            ?.filter(assessment => assessment.placement === 'beginning')
-                            .map((assessment) => (
-                              <div key={`course-beginning-assessment-${assessment.id}`} className="mb-4">
-                                <h4 className="font-medium mb-2">{assessment.title}</h4>
-                                <p className="text-sm text-muted-foreground mb-3">
-                                  {assessment.description}
-                                </p>
-                                <Button 
-                                  onClick={() => handleStartAssessment(assessment)}
-                                  className="w-full"
-                                >
-                                  Start Assessment
-                                </Button>
-                              </div>
-                            ))}
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
+                  {showCourseAssessmentAtBeginning && courseAssessments
+                    ?.filter(assessment => assessment.placement === 'beginning')
+                    .map((assessment) => {
+                      const isCompleted = completedAssessments.has(assessment.id);
+                      const isSelected = selectedContent?.type === "assessment" && selectedContent?.id === assessment.id;
+                      
+                      return (
+                        <div
+                          key={`course-beginning-assessment-${assessment.id}`}
+                          className={`flex items-center gap-3 p-3 cursor-pointer transition-colors border-b border-gray-100 ${
+                            isSelected
+                              ? "bg-orange-50 text-orange-700 border-l-4 border-orange-500"
+                              : isCompleted
+                              ? "bg-gray-50 text-gray-600"
+                              : "hover:bg-gray-50"
+                          }`}
+                          onClick={() => {
+                            setSelectedContent({ type: "assessment", id: assessment.id, data: assessment });
+                            setSelectedBlock(null);
+                          }}
+                        >
+                          <div className="flex items-center justify-center w-6 h-6 bg-orange-100 text-orange-600 text-xs font-semibold rounded-full flex-shrink-0">
+                            <FileQuestion className="h-3 w-3" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={`font-medium text-sm block ${isCompleted ? 'line-through' : ''}`}>
+                              {assessment.title}
+                            </span>
+                            <span className="text-xs text-gray-500 block">
+                              Course Assessment - Complete before proceeding
+                            </span>
+                          </div>
+                          {isCompleted && (
+                            <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          )}
+                        </div>
+                      );
+                    })
+                  }
 
                   {/* Units and their content */}
                   {units.map((unit, unitIndex) => {
