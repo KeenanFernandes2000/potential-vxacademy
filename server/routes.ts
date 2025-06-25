@@ -924,48 +924,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Update progress for each course this unit belongs to
           for (const course of unitCourses) {
             await updateCourseProgress(userId, course.id);
-
-              // Award course completion badge if all units completed
-              if (allCompleted) {
-                // Get available badges
-                const badges = await storage.getBadges();
-
-                // Find course completion badge with type property
-                const completionBadge = badges.find(
-                  (b) => b.type === "course_completion",
-                );
-
-                if (completionBadge) {
-                  // Check if user already has this badge
-                  const userBadges = await storage.getUserBadges(userId);
-                  if (
-                    !userBadges.some((ub) => ub.badgeId === completionBadge.id)
-                  ) {
-                    console.log(
-                      "Awarding course completion badge to user",
-                      userId,
-                    );
-                    // Award badge
-                    await storage.createUserBadge({
-                      userId,
-                      badgeId: completionBadge.id,
-                    });
-
-                    // Also update user XP
-                    if (completionBadge.xpPoints) {
-                      const user = await storage.getUser(userId);
-                      if (user) {
-                        const updatedXP =
-                          user.xpPoints + completionBadge.xpPoints;
-                        await storage.updateUser(userId, {
-                          xpPoints: updatedXP,
-                        });
-                      }
-                    }
-                  }
-                }
-              }
-            }
           }
         }
       } else {
