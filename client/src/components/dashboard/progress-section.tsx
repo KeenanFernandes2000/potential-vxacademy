@@ -77,24 +77,42 @@ export function ProgressSection() {
     }
   }, [courses, progress]);
 
-  // Fetch units, blocks, assessments and completions for progress calculation
-  const { data: allUnits } = useQuery({
-    queryKey: ["/api/courses/units"],
+  // Fetch units and blocks for all active courses
+  const { data: allUnitsAndBlocks } = useQuery({
+    queryKey: ["/api/courses/units-blocks"],
     queryFn: async () => {
       if (!activeCourses || activeCourses.length === 0) return {};
-      const unitsData: Record<number, any[]> = {};
+      const courseData: Record<number, { units: any[], blocks: any[] }> = {};
+      
       await Promise.all(
         activeCourses.map(async (course) => {
           try {
-            const res = await apiRequest("GET", `/api/courses/${course.id}/units`);
-            unitsData[course.id] = await res.json();
+            // Fetch units
+            const unitsRes = await apiRequest("GET", `/api/courses/${course.id}/units`);
+            const units = await unitsRes.json();
+            
+            // Fetch all blocks for all units in this course
+            const allBlocks: any[] = [];
+            await Promise.all(
+              units.map(async (unit: any) => {
+                try {
+                  const blocksRes = await apiRequest("GET", `/api/units/${unit.id}/blocks`);
+                  const blocks = await blocksRes.json();
+                  allBlocks.push(...blocks);
+                } catch (error) {
+                  console.error(`Failed to fetch blocks for unit ${unit.id}:`, error);
+                }
+              })
+            );
+            
+            courseData[course.id] = { units, blocks: allBlocks };
           } catch (error) {
-            console.error(`Failed to fetch units for course ${course.id}:`, error);
-            unitsData[course.id] = [];
+            console.error(`Failed to fetch data for course ${course.id}:`, error);
+            courseData[course.id] = { units: [], blocks: [] };
           }
         })
       );
-      return unitsData;
+      return courseData;
     },
     enabled: !!activeCourses && activeCourses.length > 0,
   });
@@ -106,22 +124,23 @@ export function ProgressSection() {
 
   // Calculate actual progress for each course like in course detail page
   const calculateCourseProgress = (courseId: number) => {
-    const units = allUnits?.[courseId] || [];
-    if (units.length === 0) return { percentComplete: 0 };
+    const courseData = allUnitsAndBlocks?.[courseId];
+    if (!courseData || courseData.units.length === 0) return { percentComplete: 0 };
 
-    // Get all blocks for this course from all units
-    const allBlocks = units.flatMap((unit: any) => unit.blocks || []);
+    const allBlocks = courseData.blocks;
     const totalBlocks = allBlocks.length;
 
     if (totalBlocks === 0) return { percentComplete: 100 };
 
-    // Count completed blocks
-    const completedBlocks = blockCompletions.filter((completion: any) => 
-      allBlocks.some((block: any) => block.id === completion.blockId && completion.completed)
-    );
+    // Count completed blocks - match exactly how course detail page does it
+    const completedBlocksCount = blockCompletions.filter((completion: any) => 
+      allBlocks.some((block: any) => block.id === completion.blockId) && completion.completed === true
+    ).length;
 
-    const percentComplete = Math.round((completedBlocks.length / totalBlocks) * 100);
-    console.log(`Course ${courseId} calculated progress: ${completedBlocks.length}/${totalBlocks} blocks = ${percentComplete}%`);
+    const percentComplete = Math.round((completedBlocksCount / totalBlocks) * 100);
+    console.log(`Dashboard Course ${courseId} calculated progress: ${completedBlocksCount}/${totalBlocks} blocks = ${percentComplete}%`);
+    console.log(`Dashboard Course ${courseId} block IDs:`, allBlocks.map((b: any) => b.id));
+    console.log(`Dashboard Course ${courseId} completed block IDs:`, blockCompletions.filter(c => c.completed).map((c: any) => c.blockId));
     
     return { percentComplete };
   };
@@ -186,8 +205,8 @@ export function ProgressSection() {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
                 <CourseProgressBar
-                  completedUnits={Math.floor(((calculateCourseProgress(course.id).percentComplete || 0) / 100) * (allUnits?.[course.id]?.length || 1))}
-                  totalUnits={allUnits?.[course.id]?.length || 1}
+                  completedUnits={Math.floor(((calculateCourseProgress(course.id).percentComplete || 0) / 100) * (allUnitsAndBlocks?.[course.id]?.units.length || 1))}
+                  totalUnits={allUnitsAndBlocks?.[course.id]?.units.length || 1}
                   percent={calculateCourseProgress(course.id).percentComplete || 0}
                   hasEndAssessment={false}
                   endAssessmentAvailable={false}
