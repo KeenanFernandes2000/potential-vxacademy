@@ -245,6 +245,7 @@ export function UserFormDialog({
         courseIds: [],
       });
     }
+    form.clearErrors();
   }, [user, form, isCurrentUserSubAdmin]);
 
   // Update role when toggle changes (only if current user is admin)

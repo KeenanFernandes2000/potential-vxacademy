@@ -110,10 +110,11 @@ export default function ModuleManagement() {
         description: "The module has been created successfully.",
       });
       form.reset({
+        trainingAreaId: undefined,
         name: "",
         description: "",
         imageUrl: "",
-        trainingAreaId: undefined,
+        internalNote: "",
       });
       form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
@@ -140,10 +141,11 @@ export default function ModuleManagement() {
       });
       setEditingModule(null);
       form.reset({
+        trainingAreaId: undefined,
         name: "",
         description: "",
         imageUrl: "",
-        trainingAreaId: undefined,
+        internalNote: "",
       });
       form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
@@ -201,10 +203,11 @@ export default function ModuleManagement() {
   function handleCancel() {
     setEditingModule(null);
     form.reset({
+      trainingAreaId: undefined,
       name: "",
       description: "",
       imageUrl: "",
-      trainingAreaId: undefined,
+      internalNote: "",
     });
     form.clearErrors();
   }

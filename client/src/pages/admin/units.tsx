@@ -279,7 +279,18 @@ export default function UnitsManagement() {
       queryClient.invalidateQueries({ queryKey: ["/api/units"] });
       queryClient.invalidateQueries({ queryKey: ["/api/course-units"] });
       setEditingUnit(null);
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        internalNote: "",
+        trainingAreaId: "",
+        moduleId: "",
+        courseIds: [],
+        order: 1,
+        duration: 30,
+        showDuration: true,
+        xpPoints: 100,
+      });
       toast({
         title: "Unit updated",
         description: "The unit has been updated successfully.",
@@ -392,21 +403,18 @@ export default function UnitsManagement() {
     });
   };
 
-  // Function to handle canceling edit (like courses page)
+  // Function to handle canceling edit
   const handleCancel = () => {
     setEditingUnit(null);
     form.reset({
       name: "",
       description: "",
-      internalNote: "",
-      trainingAreaId: "",
-      moduleId: "",
-      courseIds: [],
-      order: getNextOrder(),
       duration: 30,
       showDuration: true,
       xpPoints: 100,
+      courseIds: [],
     });
+    form.clearErrors();
   };
 
   // Function to handle deleting a unit
@@ -964,8 +972,7 @@ export default function UnitsManagement() {
                                     <TooltipContent>
                                       <p>Delete Unit</p>
                                     </TooltipContent>
-                                  </Tooltip>
-                                </div>
+                                  </Tooltip></div>
                               </TooltipProvider>
                             </TableCell>
                           </TableRow>

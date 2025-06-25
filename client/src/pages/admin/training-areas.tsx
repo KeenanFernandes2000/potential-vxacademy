@@ -180,6 +180,7 @@ export default function TrainingAreaManagement() {
       description: "",
       imageUrl: "",
     });
+    form.clearErrors();
   }
 
   const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;

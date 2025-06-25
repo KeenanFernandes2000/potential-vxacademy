@@ -52,6 +52,14 @@ export function BadgesManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/badges"] });
       setIsEditDialogOpen(false);
+      setSelectedBadge(null);
+      setFormData({
+        name: "",
+        description: "",
+        imageUrl: "",
+        xpPoints: 0,
+        type: "assessment"
+      });
       toast({
         title: "Success",
         description: "Badge updated successfully",
@@ -74,6 +82,13 @@ export function BadgesManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/badges"] });
       setIsCreateDialogOpen(false);
+      setFormData({
+        name: "",
+        description: "",
+        imageUrl: "",
+        xpPoints: 0,
+        type: "assessment"
+      });
       toast({
         title: "Success",
         description: "Badge created successfully",
