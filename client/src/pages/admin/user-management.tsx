@@ -296,14 +296,14 @@ export default function UserManagementPage() {
               <FileSpreadsheet className="h-4 w-4" />
               Bulk Upload
             </Button>
-            <Button
+            {/* <Button
               onClick={() => setIsBulkAddOpen(true)}
               variant="outline"
               className="flex items-center gap-2"
             >
               <Users className="h-4 w-4" />
               Bulk Add Users
-            </Button>
+            </Button> */}
             <Button onClick={handleAddUser} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Add User
