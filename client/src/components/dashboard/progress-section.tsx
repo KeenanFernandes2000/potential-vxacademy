@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { Course, UserProgress } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
-import { apiRequest } from "@shared/utils/api";
+import { apiRequest } from "@/lib/queryClient";
 
 export function ProgressSection() {
   const [activeCourses, setActiveCourses] = useState<(Course & { progress?: UserProgress })[]>([]);

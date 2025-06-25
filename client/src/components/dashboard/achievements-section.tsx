@@ -40,8 +40,8 @@ export function AchievementsSection() {
     <div className="bg-white rounded-xl shadow-sm p-5">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-heading text-lg font-semibold text-neutrals-800">Recent Achievements</h2>
-        <Link href="/achievements">
-          <a className="text-primary text-sm hover:underline">View all</a>
+        <Link href="/achievements" className="text-primary text-sm hover:underline">
+          View all
         </Link>
       </div>
       <div className="space-y-4">
