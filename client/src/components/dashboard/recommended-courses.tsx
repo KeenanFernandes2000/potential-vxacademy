@@ -85,16 +85,8 @@ export function RecommendedCourses() {
       return;
     }
     
-    // Show success toast
-    toast({
-      title: "Starting course",
-      description: "Taking you to the course page now",
-    });
-    
-    // Skip enrollment and go directly to course page
-    setTimeout(() => {
-      window.location.href = `/courses/${courseId}`;
-    }, 500);
+    // Create progress record first, then navigate
+    enrollMutation.mutate(courseId);
   };
 
   return (

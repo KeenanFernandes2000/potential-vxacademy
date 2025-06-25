@@ -98,6 +98,21 @@ export default function CourseDetail() {
     queryKey: [`/api/progress`],
   });
 
+  // Enrollment mutation for when user hasn't enrolled yet
+  const enrollMutation = useMutation({
+    mutationFn: async (courseId: number) => {
+      const res = await apiRequest("POST", "/api/progress", {
+        courseId,
+        percentComplete: 0,
+        completed: false
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+    }
+  });
+
   // Fetch current user for assessment flow
   const { data: currentUser } = useQuery<any>({
     queryKey: [`/api/user`],
@@ -152,6 +167,14 @@ export default function CourseDetail() {
   const courseProgress = progress && Array.isArray(progress)
     ? progress.find((p: any) => p.courseId === courseId)
     : null;
+
+  // Auto-enroll if user accesses course but has no progress record
+  useEffect(() => {
+    if (courseId && course && !isLoadingProgress && progress && Array.isArray(progress) && !courseProgress && !enrollMutation.isPending) {
+      console.log("Auto-enrolling user in course", courseId);
+      enrollMutation.mutate(courseId);
+    }
+  }, [courseId, course, progress, courseProgress, isLoadingProgress, enrollMutation]);
     
   // Certificate generation mutation
   const generateCertificateMutation = useMutation({

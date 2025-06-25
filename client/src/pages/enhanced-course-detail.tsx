@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
+import { Assessment, Course, Unit, LearningBlock, UserProgress } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
-import { Course, Unit, LearningBlock, Assessment } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -63,7 +63,7 @@ const Layout = ({ children }: LayoutProps) => {
 export default function EnhancedCourseDetail() {
   const [match, params] = useRoute("/courses/:id");
   const courseId = params?.id ? parseInt(params.id) : null;
-  
+
   if (!match || !courseId) {
     return (
       <Layout>
@@ -112,8 +112,23 @@ export default function EnhancedCourseDetail() {
   });
 
   // Fetch user progress
-  const { data: progress = [] } = useQuery({
+  const { data: progress, isLoading: isLoadingProgress } = useQuery<UserProgress[]>({
     queryKey: ["/api/progress"],
+  });
+
+  // Enrollment mutation for when user hasn't enrolled yet
+  const enrollMutation = useMutation({
+    mutationFn: async (courseId: number) => {
+      const res = await apiRequest("POST", "/api/progress", {
+        courseId,
+        percentComplete: 0,
+        completed: false
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+    }
   });
 
   // Fetch user progress for all courses
@@ -156,17 +171,17 @@ export default function EnhancedCourseDetail() {
   // Calculate course progress
   const courseProgressData = useMemo(() => {
     if (!units || !blocks) return { percentComplete: 0, completed: false, totalItems: 0, completedItems: 0 };
-    
+
     const totalBlocks = blocks.length;
     const totalAssessments = [...(unitAssessments || []), ...(courseAssessments || [])].length;
     const totalItems = totalBlocks + totalAssessments;
-    
+
     if (totalItems === 0) return { percentComplete: 100, completed: true, totalItems: 0, completedItems: 0 };
-    
+
     const completedItemsCount = completedBlocks.size + completedAssessments.size;
     const percentComplete = Math.round((completedItemsCount / totalItems) * 100);
     const completed = percentComplete === 100;
-    
+
     return { percentComplete, completed, totalItems, completedItems: completedItemsCount };
   }, [units, blocks, unitAssessments, courseAssessments, completedBlocks, completedAssessments]);
 
@@ -230,12 +245,12 @@ export default function EnhancedCourseDetail() {
     onSuccess: (data, blockId) => {
       // Add completed block to local state immediately
       setCompletedBlocks(prev => new Set(prev).add(blockId));
-      
+
       // Invalidate and refetch progress data
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
       queryClient.invalidateQueries({ queryKey: ["/api/block-completions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
-      
+
       // Move to next block or show assessment
       if (blocks && blocks.length > 0) {
         const currentIndex = blocks.findIndex(b => b.id === activeBlockId);
@@ -357,30 +372,30 @@ export default function EnhancedCourseDetail() {
     assessmentId: number;
   }) => {
     const { passed, assessmentId, certificateGenerated } = result;
-    
+
     if (passed) {
       // Add completed assessment to local state immediately
       setCompletedAssessments(prev => new Set(prev).add(assessmentId));
-      
+
       // Check if certificate should be generated
       const assessment = [...unitAssessments, ...courseAssessments].find(a => a.id === assessmentId);
       if (assessment?.hasCertificate && !certificateGenerated) {
         generateCertificateMutation.mutate({ courseId: parseInt(courseId), assessmentId });
       }
     }
-    
+
     setShowAssessment(false);
     setCurrentAssessment(null);
-    
+
     // Invalidate and refetch progress data
     queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
     queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
     queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}/assessments`] });
-    
+
     if (passed) {
       // Determine next action based on assessment type and placement
       const completedAssessment = [...unitAssessments, ...courseAssessments].find(a => a.id === assessmentId);
-      
+
       if (completedAssessment) {
         if (completedAssessment.placement === "beginning") {
           // After beginning assessment, start with first unit/block
@@ -388,7 +403,7 @@ export default function EnhancedCourseDetail() {
             const firstUnit = units[0];
             setActiveUnitId(firstUnit.id);
             setSelectedUnit(firstUnit);
-            
+
             // If unit has blocks, select first block
             if (blocks && blocks.length > 0) {
               const firstBlock = blocks[0];
@@ -445,6 +460,17 @@ export default function EnhancedCourseDetail() {
   const isAllContentComplete = () => {
     return detailedProgress.percent >= 80;
   };
+
+  // Check for course progress
+  const courseProgressData = progress?.find(p => p.courseId === courseId);
+
+  // Auto-enroll if user accesses course but has no progress record
+  useEffect(() => {
+    if (courseId && course && !isLoadingProgress && progress && !courseProgressData && !enrollMutation.isPending) {
+      console.log("Auto-enrolling user in course", courseId);
+      enrollMutation.mutate(courseId);
+    }
+  }, [courseId, course, progress, courseProgressData, isLoadingProgress, enrollMutation]);
 
   if (courseLoading || unitsLoading || blocksLoading) {
     return (
@@ -676,7 +702,7 @@ export default function EnhancedCourseDetail() {
                             {unitBlocks.map((block) => {
                               const isCompleted = completedBlocks.has(block.id);
                               const isSelected = selectedContent?.type === "block" && selectedContent?.id === block.id;
-                              
+
                               return (
                                 <div
                                   key={`block-${block.id}`}
@@ -712,7 +738,7 @@ export default function EnhancedCourseDetail() {
                               .map((assessment) => {
                                 const isCompleted = completedAssessments.has(assessment.id);
                                 const isSelected = selectedContent?.type === "assessment" && selectedContent?.id === assessment.id;
-                                
+
                                 return (
                                   <div
                                     key={`unit-${unit.id}-end-assessment-${assessment.id}`}
@@ -792,8 +818,7 @@ export default function EnhancedCourseDetail() {
           <div className="lg:col-span-3">
             {selectedContent ? (
               <div>
-                {selectedContent.type === "block" && selectedBlock && (
-                  <Card>
+                {selectedContent.type === "block" && selectedBlock && (                  <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         {selectedBlock.type === 'video' && <Play className="mr-2 h-5 w-5 text-blue-600" />}

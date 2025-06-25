@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
@@ -7,6 +7,8 @@ import { Course, UserProgress } from "@shared/schema";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -19,9 +21,44 @@ export default function Courses() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
+  const { toast } = useToast();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  // Enrollment mutation
+  const enrollMutation = useMutation({
+    mutationFn: async (courseId: number) => {
+      const res = await apiRequest("POST", "/api/progress", {
+        courseId,
+        percentComplete: 0,
+        completed: false
+      });
+      return res.json();
+    },
+    onSuccess: (data, courseId) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+      toast({
+        title: "Enrolled Successfully",
+        description: "Starting your course now...",
+      });
+      
+      setTimeout(() => {
+        window.location.href = `/courses/${courseId}`;
+      }, 1000);
+    },
+    onError: (error) => {
+      toast({
+        title: "Enrollment Failed",
+        description: "Please try again or contact support",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleEnroll = (courseId: number) => {
+    enrollMutation.mutate(courseId);
   };
 
   const { data: courses, isLoading: isLoadingCourses } = useQuery<Course[]>({
@@ -179,11 +216,12 @@ export default function Courses() {
                           <p className="text-sm text-neutrals-600 mb-3 line-clamp-2">
                             {course.description || "Learn essential skills and knowledge in this comprehensive course."}
                           </p>
-                          <Link href={`/courses/${course.id}`}>
-                            <a className="block w-full bg-neutrals-100 hover:bg-neutrals-200 text-primary font-medium text-sm py-1.5 px-3 rounded text-center transition-colors">
-                              Enroll Now
-                            </a>
-                          </Link>
+                          <button 
+                            onClick={() => handleEnroll(course.id)}
+                            className="block w-full bg-neutrals-100 hover:bg-neutrals-200 text-primary font-medium text-sm py-1.5 px-3 rounded text-center transition-colors"
+                          >
+                            Enroll Now
+                          </button>
                         </>
                       )}
                     </div>
