@@ -101,8 +101,13 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
 
   const handleTimeExpired = () => {
     setTimeExpired(true);
-    // Auto-submit when time expires
-    handleSubmitAssessment();
+    // Auto-submit when time expires with current answers
+    setIsSubmitting(true);
+    submitAssessmentMutation.mutate({
+      answers: selectedAnswers,
+      timeExpired: true,
+      startedAt: new Date().toISOString()
+    });
   };
 
   if (isLoadingQuestions || isLoadingAttempts) {

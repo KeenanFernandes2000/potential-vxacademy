@@ -80,13 +80,13 @@ export function ComprehensiveAssessment({
         certificateGenerated: result.certificateGenerated,
         attemptsRemaining: result.attemptsRemaining
       });
-      
+
       // Invalidate related queries
       queryClient.invalidateQueries({ 
         queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`] 
       });
       queryClient.invalidateQueries({ queryKey: [`/api/user/progress`] });
-      
+
       if (result.certificateGenerated) {
         queryClient.invalidateQueries({ queryKey: [`/api/user/certificates`] });
       }
@@ -115,7 +115,7 @@ export function ComprehensiveAssessment({
 
   const handleSubmitAssessment = () => {
     if (!questions) return;
-    
+
     // Calculate score on client side before submitting
     let correctAnswers = 0;
     const totalQuestions = questions.length;
@@ -128,7 +128,7 @@ export function ComprehensiveAssessment({
     });
 
     const score = Math.round((correctAnswers / totalQuestions) * 100);
-    
+
     setIsSubmitting(true);
     submitAssessmentMutation.mutate({
       answers: selectedAnswers,
@@ -213,14 +213,14 @@ export function ComprehensiveAssessment({
               You have used all your allowed attempts ({assessment.maxRetakes}) for this assessment.
             </AlertDescription>
           </Alert>
-          
+
           <div className="space-y-2 mb-4">
             <p><strong>Attempts used:</strong> {attemptsUsed} / {assessment.maxRetakes}</p>
             {attempts.length > 0 && (
               <p><strong>Best score:</strong> {Math.max(...attempts.map(a => a.score))}%</p>
             )}
           </div>
-          
+
           <Button onClick={onCancel}>
             Back to Course
           </Button>
@@ -243,7 +243,7 @@ export function ComprehensiveAssessment({
           {assessment.description && (
             <p className="text-gray-600">{assessment.description}</p>
           )}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <h4 className="font-semibold">Assessment Details:</h4>
@@ -259,7 +259,7 @@ export function ComprehensiveAssessment({
                 </div>
               )}
             </div>
-            
+
             <div className="space-y-2">
               <h4 className="font-semibold">Attempt Information:</h4>
               <p><strong>Attempts used:</strong> {attemptsUsed} / {assessment.maxRetakes}</p>
@@ -330,7 +330,7 @@ export function ComprehensiveAssessment({
                 {formatTime(timeRemaining)}
               </div>
             </div>
-            
+
             {timeRemaining <= 300 && (
               <Alert className="mt-3 border-red-200 bg-red-50">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -372,7 +372,7 @@ export function ComprehensiveAssessment({
             >
               {(() => {
                 let options = currentQuestion.options;
-                
+
                 // Handle different option formats
                 if (typeof options === 'string') {
                   try {
@@ -381,11 +381,11 @@ export function ComprehensiveAssessment({
                     options = [options];
                   }
                 }
-                
+
                 if (!Array.isArray(options)) {
                   return <div className="text-red-600">No options available</div>;
                 }
-                
+
                 return options.map((option, index) => (
                   <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                     <RadioGroupItem value={index.toString()} id={`option-${index}`} />

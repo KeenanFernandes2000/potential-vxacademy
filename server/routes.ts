@@ -782,6 +782,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     certificate.id,
                     courseName,
                   );
+                  
+                  console.log(`🎉 Certificate awarded to user ${userId} for course: ${courseName}`);
+                  certificateGenerated = true;
                 }
               }
             } catch (certError) {

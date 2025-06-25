@@ -45,27 +45,29 @@ export function AssessmentTimer({ timeLimit, onTimeExpired, isActive }: Assessme
   if (!isActive) return null;
 
   return (
-    <Card className="mb-4">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Clock className="h-5 w-5 text-blue-600" />
-            <span className="font-medium">Time Remaining:</span>
+    <div className="fixed top-20 right-4 z-50 mb-4">
+      <Card className="shadow-lg border-2 border-blue-200 bg-white">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-blue-600" />
+              <span className="font-medium">Time Remaining:</span>
+            </div>
+            <div className={`text-2xl font-bold ${getTimeClass()}`}>
+              {formatTime(timeRemaining)}
+            </div>
           </div>
-          <div className={`text-2xl font-bold ${getTimeClass()}`}>
-            {formatTime(timeRemaining)}
-          </div>
-        </div>
-        
-        {timeRemaining <= 300 && (
-          <Alert className="mt-3 border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-700">
-              Warning: Less than 5 minutes remaining!
-            </AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-    </Card>
+          
+          {timeRemaining <= 300 && (
+            <Alert className="mt-3 border-red-200 bg-red-50">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-700">
+                Warning: Less than 5 minutes remaining!
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

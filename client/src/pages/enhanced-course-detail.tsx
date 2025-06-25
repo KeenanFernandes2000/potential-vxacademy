@@ -486,14 +486,22 @@ export default function EnhancedCourseDetail() {
               <div className="space-y-2 mb-6">
                 {prerequisites.map(prereq => (
                   <div key={prereq.id} className="flex items-center justify-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-red-500" />
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
                     <span>{prereq.name}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 mb-6">
                 Complete the prerequisite courses to unlock access to this course.
               </p>
+              <Button 
+                disabled 
+                className="bg-gray-400 cursor-not-allowed"
+                title="This course is locked. Complete the prerequisite course(s) to unlock."
+              >
+                <Lock className="mr-2 h-4 w-4" />
+                Enroll Now
+              </Button>
             </CardContent>
           </Card>
         </div>
