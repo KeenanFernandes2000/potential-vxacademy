@@ -87,11 +87,9 @@ export function ProgressSection() {
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-heading text-xl font-semibold text-neutrals-800">Your Progress</h2>
-        <Link href="/courses">
-          <a className="text-primary flex items-center text-sm font-medium hover:underline">
-            View all courses
-            <span className="material-icons text-sm ml-1">arrow_forward</span>
-          </a>
+        <Link href="/courses" className="text-primary flex items-center text-sm font-medium hover:underline">
+          View all courses
+          <span className="material-icons text-sm ml-1">arrow_forward</span>
         </Link>
       </div>
 
@@ -145,10 +143,8 @@ export function ProgressSection() {
                   <span className="text-sm text-neutrals-600">
                     {course.progress?.percentComplete || 0}% Complete
                   </span>
-                  <Link href={`/courses/${course.id}`}>
-                    <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors">
-                      Continue
-                    </a>
+                  <Link href={`/courses/${course.id}`} className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                    Continue
                   </Link>
                 </div>
               </div>
@@ -161,11 +157,9 @@ export function ProgressSection() {
               <span className="material-icons text-4xl text-neutrals-400 mb-2">school</span>
               <h3 className="text-lg font-semibold mb-2">No courses in progress</h3>
               <p className="text-neutrals-600 mb-4">Start your learning journey by enrolling in a course.</p>
-              <Link href="/courses">
-                <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
-                  <span className="material-icons mr-2">search</span>
-                  <span>Browse Courses</span>
-                </a>
+              <Link href="/courses" className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
+                <span className="material-icons mr-2">search</span>
+                <span>Browse Courses</span>
               </Link>
             </div>
           </div>
