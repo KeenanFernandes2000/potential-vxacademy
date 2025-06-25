@@ -37,8 +37,10 @@ export function ProgressSection() {
       // Filter to get courses that have actual progress or recently accessed courses
       const activeCoursesFiltered = coursesWithProgress
         .filter(course => {
-          // Include if has actual progress record OR if it's in the top courses by ID (for new courses)
-          return course.progress && (course.progress.id > 0 || course.progress.percentComplete > 0);
+          // Include if has actual progress record (real ID > 0) OR if it has any progress percentage
+          const hasRealProgress = course.progress && course.progress.id > 0;
+          console.log(`Course ${course.name} (ID: ${course.id}): progress ID=${course.progress?.id}, percent=${course.progress?.percentComplete}, hasRealProgress=${hasRealProgress}`);
+          return hasRealProgress;
         })
         .sort((a, b) => {
           // Sort by last accessed time, most recent first

@@ -115,25 +115,37 @@ async function updateCourseProgress(userId: number, courseId: number) {
     const completed = percentComplete === 100;
 
     // Update or create user progress record
-    const existingProgress = await storage.getUserProgress(userId, courseId);
-    if (existingProgress) {
-      await storage.updateUserProgress(userId, courseId, {
-        percentComplete,
-        completed,
-        lastAccessed: new Date()
-      });
-    } else {
-      // Create new progress record if it doesn't exist
-      await storage.createUserProgress({
-        userId,
-        courseId,
-        percentComplete,
-        completed,
-        lastAccessed: new Date()
-      });
-    }
+    try {
+      const existingProgress = await storage.getUserProgress(userId, courseId);
+      if (existingProgress) {
+        console.log(`Updating existing progress: user ${userId}, course ${courseId}, ${percentComplete}%`);
+        await storage.updateUserProgress(userId, courseId, {
+          percentComplete,
+          completed,
+          lastAccessed: new Date()
+        });
+      } else {
+        console.log(`Creating new progress record: user ${userId}, course ${courseId}, ${percentComplete}%`);
+        // Create new progress record if it doesn't exist
+        await storage.createUserProgress({
+          userId,
+          courseId,
+          percentComplete,
+          completed,
+          lastAccessed: new Date()
+        });
+      }
 
-    console.log(`Updated course progress for user ${userId}, course ${courseId}: ${percentComplete}% (${completedItems}/${totalItems} items)`);
+      console.log(`✓ Successfully updated course progress for user ${userId}, course ${courseId}: ${percentComplete}% (${completedItems}/${totalItems} items)`);
+      
+      // Verify the update worked by fetching the progress again
+      const verifyProgress = await storage.getUserProgress(userId, courseId);
+      console.log(`✓ Verified progress update:`, verifyProgress);
+      
+    } catch (progressError) {
+      console.error(`Failed to update/create progress for user ${userId}, course ${courseId}:`, progressError);
+      throw progressError;
+    }
   } catch (error) {
     console.error("Error calculating course progress:", error);
   }
@@ -646,6 +658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const coursesForUnit = await storage.getCoursesForUnit(unit.id);
           
           for (const course of coursesForUnit) {
+            console.log(`Updating course progress for user ${userId}, course ${course.id} after block ${blockId} completion`);
             // Calculate updated progress for this course
             await updateCourseProgress(userId, course.id);
           }
@@ -2765,6 +2778,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Excel upload endpoint for users
   app.post("/api/admin/users/bulk-upload", requireAdminOrSubAdmin, uploadExcel, (req: Request, res: Response) => {
     processExcelUpload(req, res, storage);
+  });
+
+  // Manual course progress refresh endpoint for debugging
+  app.post("/api/refresh-course-progress/:courseId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const userId = req.user!.id;
+      const courseId = parseInt(req.params.courseId);
+
+      console.log(`Manual progress refresh requested for user ${userId}, course ${courseId}`);
+      await updateCourseProgress(userId, courseId);
+
+      // Get updated progress
+      const updatedProgress = await storage.getUserProgress(userId, courseId);
+      res.json({ 
+        success: true, 
+        progress: updatedProgress,
+        message: "Course progress refreshed successfully"
+      });
+    } catch (error) {
+      console.error("Error refreshing course progress:", error);
+      res.status(500).json({ message: "Error refreshing course progress" });
+    }
   });
 
   // Excel template download endpoint
