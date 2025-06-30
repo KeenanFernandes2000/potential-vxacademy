@@ -323,7 +323,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg hover:bg-slate-100 transition-all duration-200">
                 <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 text-white flex items-center justify-center text-sm font-bold mr-2 shadow-lg">
-                  {user?.name?.charAt(0) || "U"}
+                  {user?.firstName?.charAt(0) || "U"}
                 </div>
                 <ChevronDown className="h-4 w-4" />
               </button>
