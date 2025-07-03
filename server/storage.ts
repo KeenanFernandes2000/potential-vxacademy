@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, courseUnits, type CourseUnit, type InsertCourseUnit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification, mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite } from "@shared/schema";
+import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, courseUnits, type CourseUnit, type InsertCourseUnit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification, mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite, userActivityLogs, type UserActivityLog, type InsertUserActivityLog, courseEnrollments, type CourseEnrollment, type InsertCourseEnrollment } from "@shared/schema";
 import session from "express-session";
 
 export interface IStorage {
@@ -161,6 +161,27 @@ export interface IStorage {
   createMediaFile(file: InsertMediaFile): Promise<MediaFile>;
   deleteMediaFile(id: number): Promise<boolean>;
   deleteMultipleMediaFiles(ids: number[]): Promise<number>;
+
+  // Analytics Methods
+  createUserActivityLog(activity: InsertUserActivityLog): Promise<UserActivityLog>;
+  getUserActivityLogs(userId: number, limit?: number): Promise<UserActivityLog[]>;
+  getActivityLogsByDateRange(startDate: Date, endDate: Date): Promise<UserActivityLog[]>;
+
+  createCourseEnrollment(enrollment: InsertCourseEnrollment): Promise<CourseEnrollment>;
+  getCourseEnrollment(userId: number, courseId: number): Promise<CourseEnrollment | undefined>;
+  getUserEnrollments(userId: number): Promise<CourseEnrollment[]>;
+  getEnrollmentsByDateRange(startDate: Date, endDate: Date): Promise<CourseEnrollment[]>;
+
+  getActiveUsersCount(startDate: Date, endDate: Date): Promise<number>;
+  getNewUsersCount(startDate: Date, endDate: Date): Promise<number>;
+  getCourseCompletionsCount(startDate: Date, endDate: Date): Promise<number>;
+  getAssessmentAttemptsCount(startDate: Date, endDate: Date): Promise<number>;
+  getAllUsersCount(): Promise<number>;
+  getAllUsers(): Promise<User[]>;
+  getAllUserProgress(): Promise<UserProgress[]>;
+  getAllAssessmentAttempts(): Promise<AssessmentAttempt[]>;
+
+  // Note: No additional methods needed - using existing userActivityLogs for login tracking
 }
 
 // Import DatabaseStorage and create instance

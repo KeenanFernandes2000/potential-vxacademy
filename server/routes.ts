@@ -649,6 +649,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Log block completion activity
+      await storage.createUserActivityLog({
+        userId,
+        activity: 'block_completed',
+        metadata: { 
+          blockId, 
+          blockTitle: block.title,
+          xpAwarded: block.xpPoints || 10 
+        }
+      }).catch(error => {
+        console.error('Failed to log block completion activity:', error);
+      });
+
       // Update course progress after block completion
       try {
         // Get the unit this block belongs to
@@ -661,6 +674,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`Updating course progress for user ${userId}, course ${course.id} after block ${blockId} completion`);
             // Calculate updated progress for this course
             await updateCourseProgress(userId, course.id);
+            
+            // Check if course is now complete and log it
+            const updatedProgress = await storage.getUserProgress(userId, course.id);
+            if (updatedProgress && updatedProgress.completed) {
+              await storage.createUserActivityLog({
+                userId,
+                activity: 'course_completed',
+                metadata: { 
+                  courseId: course.id, 
+                  courseName: course.name,
+                  percentComplete: updatedProgress.percentComplete
+                }
+              }).catch(error => {
+                console.error('Failed to log course completion activity:', error);
+              });
+            }
           }
         }
       } catch (error) {
@@ -2532,6 +2561,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completedAt: new Date()
       });
 
+      // Log assessment activity
+      await storage.createUserActivityLog({
+        userId,
+        activity: passed ? 'assessment_passed' : 'assessment_failed',
+        metadata: { 
+          assessmentId, 
+          score, 
+          assessmentTitle: assessment.title,
+          totalQuestions,
+          correctAnswers
+        }
+      }).catch(error => {
+        console.error('Failed to log assessment activity:', error);
+      });
+
       let certificateGenerated = false;
 
       // Award XP points if passed
@@ -2821,6 +2865,231 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.download(templatePath, "VX_Academy_Import_Template.xlsx");
     } else {
       res.status(404).json({ message: "Template file not found" });
+    }
+  });
+
+  // Analytics Endpoints
+  app.get("/api/admin/analytics", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const timeRange = req.query.timeRange as string || "month";
+      
+      // Calculate date range based on timeRange parameter
+      const endDate = new Date();
+      const startDate = new Date();
+      
+      switch (timeRange) {
+        case "week":
+          startDate.setDate(endDate.getDate() - 7);
+          break;
+        case "month":
+          startDate.setDate(endDate.getDate() - 30);
+          break;
+        case "quarter":
+          startDate.setDate(endDate.getDate() - 90);
+          break;
+        case "year":
+          startDate.setFullYear(endDate.getFullYear() - 1);
+          break;
+        default:
+          startDate.setDate(endDate.getDate() - 30);
+      }
+
+      // Get analytics data from existing tables using createdAt timestamps
+      const [
+        totalUsers,
+        allUsers,
+        allProgress,
+        allCourses,
+        allAssessmentAttempts,
+        newUsers,
+        courseCompletions,
+        assessmentAttempts,
+        enrollments
+      ] = await Promise.all([
+        storage.getAllUsersCount(),
+        storage.getAllUsers(),
+        storage.getAllUserProgress(),
+        storage.getCourses(),
+        storage.getAllAssessmentAttempts(),
+        storage.getNewUsersCount(startDate, endDate),
+        storage.getCourseCompletionsCount(startDate, endDate),
+        storage.getAssessmentAttemptsCount(startDate, endDate),
+        storage.getEnrollmentsByDateRange(startDate, endDate)
+      ]);
+
+      // Calculate active users from user activity logs (login activity)
+      const activeUsers = await storage.getActiveUsersCount(startDate, endDate);
+
+      // Calculate completion rate
+      const completedProgress = allProgress.filter(p => p.completed);
+      const avgCompletionRate = allProgress.length > 0 
+        ? Math.round((completedProgress.length / allProgress.length) * 100) 
+        : 0;
+
+      // Role distribution
+      const roleDistribution = allUsers.reduce((acc, user) => {
+        const role = user.role || 'user';
+        acc[role] = (acc[role] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Course completion data by course
+      const courseCompletionData = allCourses.map(course => {
+        const courseProgress = allProgress.filter(p => p.courseId === course.id);
+        const completedCount = courseProgress.filter(p => p.completed).length;
+        const totalEnrolled = courseProgress.length;
+        const completionRate = totalEnrolled > 0 ? Math.round((completedCount / totalEnrolled) * 100) : 0;
+        
+        return {
+          name: course.name,
+          completionRate,
+          totalEnrolled,
+          completedCount
+        };
+      }).sort((a, b) => b.completionRate - a.completionRate);
+
+      // XP distribution
+      const xpDistribution = allUsers.reduce((acc, user) => {
+        const xp = user.xpPoints || 0;
+        if (xp <= 500) acc['Beginner (0-500 XP)'] = (acc['Beginner (0-500 XP)'] || 0) + 1;
+        else if (xp <= 1500) acc['Intermediate (501-1500 XP)'] = (acc['Intermediate (501-1500 XP)'] || 0) + 1;
+        else if (xp <= 3000) acc['Advanced (1501-3000 XP)'] = (acc['Advanced (1501-3000 XP)'] || 0) + 1;
+        else acc['Expert (3000+ XP)'] = (acc['Expert (3000+ XP)'] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Assessment performance
+      const assessmentPerformance = allAssessmentAttempts.reduce((acc, attempt) => {
+        if (attempt.passed) {
+          acc.passed += 1;
+        }
+        acc.total += 1;
+        acc.totalScore += attempt.score;
+        return acc;
+      }, { passed: 0, total: 0, totalScore: 0 });
+
+      const avgAssessmentScore = assessmentPerformance.total > 0 
+        ? Math.round(assessmentPerformance.totalScore / assessmentPerformance.total) 
+        : 0;
+
+      const passRate = assessmentPerformance.total > 0 
+        ? Math.round((assessmentPerformance.passed / assessmentPerformance.total) * 100) 
+        : 0;
+
+      res.json({
+        summary: {
+          totalUsers,
+          activeUsers,
+          newUsers,
+          courseCompletions,
+          avgCompletionRate,
+          assessmentAttempts,
+          avgAssessmentScore,
+          passRate
+        },
+        roleDistribution: Object.entries(roleDistribution).map(([name, value]) => ({ name, value })),
+        courseCompletion: courseCompletionData,
+        xpDistribution: Object.entries(xpDistribution).map(([name, value]) => ({ name, value })),
+        timeRange: {
+          start: startDate,
+          end: endDate,
+          period: timeRange
+        },
+        enrollments: enrollments.length
+      });
+    } catch (error) {
+      console.error("Analytics error:", error);
+      res.status(500).json({ message: "Error fetching analytics data" });
+    }
+  });
+
+  // Time series analytics data
+  app.get("/api/admin/analytics/timeseries", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const timeRange = req.query.timeRange as string || "month";
+      const endDate = new Date();
+      const startDate = new Date();
+      
+      // Calculate periods
+      let periodCount: number;
+      let periodLength: number; // in days
+      
+      switch (timeRange) {
+        case "week":
+          startDate.setDate(endDate.getDate() - 7);
+          periodCount = 7;
+          periodLength = 1;
+          break;
+        case "month":
+          startDate.setDate(endDate.getDate() - 30);
+          periodCount = 30;
+          periodLength = 1;
+          break;
+        case "quarter":
+          startDate.setDate(endDate.getDate() - 90);
+          periodCount = 12; // weekly periods
+          periodLength = 7;
+          break;
+        case "year":
+          startDate.setFullYear(endDate.getFullYear() - 1);
+          periodCount = 12; // monthly periods
+          periodLength = 30;
+          break;
+        default:
+          startDate.setDate(endDate.getDate() - 30);
+          periodCount = 30;
+          periodLength = 1;
+      }
+
+      const timeSeriesData = [];
+      
+      for (let i = periodCount - 1; i >= 0; i--) {
+        const periodEnd = new Date();
+        periodEnd.setDate(endDate.getDate() - (i * periodLength));
+        periodEnd.setHours(23, 59, 59, 999);
+        
+        const periodStart = new Date(periodEnd);
+        periodStart.setDate(periodEnd.getDate() - (periodLength - 1));
+        periodStart.setHours(0, 0, 0, 0);
+
+        // Get data for this period using existing tables
+        const [activeUsers, newUsers, enrollments, completions] = await Promise.all([
+          storage.getActiveUsersCount(periodStart, periodEnd), // Users who had any activity
+          storage.getNewUsersCount(periodStart, periodEnd), // New user registrations
+          storage.getEnrollmentsByDateRange(periodStart, periodEnd), // Course enrollments
+          storage.getCourseCompletionsCount(periodStart, periodEnd) // Completed courses
+        ]);
+
+        let dateLabel: string;
+        if (timeRange === "week" || timeRange === "month") {
+          dateLabel = periodEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } else if (timeRange === "quarter") {
+          dateLabel = periodEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } else {
+          dateLabel = periodEnd.toLocaleDateString('en-US', { month: 'short' });
+        }
+
+        timeSeriesData.push({
+          date: dateLabel,
+          activeUsers,
+          newUsers,
+          enrollments: enrollments.length,
+          completions
+        });
+      }
+
+      res.json({ data: timeSeriesData, timeRange });
+    } catch (error) {
+      console.error("Time series analytics error:", error);
+      res.status(500).json({ message: "Error fetching time series data" });
     }
   });
 

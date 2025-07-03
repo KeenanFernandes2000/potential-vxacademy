@@ -9,10 +9,13 @@ import { users, type User, type InsertUser, modules, type Module, type InsertMod
   scormPackages, type ScormPackage, type InsertScormPackage, scormTrackingData, type ScormTrackingData, type InsertScormTrackingData,
   roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse,
   certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification,
-  mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite
+  mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite,
+  userActivityLogs, type UserActivityLog, type InsertUserActivityLog,
+  courseEnrollments, type CourseEnrollment, type InsertCourseEnrollment,
+
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, desc, and, inArray, ne } from "drizzle-orm";
+import { eq, asc, desc, and, inArray, ne, gte, lte } from "drizzle-orm";
 import session from "express-session";
 import { IStorage } from "./storage";
 import connectPg from "connect-pg-simple";
@@ -1065,4 +1068,141 @@ export class DatabaseStorage implements IStorage {
 
     return accessibleCourses;
   }
+
+  // Analytics Methods
+  
+  // User Activity Logs
+  async createUserActivityLog(activity: InsertUserActivityLog): Promise<UserActivityLog> {
+    const [newLog] = await db.insert(userActivityLogs).values(activity).returning();
+    return newLog;
+  }
+
+  async getUserActivityLogs(userId: number, limit: number = 100): Promise<UserActivityLog[]> {
+    return await db
+      .select()
+      .from(userActivityLogs)
+      .where(eq(userActivityLogs.userId, userId))
+      .orderBy(desc(userActivityLogs.createdAt))
+      .limit(limit);
+  }
+
+  async getActivityLogsByDateRange(startDate: Date, endDate: Date): Promise<UserActivityLog[]> {
+    return await db
+      .select()
+      .from(userActivityLogs)
+      .where(and(
+        gte(userActivityLogs.createdAt, startDate),
+        lte(userActivityLogs.createdAt, endDate)
+      ))
+      .orderBy(desc(userActivityLogs.createdAt));
+  }
+
+  // Course Enrollments
+  async createCourseEnrollment(enrollment: InsertCourseEnrollment): Promise<CourseEnrollment> {
+    try {
+      const [newEnrollment] = await db.insert(courseEnrollments).values(enrollment).returning();
+      return newEnrollment;
+    } catch (error) {
+      // Handle unique constraint violation (user already enrolled)
+      const existing = await this.getCourseEnrollment(enrollment.userId, enrollment.courseId);
+      if (existing) return existing;
+      throw error;
+    }
+  }
+
+  async getCourseEnrollment(userId: number, courseId: number): Promise<CourseEnrollment | undefined> {
+    const [enrollment] = await db
+      .select()
+      .from(courseEnrollments)
+      .where(and(
+        eq(courseEnrollments.userId, userId),
+        eq(courseEnrollments.courseId, courseId)
+      ));
+    return enrollment;
+  }
+
+  async getUserEnrollments(userId: number): Promise<CourseEnrollment[]> {
+    return await db
+      .select()
+      .from(courseEnrollments)
+      .where(eq(courseEnrollments.userId, userId))
+      .orderBy(desc(courseEnrollments.enrolledAt));
+  }
+
+  async getEnrollmentsByDateRange(startDate: Date, endDate: Date): Promise<CourseEnrollment[]> {
+    return await db
+      .select()
+      .from(courseEnrollments)
+      .where(and(
+        gte(courseEnrollments.enrolledAt, startDate),
+        lte(courseEnrollments.enrolledAt, endDate)
+      ))
+      .orderBy(desc(courseEnrollments.enrolledAt));
+  }
+
+  // Analytics Aggregation Methods
+  async getActiveUsersCount(startDate: Date, endDate: Date): Promise<number> {
+    const result = await db
+      .selectDistinct({ userId: userActivityLogs.userId })
+      .from(userActivityLogs)
+      .where(and(
+        gte(userActivityLogs.createdAt, startDate),
+        lte(userActivityLogs.createdAt, endDate)
+      ));
+    return result.length;
+  }
+
+  async getNewUsersCount(startDate: Date, endDate: Date): Promise<number> {
+    const result = await db
+      .select()
+      .from(users)
+      .where(and(
+        gte(users.createdAt, startDate),
+        lte(users.createdAt, endDate)
+      ));
+    return result.length;
+  }
+
+  async getCourseCompletionsCount(startDate: Date, endDate: Date): Promise<number> {
+    const result = await db
+      .select()
+      .from(userProgress)
+      .where(and(
+        eq(userProgress.completed, true),
+        gte(userProgress.updatedAt, startDate),
+        lte(userProgress.updatedAt, endDate)
+      ));
+    return result.length;
+  }
+
+  async getAssessmentAttemptsCount(startDate: Date, endDate: Date): Promise<number> {
+    const result = await db
+      .select()
+      .from(assessmentAttempts)
+      .where(and(
+        gte(assessmentAttempts.startedAt, startDate),
+        lte(assessmentAttempts.startedAt, endDate)
+      ));
+    return result.length;
+  }
+
+  async getAllUsersCount(): Promise<number> {
+    const result = await db.select().from(users);
+    return result.length;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getAllUserProgress(): Promise<UserProgress[]> {
+    return await db.select().from(userProgress);
+  }
+
+  async getAllAssessmentAttempts(): Promise<AssessmentAttempt[]> {
+    return await db.select().from(assessmentAttempts).orderBy(desc(assessmentAttempts.startedAt));
+  }
+
+  // Note: Using existing userActivityLogs to track login activity
+  // No additional methods needed - the getActiveUsersCount method already uses userActivityLogs
 }

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, unique, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -256,11 +256,13 @@ export const userProgress = pgTable("user_progress", {
   percentComplete: integer("percent_complete").notNull().default(0),
   lastAccessed: timestamp("last_accessed").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertUserProgressSchema = createInsertSchema(userProgress).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 // Learning Block Completions
@@ -498,6 +500,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   certificates: many(certificates),
   notifications: many(notifications),
   scormTrackingData: many(scormTrackingData),
+  activityLogs: many(userActivityLogs),
+  enrollments: many(courseEnrollments),
   // Admin hierarchy relations
   creator: one(users, {
     fields: [users.createdBy],
@@ -534,6 +538,7 @@ export const coursesRelations = relations(courses, ({ one, many }) => ({
   certificates: many(certificates),
   roleMandatoryCourses: many(roleMandatoryCourses),
   assessments: many(assessments),
+  enrollments: many(courseEnrollments),
 }));
 
 export const unitsRelations = relations(units, ({ many }) => ({
@@ -696,3 +701,67 @@ export const mediaFilesRelations = relations(mediaFiles, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// User Activity Logs - for analytics tracking
+export const userActivityLogs = pgTable("user_activity_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  activity: text("activity").notNull(), // login, logout, course_started, course_completed, assessment_started, assessment_completed, etc.
+  metadata: json("metadata"), // Additional data like courseId, assessmentId, score, etc.
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserActivityLogSchema = createInsertSchema(userActivityLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUserActivityLog = z.infer<typeof insertUserActivityLogSchema>;
+export type UserActivityLog = typeof userActivityLogs.$inferSelect;
+
+// Course Enrollment Tracking
+export const courseEnrollments = pgTable("course_enrollments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  courseId: integer("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+  enrolledAt: timestamp("enrolled_at").defaultNow(),
+  enrollmentSource: text("enrollment_source").default("manual"), // manual, role_based, admin_assigned
+}, (table) => {
+  return {
+    userIdCourseIdUnique: unique("course_enrollments_user_id_course_id").on(table.userId, table.courseId),
+  };
+});
+
+export const insertCourseEnrollmentSchema = createInsertSchema(courseEnrollments).omit({
+  id: true,
+  enrolledAt: true,
+});
+
+export type InsertCourseEnrollment = z.infer<typeof insertCourseEnrollmentSchema>;
+export type CourseEnrollment = typeof courseEnrollments.$inferSelect;
+
+// Note: We'll use existing userActivityLogs table to track login activity
+// No need for a separate sessions table - simpler approach using existing data
+
+// Relations for new tables
+export const userActivityLogsRelations = relations(userActivityLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [userActivityLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+export const courseEnrollmentsRelations = relations(courseEnrollments, ({ one }) => ({
+  user: one(users, {
+    fields: [courseEnrollments.userId],
+    references: [users.id],
+  }),
+  course: one(courses, {
+    fields: [courseEnrollments.courseId],
+    references: [courses.id],
+  }),
+}));
+
+// No additional relations needed - using existing userActivityLogs

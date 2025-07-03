@@ -115,6 +115,17 @@ export function setupAuth(app: Express) {
           if (!user || !(await comparePasswords(password, user.password))) {
             return done(null, false);
           } else {
+            // Log user login activity for analytics
+            try {
+              await storage.createUserActivityLog({
+                userId: user.id,
+                activity: "login",
+                metadata: { loginMethod: "email", timestamp: new Date().toISOString() }
+              });
+            } catch (error) {
+              console.error("Failed to log user activity:", error);
+              // Don't fail login if activity logging fails
+            }
             return done(null, user);
           }
         } catch (error) {
@@ -240,6 +251,17 @@ export function setupAuth(app: Express) {
             return res.status(500).json({ message: "Session error" });
           }
 
+          // Log user login activity
+          storage.createUserActivityLog({
+            userId: user.id,
+            activity: 'login',
+            metadata: { loginMethod: 'email' },
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.get('User-Agent')
+          }).catch(error => {
+            console.error('Failed to log login activity:', error);
+          });
+
           console.log('Session saved successfully. User ID:', req.session.userId, 'Session ID:', req.sessionID);
           const { password, ...userWithoutPassword } = user;
           res.json(userWithoutPassword);
@@ -249,8 +271,24 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
+    const userId = req.user?.id;
+    
     req.logout((err) => {
       if (err) return next(err);
+      
+      // Log user logout activity
+      if (userId) {
+        storage.createUserActivityLog({
+          userId,
+          activity: 'logout',
+          metadata: {},
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('User-Agent')
+        }).catch(error => {
+          console.error('Failed to log logout activity:', error);
+        });
+      }
+      
       res.sendStatus(200);
     });
   });
