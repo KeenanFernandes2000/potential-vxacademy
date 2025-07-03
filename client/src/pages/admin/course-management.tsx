@@ -43,7 +43,17 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Pencil, Plus, Trash, Copy, Search, Filter, X, Image } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  Plus,
+  Trash,
+  Copy,
+  Search,
+  Filter,
+  X,
+  Image,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -68,15 +78,19 @@ const courseFormSchema = z.object({
   description: z.string().optional(),
   imageUrl: z.string().optional().nullable(),
   internalNote: z.string().optional(),
-  courseType: z.enum(["sequential", "free"], {
-    required_error: "Please select a course type.",
-  }).default("sequential"),
-  duration: z.coerce.number({
-    required_error: "Please specify the duration in minutes.",
-    invalid_type_error: "Duration must be a number.",
-  }).min(1, {
-    message: "Duration must be at least 1 minute.",
-  }),
+  courseType: z
+    .enum(["sequential", "free"], {
+      required_error: "Please select a course type.",
+    })
+    .default("sequential"),
+  duration: z.coerce
+    .number({
+      required_error: "Please specify the duration in minutes.",
+      invalid_type_error: "Duration must be a number.",
+    })
+    .min(1, {
+      message: "Duration must be at least 1 minute.",
+    }),
   showDuration: z.boolean().default(true),
   level: z.string({
     required_error: "Please select a difficulty level.",
@@ -87,13 +101,19 @@ const courseFormSchema = z.object({
 export default function CourseManagement() {
   const { toast } = useToast();
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<number | null>(null);
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<
+    number | null
+  >(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterTrainingAreaId, setFilterTrainingAreaId] = useState<number | null>(null);
+  const [filterTrainingAreaId, setFilterTrainingAreaId] = useState<
+    number | null
+  >(null);
   const [filterModuleId, setFilterModuleId] = useState<number | null>(null);
 
   // Fetch training areas for dropdown
-  const { data: trainingAreas, isLoading: areasLoading } = useQuery<TrainingArea[]>({
+  const { data: trainingAreas, isLoading: areasLoading } = useQuery<
+    TrainingArea[]
+  >({
     queryKey: ["/api/training-areas"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/training-areas");
@@ -101,17 +121,21 @@ export default function CourseManagement() {
     },
   });
 
-  // Fetch modules for dropdown (filtered by training area)
-  const { data: modules, isLoading: modulesLoading } = useQuery<Module[]>({
-    queryKey: ["/api/modules", selectedTrainingAreaId],
+  // Fetch modules for dropdown (now fetches all modules and filters in UI)
+  const { data: allModules, isLoading: modulesLoading } = useQuery<Module[]>({
+    queryKey: ["/api/modules"],
     queryFn: async () => {
-      const url = selectedTrainingAreaId 
-        ? `/api/modules?trainingAreaId=${selectedTrainingAreaId}`
-        : "/api/modules";
-      const res = await apiRequest("GET", url);
+      const res = await apiRequest("GET", "/api/modules");
       return await res.json();
     },
   });
+
+  // Filter modules based on selected training area
+  const modules = allModules?.filter((module) =>
+    selectedTrainingAreaId
+      ? module.trainingAreaId === selectedTrainingAreaId
+      : true
+  );
 
   // Fetch existing courses
   const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
@@ -127,23 +151,46 @@ export default function CourseManagement() {
     queryKey: ["/api/modules", "filter", filterTrainingAreaId],
     queryFn: async () => {
       if (!filterTrainingAreaId) return [];
-      const res = await apiRequest("GET", `/api/modules?trainingAreaId=${filterTrainingAreaId}`);
+      const res = await apiRequest(
+        "GET",
+        `/api/modules?trainingAreaId=${filterTrainingAreaId}`
+      );
       return await res.json();
     },
     enabled: !!filterTrainingAreaId,
   });
 
   // Filter courses based on search and filters
-  const filteredCourses = courses?.filter(course => {
-    const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTrainingArea = !filterTrainingAreaId || course.trainingAreaId === filterTrainingAreaId;
+  const filteredCourses = courses?.filter((course) => {
+    const matchesSearch = course.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesTrainingArea =
+      !filterTrainingAreaId || course.trainingAreaId === filterTrainingAreaId;
     const matchesModule = !filterModuleId || course.moduleId === filterModuleId;
     return matchesSearch && matchesTrainingArea && matchesModule;
   });
 
-  // Form setup
+  // Enhanced form validation schema with module existence check
+  const enhancedCourseFormSchema = courseFormSchema.refine(
+    (data) => {
+      if (!data.moduleId || !allModules) return true;
+      const moduleExists = allModules.some(
+        (module) =>
+          module.id === data.moduleId &&
+          module.trainingAreaId === data.trainingAreaId
+      );
+      return moduleExists;
+    },
+    {
+      message: "Selected module does not exist in the chosen training area",
+      path: ["moduleId"],
+    }
+  );
+
+  // Form setup with enhanced validation
   const form = useForm<InsertCourse>({
-    resolver: zodResolver(courseFormSchema),
+    resolver: zodResolver(enhancedCourseFormSchema),
     defaultValues: {
       trainingAreaId: undefined,
       moduleId: undefined,
@@ -255,8 +302,40 @@ export default function CourseManagement() {
     },
   });
 
-  // Handle form submission
+  // Handle form submission with additional validation
   function onSubmit(values: InsertCourse) {
+    // Additional validation: Check if module exists and belongs to training area
+    if (!allModules) {
+      toast({
+        title: "Error",
+        description: "Modules data not loaded. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedModule = allModules.find(
+      (module) => module.id === values.moduleId
+    );
+    if (!selectedModule) {
+      toast({
+        title: "Error",
+        description: "Selected module does not exist.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedModule.trainingAreaId !== values.trainingAreaId) {
+      toast({
+        title: "Error",
+        description:
+          "Selected module does not belong to the chosen training area.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (editingCourse) {
       updateMutation.mutate({ id: editingCourse.id, data: values });
     } else {
@@ -321,21 +400,28 @@ export default function CourseManagement() {
     });
   }
 
-  const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;
+  const isSubmitting =
+    form.formState.isSubmitting ||
+    createMutation.isPending ||
+    updateMutation.isPending;
   const isLoading = modulesLoading || coursesLoading;
 
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Course Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+            Course Management
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Course Form */}
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle>{editingCourse ? "Edit Course" : "Add New Course"}</CardTitle>
+              <CardTitle>
+                {editingCourse ? "Edit Course" : "Add New Course"}
+              </CardTitle>
               <CardDescription>
                 {editingCourse
                   ? "Update the course information"
@@ -344,14 +430,19 @@ export default function CourseManagement() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   {/* 1. Training Area */}
                   <FormField
                     control={form.control}
                     name="trainingAreaId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Training Area <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Training Area <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={(value) => {
                             const id = parseInt(value);
@@ -394,7 +485,9 @@ export default function CourseManagement() {
                     name="moduleId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Module <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Module <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value?.toString()}
@@ -402,7 +495,13 @@ export default function CourseManagement() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={selectedTrainingAreaId ? "Select a module" : "Select training area first"} />
+                              <SelectValue
+                                placeholder={
+                                  selectedTrainingAreaId
+                                    ? "Select a module"
+                                    : "Select training area first"
+                                }
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -411,8 +510,7 @@ export default function CourseManagement() {
                                 <Loader2 className="h-5 w-5 animate-spin" />
                               </div>
                             ) : (
-                              modules?.filter(module => module.trainingAreaId === selectedTrainingAreaId)
-                                .map((module) => (
+                              modules?.map((module) => (
                                 <SelectItem
                                   key={module.id}
                                   value={module.id.toString()}
@@ -436,7 +534,10 @@ export default function CourseManagement() {
                       <FormItem>
                         <FormLabel>Course Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Cultural Heritage of Abu Dhabi" {...field} />
+                          <Input
+                            placeholder="e.g. Cultural Heritage of Abu Dhabi"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -474,7 +575,6 @@ export default function CourseManagement() {
                             value={field.value || ""}
                             label="Course Image"
                             onChange={field.onChange}
-
                             placeholder="Upload image or enter URL..."
                           />
                         </FormControl>
@@ -489,7 +589,8 @@ export default function CourseManagement() {
                       <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <Image className="h-5 w-5 text-green-600" />
                         <span className="text-sm font-medium text-green-800 flex-1 truncate">
-                          {form.watch("imageUrl").split('/').pop() || 'Image file'}
+                          {form.watch("imageUrl")?.split("/").pop() ||
+                            "Image file"}
                         </span>
                         <Button
                           type="button"
@@ -530,20 +631,29 @@ export default function CourseManagement() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Course Type</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select course type" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="sequential">Sequential</SelectItem>
+                            <SelectItem value="sequential">
+                              Sequential
+                            </SelectItem>
                             <SelectItem value="free">Free</SelectItem>
                           </SelectContent>
                         </Select>
                         <div className="text-sm text-muted-foreground mt-1">
-                          <strong>Sequential:</strong> Learners must complete units and learning blocks in order (can't access Unit 2 before Unit 1)<br/>
-                          <strong>Free:</strong> Learners can access any unit at any time
+                          <strong>Sequential:</strong> Learners must complete
+                          units and learning blocks in order (can't access Unit
+                          2 before Unit 1)
+                          <br />
+                          <strong>Free:</strong> Learners can access any unit at
+                          any time
                         </div>
                         <FormMessage />
                       </FormItem>
@@ -559,11 +669,11 @@ export default function CourseManagement() {
                         <FormItem>
                           <FormLabel>Duration (minutes)</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              min="1" 
+                            <Input
+                              type="number"
+                              min="1"
                               placeholder="e.g. 60"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -576,7 +686,9 @@ export default function CourseManagement() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Show duration to users</FormLabel>
+                            <FormLabel className="text-sm">
+                              Show duration to users
+                            </FormLabel>
                           </div>
                           <FormControl>
                             <Switch
@@ -597,7 +709,10 @@ export default function CourseManagement() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Difficulty Level</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select difficulty level" />
@@ -605,7 +720,9 @@ export default function CourseManagement() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="beginner">Beginner</SelectItem>
-                              <SelectItem value="intermediate">Intermediate</SelectItem>
+                              <SelectItem value="intermediate">
+                                Intermediate
+                              </SelectItem>
                               <SelectItem value="advanced">Advanced</SelectItem>
                             </SelectContent>
                           </Select>
@@ -619,7 +736,9 @@ export default function CourseManagement() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Show difficulty level to users</FormLabel>
+                            <FormLabel className="text-sm">
+                              Show difficulty level to users
+                            </FormLabel>
                           </div>
                           <FormControl>
                             <Switch
@@ -664,7 +783,9 @@ export default function CourseManagement() {
               <div className="flex flex-col space-y-4">
                 <div>
                   <CardTitle>Existing Courses</CardTitle>
-                  <CardDescription>Manage your existing courses</CardDescription>
+                  <CardDescription>
+                    Manage your existing courses
+                  </CardDescription>
                 </div>
 
                 {/* Search and Filters */}
@@ -717,7 +838,10 @@ export default function CourseManagement() {
                     <SelectContent>
                       <SelectItem value="all">All Modules</SelectItem>
                       {filterModulesList?.map((module) => (
-                        <SelectItem key={module.id} value={module.id.toString()}>
+                        <SelectItem
+                          key={module.id}
+                          value={module.id.toString()}
+                        >
                           {module.name}
                         </SelectItem>
                       ))}
@@ -745,15 +869,21 @@ export default function CourseManagement() {
                     </TableHeader>
                     <TableBody>
                       {filteredCourses.map((course) => {
-                        const trainingArea = trainingAreas?.find(area => area.id === course.trainingAreaId);
-                        const module = modules?.find(mod => mod.id === course.moduleId);
+                        const trainingArea = trainingAreas?.find(
+                          (area) => area.id === course.trainingAreaId
+                        );
+                        const module = allModules?.find(
+                          (mod) => mod.id === course.moduleId
+                        );
                         return (
                           <TableRow key={course.id}>
-                            <TableCell className="font-medium">{course.name}</TableCell>
-                            <TableCell>{trainingArea?.name || 'N/A'}</TableCell>
-                            <TableCell>{module?.name || 'N/A'}</TableCell>
+                            <TableCell className="font-medium">
+                              {course.name}
+                            </TableCell>
+                            <TableCell>{trainingArea?.name || "N/A"}</TableCell>
+                            <TableCell>{module?.name || "N/A"}</TableCell>
                             <TableCell className="text-sm text-muted-foreground max-w-48 truncate">
-                              {course.internalNote || '-'}
+                              {course.internalNote || "-"}
                             </TableCell>
                             <TableCell className="text-right">
                               <TooltipProvider>
@@ -794,7 +924,11 @@ export default function CourseManagement() {
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => {
-                                          if (window.confirm("Are you sure you want to delete this course?")) {
+                                          if (
+                                            window.confirm(
+                                              "Are you sure you want to delete this course?"
+                                            )
+                                          ) {
                                             deleteMutation.mutate(course.id);
                                           }
                                         }}
@@ -817,7 +951,9 @@ export default function CourseManagement() {
                 </div>
               ) : (
                 <div className="text-center py-10">
-                  <p className="text-muted-foreground">No courses found. Create your first course to get started.</p>
+                  <p className="text-muted-foreground">
+                    No courses found. Create your first course to get started.
+                  </p>
                 </div>
               )}
             </CardContent>

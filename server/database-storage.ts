@@ -24,10 +24,31 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      pool, 
-      createTableIfMissing: true 
-    });
+    try {
+      this.sessionStore = new PostgresSessionStore({ 
+        pool, 
+        createTableIfMissing: true,
+        errorLog: (error: Error) => {
+          console.error('Session store error:', error.message);
+          // Don't exit on session store errors, just log them
+        }
+      });
+      
+      // Add error handling for the session store
+      this.sessionStore.on?.('error', (error: Error) => {
+        console.error('Session store connection error:', error.message);
+        // Handle session store errors gracefully without crashing
+      });
+      
+    } catch (error) {
+      console.error('Failed to initialize session store:', error);
+      // Fallback to memory store if PostgreSQL session store fails
+      const MemoryStore = require('memorystore')(session);
+      this.sessionStore = new MemoryStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
+      });
+      console.log('Falling back to memory-based session store');
+    }
   }
 
   // Role Management

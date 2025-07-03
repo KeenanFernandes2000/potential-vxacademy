@@ -1,4 +1,3 @@
-
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -29,7 +28,21 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, logoutMutation } = useAuth();
-  const { canAccessAdminPanel, canViewDashboard, canManageCourses, canManageTrainingAreas, canManageModules, canManageUnits, canManageAssessments, canManageLearningBlocks, canManageBadges, canManageMedia, canManageScorm, canViewAnalytics, canManageRoles } = usePermissions();
+  const {
+    canAccessAdminPanel,
+    canViewDashboard,
+    canManageCourses,
+    canManageTrainingAreas,
+    canManageModules,
+    canManageUnits,
+    canManageAssessments,
+    canManageLearningBlocks,
+    canManageBadges,
+    canManageMedia,
+    canManageScorm,
+    canViewAnalytics,
+    canManageRoles,
+  } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Redirect unauthorized users
@@ -37,15 +50,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-12 text-center">
-          <h1 className="text-3xl font-bold text-white mb-6">Admin Access Required</h1>
+          <h1 className="text-3xl font-bold text-white mb-6">
+            Admin Access Required
+          </h1>
           <p className="text-lg text-white/80 mb-8">
             You need administrator privileges to access this page.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button asChild variant="outline" className="border-white/30 text-white hover:bg-white/10">
+            <Button
+              asChild
+              variant="outline"
+              className="border-white/30 text-white hover:bg-white/10"
+            >
               <Link href="/">Return to Home</Link>
             </Button>
-            <Button asChild className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white">
+            <Button
+              asChild
+              className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+            >
               <Link href="/auth">Sign In</Link>
             </Button>
           </div>
@@ -150,32 +172,45 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   ];
 
   // Filter navigation items based on permissions and user role
-  const navItems = allNavItems.filter(item => 
-    item.permission() && item.roles.includes(user?.role || "")
+  const navItems = allNavItems.filter(
+    (item) => item.permission() && item.roles.includes(user?.role || "")
   );
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)}>
-          <div className="absolute top-0 left-0 bottom-0 w-64 bg-slate-900/95 backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <div
+            className="absolute top-0 left-0 bottom-0 w-64 bg-slate-900/95 backdrop-blur-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <GraduationCap className="h-6 w-6 text-teal-400" />
-                <h1 className="text-lg font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</h1>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                  VX Academy
+                </h1>
               </div>
-              <button onClick={() => setSidebarOpen(false)} className="text-white/70 hover:text-white">
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="text-white/70 hover:text-white"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="overflow-y-auto flex-grow">
               <nav className="mt-6">
-                <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">Admin</div>
-                
+                <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">
+                  Admin
+                </div>
+
                 {navItems.map((item) => (
                   <Link key={item.path} href={item.path}>
-                    <div 
+                    <div
                       className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
                         location === item.path
                           ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg"
@@ -198,19 +233,25 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <aside className="hidden md:flex md:flex-col w-64 bg-slate-900/95 backdrop-blur-xl text-white border-r border-white/10">
         <div className="p-6 flex items-center justify-center border-b border-white/10">
           <GraduationCap className="h-8 w-8 text-teal-400 mr-3" />
-          <span className="font-bold text-xl bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</span>
+          <span className="font-bold text-xl bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+            VX Academy
+          </span>
         </div>
         <div className="overflow-y-auto flex-grow">
           <nav className="mt-6">
-            <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">Admin</div>
-            
+            <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">
+              Admin
+            </div>
+
             {navItems.map((item) => (
               <Link key={item.path} href={item.path}>
-                <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
-                  location === item.path
-                    ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg"
-                    : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
-                }`}>
+                <div
+                  className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
+                    location === item.path
+                      ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg"
+                      : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
+                  }`}
+                >
                   {item.icon}
                   <span className="font-medium ml-3">{item.name}</span>
                 </div>
@@ -221,14 +262,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-6 border-t border-white/10">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-12 w-12 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-lg font-bold mr-4 shadow-lg">
-              {user.firstName?.charAt(0) || user.username?.charAt(0) || '?'}
+              {user.firstName?.charAt(0) || user.username?.charAt(0) || "?"}
             </div>
             <div>
-              <div className="font-medium text-white">{user.firstName} {user.lastName}</div>
+              <div className="font-medium text-white">
+                {user.firstName} {user.lastName}
+              </div>
               <div className="text-xs text-slate-400">
-                {user.role === "admin" ? "Administrator" : 
-                 user.role === "sub-admin" ? "Sub Administrator" : 
-                 "User"}
+                {user.role === "admin"
+                  ? "Administrator"
+                  : user.role === "sub-admin"
+                  ? "Sub Administrator"
+                  : "User"}
               </div>
             </div>
           </div>
@@ -238,7 +283,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               variant="ghost"
               className="flex-1 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg"
             >
-              <Link href="/">
+              <Link href="/dashboard">
                 <div className="flex items-center gap-2">
                   <ChevronLeft className="h-4 w-4" />
                   <span>Main Site</span>
@@ -263,7 +308,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-6 w-6 text-teal-400" />
-              <h1 className="text-lg font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">VX Academy</h1>
+              <h1 className="text-lg font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                VX Academy
+              </h1>
             </div>
             <div className="flex items-center gap-2">
               <Button

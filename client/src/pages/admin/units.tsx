@@ -51,7 +51,19 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Pencil, Plus, Trash, FileText, School, ChevronRight, Search, Filter, Eye, EyeOff } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  Plus,
+  Trash,
+  FileText,
+  School,
+  ChevronRight,
+  Search,
+  Filter,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -70,20 +82,29 @@ const unitFormSchema = z.object({
   }),
   description: z.string().optional(),
   internalNote: z.string().optional(),
-  trainingAreaId: z.string({
-    required_error: "Training Area is required.",
-  }).min(1, "Training Area is required."),
-  moduleId: z.string({
-    required_error: "Module is required.",
-  }).min(1, "Module is required."),
-  courseIds: z.array(z.string()).min(1, "At least one course must be selected."),
+  trainingAreaId: z
+    .string({
+      required_error: "Training Area is required.",
+    })
+    .min(1, "Training Area is required."),
+  moduleId: z
+    .string({
+      required_error: "Module is required.",
+    })
+    .min(1, "Module is required."),
+  courseIds: z
+    .array(z.string())
+    .min(1, "At least one course must be selected."),
   order: z.coerce.number().min(1).default(1),
-  duration: z.coerce.number({
-    required_error: "Duration is required.",
-    invalid_type_error: "Duration must be a number.",
-  }).min(1, {
-    message: "Duration must be at least 1 minute.",
-  }).default(30),
+  duration: z.coerce
+    .number({
+      required_error: "Duration is required.",
+      invalid_type_error: "Duration must be a number.",
+    })
+    .min(1, {
+      message: "Duration must be at least 1 minute.",
+    })
+    .default(30),
   showDuration: z.boolean().default(true),
   xpPoints: z.coerce.number().min(0).default(100),
 });
@@ -119,29 +140,37 @@ export default function UnitsManagement() {
     queryKey: ["/api/training-areas"],
   });
 
-  // Fetch modules (filtered by training area if selected)
-  const { data: modules } = useQuery<Module[]>({
-    queryKey: ["/api/modules", selectedTrainingAreaId],
+  // Fetch ALL modules (no longer filtered by training area server-side)
+  const { data: allModules } = useQuery<Module[]>({
+    queryKey: ["/api/modules"],
     queryFn: async () => {
-      const url = selectedTrainingAreaId 
-        ? `/api/modules?trainingAreaId=${selectedTrainingAreaId}`
-        : "/api/modules";
-      const res = await apiRequest("GET", url);
+      const res = await apiRequest("GET", "/api/modules");
       return await res.json();
     },
   });
 
-  // Fetch courses for dropdown and filtering
-  const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
-    queryKey: ["/api/courses", selectedModuleId],
+  // Filter modules based on selected training area for filtering display
+  const modules = allModules?.filter(
+    (module) =>
+      selectedTrainingAreaId === "all" ||
+      module.trainingAreaId.toString() === selectedTrainingAreaId
+  );
+
+  // Fetch ALL courses (no longer filtered by module server-side)
+  const { data: allCourses, isLoading: coursesLoading } = useQuery<Course[]>({
+    queryKey: ["/api/courses"],
     queryFn: async () => {
-      const url = selectedModuleId 
-        ? `/api/courses?moduleId=${selectedModuleId}`
-        : "/api/courses";
-      const res = await apiRequest("GET", url);
+      const res = await apiRequest("GET", "/api/courses");
       return await res.json();
     },
   });
+
+  // Filter courses based on selected module for filtering display
+  const courses = allCourses?.filter(
+    (course) =>
+      selectedModuleId === "all" ||
+      course.moduleId.toString() === selectedModuleId
+  );
 
   // Fetch all units
   const { data: allUnits, isLoading: unitsLoading } = useQuery<Unit[]>({
@@ -162,42 +191,66 @@ export default function UnitsManagement() {
   });
 
   // Filter units based on search and hierarchical filters
-  const filteredUnits = allUnits?.filter(unit => {
-    // Search filter
-    const matchesSearch = !searchTerm || 
-      unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      unit.description?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUnits =
+    allUnits?.filter((unit) => {
+      // Search filter
+      const matchesSearch =
+        !searchTerm ||
+        unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        unit.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
 
-    // Get courses that contain this unit
-    const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId as number) || [];
+      // Get courses that contain this unit
+      const unitCourses =
+        courseUnits
+          ?.filter((cu: any) => cu.unitId === unit.id)
+          .map((cu: any) => cu.courseId as number) || [];
 
-    // If no courses contain this unit, show it in "all" view only
-    if (unitCourses.length === 0) {
-      return selectedTrainingAreaId === "all" && selectedModuleId === "all" && selectedFilterCourseId === "all";
-    }
+      // If no courses contain this unit, show it in "all" view only
+      if (unitCourses.length === 0) {
+        return (
+          selectedTrainingAreaId === "all" &&
+          selectedModuleId === "all" &&
+          selectedFilterCourseId === "all"
+        );
+      }
 
-    // Course filter - direct filter
-    if (selectedFilterCourseId !== "all") {
-      return unitCourses.includes(parseInt(selectedFilterCourseId));
-    }
+      // Course filter - direct filter
+      if (selectedFilterCourseId !== "all") {
+        return unitCourses.includes(parseInt(selectedFilterCourseId));
+      }
 
-    // Module filter - check if unit belongs to any course in the selected module
-    if (selectedModuleId !== "all") {
-      const moduleCourses = courses?.filter(c => c.moduleId.toString() === selectedModuleId).map(c => c.id) || [];
-      return unitCourses.some((courseId: number) => moduleCourses.includes(courseId));
-    }
+      // Module filter - check if unit belongs to any course in the selected module
+      if (selectedModuleId !== "all") {
+        const moduleCourses =
+          allCourses
+            ?.filter((c) => c.moduleId.toString() === selectedModuleId)
+            .map((c) => c.id) || [];
+        return unitCourses.some((courseId: number) =>
+          moduleCourses.includes(courseId)
+        );
+      }
 
-    // Training Area filter - check if unit belongs to any course in modules within the training area
-    if (selectedTrainingAreaId !== "all") {
-      const trainingAreaModules = modules?.filter(m => m.trainingAreaId.toString() === selectedTrainingAreaId).map(m => m.id) || [];
-      const trainingAreaCourses = courses?.filter(c => trainingAreaModules.includes(c.moduleId)).map(c => c.id) || [];
-      return unitCourses.some((courseId: number) => trainingAreaCourses.includes(courseId));
-    }
+      // Training Area filter - check if unit belongs to any course in modules within the training area
+      if (selectedTrainingAreaId !== "all") {
+        const trainingAreaModules =
+          allModules
+            ?.filter(
+              (m) => m.trainingAreaId.toString() === selectedTrainingAreaId
+            )
+            .map((m) => m.id) || [];
+        const trainingAreaCourses =
+          allCourses
+            ?.filter((c) => trainingAreaModules.includes(c.moduleId))
+            .map((c) => c.id) || [];
+        return unitCourses.some((courseId: number) =>
+          trainingAreaCourses.includes(courseId)
+        );
+      }
 
-    return true;
-  }) || [];
+      return true;
+    }) || [];
 
   // Units for the selected course (for form dropdown)
   const units = allUnits || [];
@@ -205,13 +258,30 @@ export default function UnitsManagement() {
   // Calculate next available order
   const getNextOrder = () => {
     if (!allUnits || allUnits.length === 0) return 1;
-    const maxOrder = Math.max(...allUnits.map(unit => unit.order));
+    const maxOrder = Math.max(...allUnits.map((unit) => unit.order));
     return maxOrder + 1;
   };
 
-  // Form setup
+  // Enhanced form validation schema with module existence check
+  const enhancedUnitFormSchema = unitFormSchema.refine(
+    (data) => {
+      if (!data.moduleId || !allModules) return true;
+      const moduleExists = allModules.some(
+        (module) =>
+          module.id.toString() === data.moduleId &&
+          module.trainingAreaId.toString() === data.trainingAreaId
+      );
+      return moduleExists;
+    },
+    {
+      message: "Selected module does not exist in the chosen training area",
+      path: ["moduleId"],
+    }
+  );
+
+  // Form setup with enhanced validation
   const form = useForm<UnitFormData>({
-    resolver: zodResolver(unitFormSchema),
+    resolver: zodResolver(enhancedUnitFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -270,7 +340,15 @@ export default function UnitsManagement() {
 
   // Update unit mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, unit, courseIds }: { id: number; unit: any; courseIds?: string[] }) => {
+    mutationFn: async ({
+      id,
+      unit,
+      courseIds,
+    }: {
+      id: number;
+      unit: any;
+      courseIds?: string[];
+    }) => {
       const payload = { ...unit, courseIds };
       const res = await apiRequest("PATCH", `/api/units/${id}`, payload);
       return await res.json();
@@ -344,6 +422,38 @@ export default function UnitsManagement() {
 
   // Form submission handler
   const onSubmit = async (data: any) => {
+    // Additional validation: Check if module exists and belongs to training area
+    if (!allModules) {
+      toast({
+        title: "Error",
+        description: "Modules data not loaded. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedModule = allModules.find(
+      (module) => module.id.toString() === data.moduleId
+    );
+    if (!selectedModule) {
+      toast({
+        title: "Error",
+        description: "Selected module does not exist.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedModule.trainingAreaId.toString() !== data.trainingAreaId) {
+      toast({
+        title: "Error",
+        description:
+          "Selected module does not belong to the chosen training area.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate unique order
     const isOrderUnique = await validateUniqueOrder(data.order);
     if (!isOrderUnique) {
@@ -363,44 +473,64 @@ export default function UnitsManagement() {
     };
 
     if (editingUnit) {
-      updateMutation.mutate({ 
-        id: editingUnit.id, 
+      updateMutation.mutate({
+        id: editingUnit.id,
         unit: unitData,
-        courseIds: data.courseIds ? data.courseIds.map((id: string) => parseInt(id)) : []
+        courseIds: data.courseIds
+          ? data.courseIds.map((id: string) => parseInt(id))
+          : [],
       });
     } else {
       createMutation.mutate({
         ...unitData,
-        courseIds: data.courseIds ? data.courseIds.map((id: string) => parseInt(id)) : []
+        courseIds: data.courseIds
+          ? data.courseIds.map((id: string) => parseInt(id))
+          : [],
       });
     }
   };
 
   // Function to handle editing a unit (inline editing like courses page)
   const handleEdit = (unit: Unit) => {
-    setEditingUnit(unit);
+    // Simulate double-click to work around timing issues
+    const performEdit = () => {
+      setEditingUnit(unit);
 
-    // Get courses associated with this unit
-    const unitCourseIds = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId.toString()) || [];
+      // Get courses associated with this unit
+      const unitCourseIds =
+        courseUnits
+          ?.filter((cu: any) => cu.unitId === unit.id)
+          .map((cu: any) => cu.courseId.toString()) || [];
 
-    // Find the training area and module for this unit's courses
-    const firstCourse = courses?.find(c => unitCourseIds.includes(c.id.toString()));
-    const trainingAreaId = firstCourse?.trainingAreaId?.toString() || "";
-    const moduleId = firstCourse?.moduleId?.toString() || "";
+      // Find the training area and module for this unit's courses
+      const firstCourse = allCourses?.find((c) =>
+        unitCourseIds.includes(c.id.toString())
+      );
+      const trainingAreaId = firstCourse?.trainingAreaId?.toString() || "";
+      const moduleId = firstCourse?.moduleId?.toString() || "";
 
-    // Populate the form with unit data
-    form.reset({
-      name: unit.name,
-      description: unit.description || "",
-      internalNote: unit.internalNote || "",
-      trainingAreaId: trainingAreaId,
-      moduleId: moduleId,
-      courseIds: unitCourseIds,
-      order: unit.order,
-      duration: unit.duration,
-      showDuration: unit.showDuration,
-      xpPoints: unit.xpPoints,
-    });
+      // Populate the form with unit data
+      form.reset({
+        name: unit.name,
+        description: unit.description || "",
+        internalNote: unit.internalNote || "",
+        trainingAreaId: trainingAreaId,
+        moduleId: moduleId,
+        courseIds: unitCourseIds,
+        order: unit.order,
+        duration: unit.duration,
+        showDuration: unit.showDuration,
+        xpPoints: unit.xpPoints,
+      });
+    };
+
+    // First click
+    performEdit();
+
+    // Second click after a small delay to ensure everything loads properly
+    setTimeout(() => {
+      performEdit();
+    }, 100);
   };
 
   // Function to handle canceling edit
@@ -426,7 +556,7 @@ export default function UnitsManagement() {
 
   // Function to find course name by ID
   const getCourseName = (courseId: number) => {
-    const course = courses?.find((c) => c.id === courseId);
+    const course = allCourses?.find((c) => c.id === courseId);
     return course ? course.name : `Course ${courseId}`;
   };
 
@@ -450,57 +580,30 @@ export default function UnitsManagement() {
                     Edit Unit
                   </>
                 ) : (
-                  <>
-
-                    Add New Unit
-                  </>
+                  <>Add New Unit</>
                 )}
               </CardTitle>
               <CardDescription>
-                {editingUnit ? "Update the unit information and course assignments" : "Create a new unit and assign it to courses"}
+                {editingUnit
+                  ? "Update the unit information and course assignments"
+                  : "Create a new unit and assign it to courses"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unit Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter unit name..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Unit description..."
-                            {...field}
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
+                  {/* 1. Training Area */}
                   <FormField
                     control={form.control}
                     name="trainingAreaId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Training Area <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Training Area <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           value={field.value || ""}
                           onValueChange={(value) => {
@@ -516,7 +619,10 @@ export default function UnitsManagement() {
                           </FormControl>
                           <SelectContent>
                             {trainingAreas?.map((area) => (
-                              <SelectItem key={area.id} value={area.id.toString()}>
+                              <SelectItem
+                                key={area.id}
+                                value={area.id.toString()}
+                              >
                                 {area.name}
                               </SelectItem>
                             ))}
@@ -527,12 +633,15 @@ export default function UnitsManagement() {
                     )}
                   />
 
+                  {/* 2. Module */}
                   <FormField
                     control={form.control}
                     name="moduleId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Module <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Module <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           value={field.value || ""}
                           onValueChange={(value) => {
@@ -547,11 +656,20 @@ export default function UnitsManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {modules?.filter(m => m.trainingAreaId.toString() === form.watch("trainingAreaId"))?.map((module) => (
-                              <SelectItem key={module.id} value={module.id.toString()}>
-                                {module.name}
-                              </SelectItem>
-                            ))}
+                            {allModules
+                              ?.filter(
+                                (m) =>
+                                  m.trainingAreaId.toString() ===
+                                  form.watch("trainingAreaId")
+                              )
+                              ?.map((module) => (
+                                <SelectItem
+                                  key={module.id}
+                                  value={module.id.toString()}
+                                >
+                                  {module.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -559,12 +677,15 @@ export default function UnitsManagement() {
                     )}
                   />
 
+                  {/* 3. Courses (Multi-select) */}
                   <FormField
                     control={form.control}
                     name="courseIds"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Courses <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Courses <span className="text-red-500">*</span>
+                        </FormLabel>
                         <FormDescription>
                           Select one or more courses for this unit
                         </FormDescription>
@@ -573,11 +694,13 @@ export default function UnitsManagement() {
                         {field.value && field.value.length > 0 && (
                           <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md border">
                             {field.value.map((courseId) => {
-                              const course = courses?.find(c => c.id.toString() === courseId);
+                              const course = allCourses?.find(
+                                (c) => c.id.toString() === courseId
+                              );
                               return course ? (
-                                <Badge 
-                                  key={courseId} 
-                                  variant="secondary" 
+                                <Badge
+                                  key={courseId}
+                                  variant="secondary"
                                   className="flex items-center gap-1 px-2 py-1"
                                 >
                                   {course.name}
@@ -585,7 +708,11 @@ export default function UnitsManagement() {
                                     type="button"
                                     onClick={() => {
                                       const currentValue = field.value ?? [];
-                                      field.onChange(currentValue.filter((id) => id !== courseId));
+                                      field.onChange(
+                                        currentValue.filter(
+                                          (id) => id !== courseId
+                                        )
+                                      );
                                     }}
                                     className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
                                   >
@@ -599,33 +726,56 @@ export default function UnitsManagement() {
 
                         {/* Available Courses Selection */}
                         <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                          {courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No courses available for selected module</p>
+                          {allCourses?.filter(
+                            (c) =>
+                              c.moduleId.toString() === form.watch("moduleId")
+                          )?.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                              No courses available for selected module
+                            </p>
                           ) : (
-                            courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.map((course) => (
-                              <div key={course.id} className="flex items-center space-x-2 hover:bg-muted/30 p-2 rounded">
-                                <Checkbox
-                                  id={`course-${course.id}`}
-                                  checked={field.value?.includes(course.id.toString()) ?? false}
-                                  onCheckedChange={(checked) => {
-                                    const currentValue = field.value ?? [];
-                                    if (checked) {
-                                      field.onChange([...currentValue, course.id.toString()]);
-                                    } else {
-                                      field.onChange(
-                                        currentValue.filter((id) => id !== course.id.toString())
-                                      );
-                                    }
-                                  }}
-                                />
-                                <label
-                                  htmlFor={`course-${course.id}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                            allCourses
+                              ?.filter(
+                                (c) =>
+                                  c.moduleId.toString() ===
+                                  form.watch("moduleId")
+                              )
+                              ?.map((course) => (
+                                <div
+                                  key={course.id}
+                                  className="flex items-center space-x-2 hover:bg-muted/30 p-2 rounded"
                                 >
-                                  {course.name}
-                                </label>
-                              </div>
-                            ))
+                                  <Checkbox
+                                    id={`course-${course.id}`}
+                                    checked={
+                                      field.value?.includes(
+                                        course.id.toString()
+                                      ) ?? false
+                                    }
+                                    onCheckedChange={(checked) => {
+                                      const currentValue = field.value ?? [];
+                                      if (checked) {
+                                        field.onChange([
+                                          ...currentValue,
+                                          course.id.toString(),
+                                        ]);
+                                      } else {
+                                        field.onChange(
+                                          currentValue.filter(
+                                            (id) => id !== course.id.toString()
+                                          )
+                                        );
+                                      }
+                                    }}
+                                  />
+                                  <label
+                                    htmlFor={`course-${course.id}`}
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                                  >
+                                    {course.name}
+                                  </label>
+                                </div>
+                              ))
                           )}
                         </div>
                         <FormMessage />
@@ -633,6 +783,43 @@ export default function UnitsManagement() {
                     )}
                   />
 
+                  {/* 4. Unit Name */}
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Unit Name <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter unit name..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 5. Unit Description */}
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Unit Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Unit description..."
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 6. Internal Note */}
                   <FormField
                     control={form.control}
                     name="internalNote"
@@ -651,92 +838,103 @@ export default function UnitsManagement() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="order"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Order</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Order..."
-                              value={field.value}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                              readOnly={!editingUnit}
-                              className={!editingUnit ? "bg-muted" : ""}
-                            />
-                          </FormControl>
-                          {!editingUnit && (
-                            <FormDescription>
-                              Auto-assigned next available order
-                            </FormDescription>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* 7. Display Order */}
+                  <FormField
+                    control={form.control}
+                    name="order"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Display Order</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Order..."
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 1)
+                            }
+                            readOnly={!editingUnit}
+                            className={!editingUnit ? "bg-muted" : ""}
+                          />
+                        </FormControl>
+                        {!editingUnit && (
+                          <FormDescription>
+                            Auto-assigned next available order
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="xpPoints"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>XP Points</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="XP Points..."
-                              value={field.value}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 100)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  {/* 8. Duration (minutes) */}
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Duration (minutes){" "}
+                          <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="e.g. 30"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="duration"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Duration (minutes)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min="1" 
-                              placeholder="e.g. 30"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* Duration Visibility Toggle */}
+                  <FormField
+                    control={form.control}
+                    name="showDuration"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-sm">
+                            Show duration to users
+                          </FormLabel>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="showDuration"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col ">
-                          <div className="space-y-2">
-                            <FormLabel>Show Duration</FormLabel>
-
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  {/* 9. XP Points */}
+                  <FormField
+                    control={form.control}
+                    name="xpPoints"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          XP Points <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="e.g. 100"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 100)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <div className="flex gap-2">
                     {editingUnit && (
@@ -749,10 +947,12 @@ export default function UnitsManagement() {
                         Cancel
                       </Button>
                     )}
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="flex-1 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-medium"
-                      disabled={createMutation.isPending || updateMutation.isPending}
+                      disabled={
+                        createMutation.isPending || updateMutation.isPending
+                      }
                     >
                       {editingUnit ? (
                         updateMutation.isPending ? (
@@ -763,15 +963,13 @@ export default function UnitsManagement() {
                         ) : (
                           "Update Unit"
                         )
+                      ) : createMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating...
+                        </>
                       ) : (
-                        createMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Creating...
-                          </>
-                        ) : (
-                          "Create Unit"
-                        )
+                        "Create Unit"
                       )}
                     </Button>
                   </div>
@@ -785,18 +983,19 @@ export default function UnitsManagement() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <School className="h-5 w-5" />
                   Existing Units
                 </CardTitle>
                 <CardDescription>
-                  Manage and view all units. Use filters to find specific units by training area, module, or course.
+                  Manage and view all existing units.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Filters Section */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Training Area</label>
+                    <label className="text-sm font-medium mb-2 block">
+                      Training Area
+                    </label>
                     <Select
                       value={selectedTrainingAreaId}
                       onValueChange={(value) => {
@@ -820,7 +1019,9 @@ export default function UnitsManagement() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Module</label>
+                    <label className="text-sm font-medium mb-2 block">
+                      Module
+                    </label>
                     <Select
                       value={selectedModuleId}
                       onValueChange={(value) => {
@@ -835,7 +1036,10 @@ export default function UnitsManagement() {
                       <SelectContent>
                         <SelectItem value="all">All Modules</SelectItem>
                         {modules?.map((module) => (
-                          <SelectItem key={module.id} value={module.id.toString()}>
+                          <SelectItem
+                            key={module.id}
+                            value={module.id.toString()}
+                          >
                             {module.name}
                           </SelectItem>
                         ))}
@@ -844,7 +1048,9 @@ export default function UnitsManagement() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Course</label>
+                    <label className="text-sm font-medium mb-2 block">
+                      Course
+                    </label>
                     <Select
                       value={selectedFilterCourseId}
                       onValueChange={(value) => {
@@ -857,13 +1063,20 @@ export default function UnitsManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Courses</SelectItem>
-                        {courses?.filter(course => 
-                          selectedModuleId === "all" || course.moduleId.toString() === selectedModuleId
-                        ).map((course) => (
-                          <SelectItem key={course.id} value={course.id.toString()}>
-                            {course.name}
-                          </SelectItem>
-                        ))}
+                        {courses
+                          ?.filter(
+                            (course) =>
+                              selectedModuleId === "all" ||
+                              course.moduleId.toString() === selectedModuleId
+                          )
+                          .map((course) => (
+                            <SelectItem
+                              key={course.id}
+                              value={course.id.toString()}
+                            >
+                              {course.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -871,7 +1084,9 @@ export default function UnitsManagement() {
 
                 {/* Search Bar */}
                 <div className="mt-4">
-                  <label className="text-sm font-medium mb-2 block">Search</label>
+                  <label className="text-sm font-medium mb-2 block">
+                    Search
+                  </label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
@@ -886,7 +1101,8 @@ export default function UnitsManagement() {
                 {/* Results Count and Clear Filters */}
                 <div className="flex justify-between items-center mt-6 pt-4 border-t">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredUnits.length} of {allUnits?.length || 0} units
+                    Showing {filteredUnits.length} of {allUnits?.length || 0}{" "}
+                    units
                   </p>
                   <Button
                     variant="outline"
@@ -928,13 +1144,23 @@ export default function UnitsManagement() {
                             </TableCell>
                             <TableCell>
                               <div className="text-sm text-muted-foreground">
-                                {unit.description && unit.description.substring(0, 60)}
-                                {unit.description && unit.description.length > 60 && "..."}
+                                {unit.description &&
+                                  unit.description.substring(0, 60)}
+                                {unit.description &&
+                                  unit.description.length > 60 &&
+                                  "..."}
                               </div>
                             </TableCell>
                             <TableCell>{unit.order}</TableCell>
                             <TableCell>
-                              {unit.showDuration ? `${unit.duration} min` : "Hidden"}
+                              <div className="flex items-center gap-2">
+                                <span>{unit.duration} min</span>
+                                {unit.showDuration ? (
+                                  <Eye className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <EyeOff className="h-4 w-4 text-gray-400" />
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>{unit.xpPoints}</TableCell>
                             <TableCell className="text-right">
@@ -972,7 +1198,8 @@ export default function UnitsManagement() {
                                     <TooltipContent>
                                       <p>Delete Unit</p>
                                     </TooltipContent>
-                                  </Tooltip></div>
+                                  </Tooltip>
+                                </div>
                               </TooltipProvider>
                             </TableCell>
                           </TableRow>
@@ -985,7 +1212,10 @@ export default function UnitsManagement() {
                     <School className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium mb-2">No units found</h3>
                     <p className="text-muted-foreground mb-4">
-                      {searchTerm || selectedTrainingAreaId || selectedModuleId || selectedFilterCourseId
+                      {searchTerm ||
+                      selectedTrainingAreaId ||
+                      selectedModuleId ||
+                      selectedFilterCourseId
                         ? "No units match your current filters"
                         : "Create your first unit to get started"}
                     </p>
@@ -995,8 +1225,6 @@ export default function UnitsManagement() {
             </Card>
           </div>
         </div>
-
-
       </div>
     </AdminLayout>
   );

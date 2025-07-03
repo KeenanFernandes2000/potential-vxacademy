@@ -75,8 +75,22 @@ export function setupAuth(app: Express) {
     }
   };
 
+  // Add error handling for session middleware
   app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
+  
+  try {
+    app.use(session(sessionSettings));
+  } catch (error) {
+    console.error('Session middleware initialization failed:', error);
+    // Create a fallback session configuration without store
+    const fallbackSessionSettings = {
+      ...sessionSettings,
+      store: undefined // Use default memory store
+    };
+    app.use(session(fallbackSessionSettings));
+    console.log('Using fallback session configuration');
+  }
+  
   app.use(passport.initialize());
   app.use(passport.session());
 

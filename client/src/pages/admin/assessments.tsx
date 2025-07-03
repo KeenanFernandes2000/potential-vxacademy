@@ -4,7 +4,16 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Assessment, InsertAssessment, insertAssessmentSchema, Unit, Question, Course, Module, TrainingArea } from "@shared/schema";
+import {
+  Assessment,
+  InsertAssessment,
+  insertAssessmentSchema,
+  Unit,
+  Question,
+  Course,
+  Module,
+  TrainingArea,
+} from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 // UI Components
@@ -48,85 +57,115 @@ import AdminLayout from "@/components/layout/admin-layout";
 import { CertificateTemplateUpload } from "@/components/admin/certificate-template-upload";
 
 // Form validation schema with all comprehensive fields
-const assessmentFormSchema = z.object({
-  assessmentFor: z.enum(["course", "unit"], {
-    required_error: "Please select if this assessment is for a course or unit.",
-  }),
-  trainingAreaId: z.coerce.number({
-    required_error: "Training area is required.",
-  }).optional(),
-  moduleId: z.coerce.number({
-    required_error: "Module is required.",
-  }).optional(),
-  courseId: z.coerce.number().optional(),
-  unitId: z.coerce.number({
-    required_error: "Unit is required.",
-  }).optional(),
-  title: z.string().min(2, {
-    message: "Assessment title must be at least 2 characters.",
-  }),
-  description: z.string().optional(),
-  placement: z.enum(["beginning", "end"], {
-    required_error: "Please select placement.",
-  }).default("end"),
-  isGraded: z.boolean().default(true),
-  showCorrectAnswers: z.boolean().default(false),
-  passingScore: z.coerce.number().min(0).max(100).optional(),
-  hasTimeLimit: z.boolean().default(false),
-  timeLimit: z.coerce.number().min(1, {
-    message: "Time limit must be at least 1 minute.",
-  }).optional(),
-  maxRetakes: z.coerce.number().min(0).default(3),
-  hasCertificate: z.boolean().default(false),
-  certificateTemplate: z.string().optional(),
-  xpPoints: z.coerce.number().min(0).default(50),
-}).refine((data) => {
-  if (data.assessmentFor === "course") {
-    return !!data.courseId;
-  } else {
-    return !!data.unitId;
-  }
-}, {
-  message: "Course is required for course assessments, Unit is required for unit assessments.",
-  path: ["courseId"],
-});
+const assessmentFormSchema = z
+  .object({
+    assessmentFor: z.enum(["course", "unit"], {
+      required_error:
+        "Please select if this assessment is for a course or unit.",
+    }),
+    trainingAreaId: z.coerce
+      .number({
+        required_error: "Training area is required.",
+      })
+      .optional(),
+    moduleId: z.coerce
+      .number({
+        required_error: "Module is required.",
+      })
+      .optional(),
+    courseId: z.coerce.number().optional(),
+    unitId: z.coerce
+      .number({
+        required_error: "Unit is required.",
+      })
+      .optional(),
+    title: z.string().min(2, {
+      message: "Assessment title must be at least 2 characters.",
+    }),
+    description: z.string().optional(),
+    placement: z
+      .enum(["beginning", "end"], {
+        required_error: "Please select placement.",
+      })
+      .default("end"),
+    isGraded: z.boolean().default(true),
+    showCorrectAnswers: z.boolean().default(false),
+    passingScore: z.coerce.number().min(0).max(100).optional(),
+    hasTimeLimit: z.boolean().default(false),
+    timeLimit: z.coerce
+      .number()
+      .min(1, {
+        message: "Time limit must be at least 1 minute.",
+      })
+      .optional(),
+    maxRetakes: z.coerce.number().min(0).default(3),
+    hasCertificate: z.boolean().default(false),
+    certificateTemplate: z.string().optional(),
+    xpPoints: z.coerce.number().min(0).default(50),
+  })
+  .refine(
+    (data) => {
+      if (data.assessmentFor === "course") {
+        return !!data.courseId;
+      } else {
+        return !!data.unitId;
+      }
+    },
+    {
+      message:
+        "Course is required for course assessments, Unit is required for unit assessments.",
+      path: ["courseId"],
+    }
+  );
 
 type AssessmentFormData = z.infer<typeof assessmentFormSchema>;
 
 export default function AssessmentsManagement() {
   const { toast } = useToast();
-  const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(null);
+  const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(
+    null
+  );
 
   // Form state (separate from display filters)
-  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<number | null>(null);
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<
+    number | null
+  >(null);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [assessmentFor, setAssessmentFor] = useState<"course" | "unit">("unit");
 
   // Display filter state (independent of form)
-  const [displayFilter, setDisplayFilter] = useState<"all" | "unit" | "course">("all");
+  const [displayFilter, setDisplayFilter] = useState<"all" | "unit" | "course">(
+    "all"
+  );
   const [filterUnitId, setFilterUnitId] = useState<number | null>(null);
   const [filterCourseId, setFilterCourseId] = useState<number | null>(null);
 
   // Fetch training areas
-  const { data: trainingAreas, isLoading: trainingAreasLoading } = useQuery<TrainingArea[]>({
+  const { data: trainingAreas, isLoading: trainingAreasLoading } = useQuery<
+    TrainingArea[]
+  >({
     queryKey: ["/api/training-areas"],
   });
 
   // Fetch modules filtered by training area
   const { data: modules, isLoading: modulesLoading } = useQuery<Module[]>({
     queryKey: ["/api/modules"],
-    select: (data) => selectedTrainingAreaId 
-      ? data.filter(module => module.trainingAreaId === selectedTrainingAreaId)
-      : data,
+    select: (data) =>
+      selectedTrainingAreaId
+        ? data.filter(
+            (module) => module.trainingAreaId === selectedTrainingAreaId
+          )
+        : data,
   });
 
   // Fetch courses filtered by module
   const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
-    select: (data) => selectedModuleId 
-      ? data.filter(course => course.moduleId === selectedModuleId)
-      : data,
+    select: (data) =>
+      selectedModuleId
+        ? data.filter((course) => course.moduleId === selectedModuleId)
+        : data,
   });
 
   // Fetch units for dropdown with cache invalidation to ensure we get the latest data
@@ -143,7 +182,9 @@ export default function AssessmentsManagement() {
   });
 
   // Fetch all assessments (independent of form state)
-  const { data: allAssessments, isLoading: assessmentsLoading } = useQuery<Assessment[]>({
+  const { data: allAssessments, isLoading: assessmentsLoading } = useQuery<
+    Assessment[]
+  >({
     queryKey: ["/api/assessments"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/assessments");
@@ -154,18 +195,23 @@ export default function AssessmentsManagement() {
   });
 
   // Filter assessments based on display filters
-  const filteredAssessments = allAssessments?.filter(assessment => {
-    if (displayFilter === "unit") {
-      return assessment.unitId && (!filterUnitId || assessment.unitId === filterUnitId);
-    } else if (displayFilter === "course") {
-      return assessment.courseId && (!filterCourseId || assessment.courseId === filterCourseId);
-    }
-    return true; // "all" filter
-  }) || [];
+  const filteredAssessments =
+    allAssessments?.filter((assessment) => {
+      if (displayFilter === "unit") {
+        return (
+          assessment.unitId &&
+          (!filterUnitId || assessment.unitId === filterUnitId)
+        );
+      } else if (displayFilter === "course") {
+        return (
+          assessment.courseId &&
+          (!filterCourseId || assessment.courseId === filterCourseId)
+        );
+      }
+      return true; // "all" filter
+    }) || [];
 
-
-
-  // Form setup  
+  // Form setup
   const form = useForm<AssessmentFormData>({
     resolver: zodResolver(assessmentFormSchema),
     defaultValues: {
@@ -189,40 +235,115 @@ export default function AssessmentsManagement() {
     },
   });
 
-  // Update form when editing an existing assessment
+  // Update form when editing an existing assessment - fill fields sequentially
   useEffect(() => {
-    if (editingAssessment) {
+    if (editingAssessment && units && courses && modules && trainingAreas) {
       const assessmentFor = editingAssessment.courseId ? "course" : "unit";
-      setAssessmentFor(assessmentFor);
 
+      // First reset form to clear previous values
       form.reset({
-        assessmentFor,
-        trainingAreaId: assessmentFor === "course" && editingAssessment.trainingAreaId ? editingAssessment.trainingAreaId : undefined,
-        moduleId: assessmentFor === "course" && editingAssessment.moduleId ? editingAssessment.moduleId : undefined,
-        courseId: assessmentFor === "course" && editingAssessment.courseId ? editingAssessment.courseId : undefined,
-        unitId: assessmentFor === "unit" && editingAssessment.unitId ? editingAssessment.unitId : undefined,
-        title: editingAssessment.title,
-        description: editingAssessment.description || "",
-        placement: editingAssessment.placement === "beginning" ? "beginning" : "end",
-        isGraded: editingAssessment.isGraded ?? true,
-        showCorrectAnswers: editingAssessment.showCorrectAnswers ?? false,
-        passingScore: editingAssessment.passingScore || undefined,
-        hasTimeLimit: editingAssessment.hasTimeLimit ?? false,
-        timeLimit: editingAssessment.timeLimit || undefined,
-        maxRetakes: editingAssessment.maxRetakes ?? 3,
-        hasCertificate: editingAssessment.hasCertificate ?? false,
-        certificateTemplate: editingAssessment.certificateTemplate || "",
-        xpPoints: editingAssessment.xpPoints,
+        assessmentFor: "unit",
+        trainingAreaId: undefined,
+        moduleId: undefined,
+        courseId: undefined,
+        unitId: undefined,
+        title: "",
+        description: "",
+        placement: "end",
+        isGraded: true,
+        showCorrectAnswers: false,
+        passingScore: 70,
+        hasTimeLimit: false,
+        timeLimit: 30,
+        maxRetakes: 3,
+        hasCertificate: false,
+        certificateTemplate: "",
+        xpPoints: 50,
       });
 
-      // Set state for hierarchical dropdowns
-      if (assessmentFor === "course") {
-        setSelectedTrainingAreaId(editingAssessment.trainingAreaId || null);
-        setSelectedModuleId(editingAssessment.moduleId || null);
-        setSelectedCourseId(editingAssessment.courseId || null);
-      }
+      // Fill fields sequentially with small delays
+      const fillSequentially = async () => {
+        // Step 1: Set assessment type
+        setTimeout(() => {
+          setAssessmentFor(assessmentFor);
+          form.setValue("assessmentFor", assessmentFor);
+        }, 50);
+
+        if (assessmentFor === "course") {
+          // Step 2: Training Area
+          setTimeout(() => {
+            const trainingAreaId = editingAssessment.trainingAreaId;
+            if (trainingAreaId) {
+              setSelectedTrainingAreaId(trainingAreaId);
+              form.setValue("trainingAreaId", trainingAreaId);
+            }
+          }, 150);
+
+          // Step 3: Module
+          setTimeout(() => {
+            const moduleId = editingAssessment.moduleId;
+            if (moduleId) {
+              setSelectedModuleId(moduleId);
+              form.setValue("moduleId", moduleId);
+            }
+          }, 250);
+
+          // Step 4: Course
+          setTimeout(() => {
+            const courseId = editingAssessment.courseId;
+            if (courseId) {
+              setSelectedCourseId(courseId);
+              form.setValue("courseId", courseId);
+            }
+          }, 350);
+        } else {
+          // Step 2: Unit (for unit assessments)
+          setTimeout(() => {
+            const unitId = editingAssessment.unitId;
+            if (unitId) {
+              form.setValue("unitId", unitId);
+            }
+          }, 150);
+        }
+
+        // Step 5: Fill remaining fields
+        setTimeout(() => {
+          form.setValue("title", editingAssessment.title);
+          form.setValue("description", editingAssessment.description || "");
+          form.setValue(
+            "placement",
+            editingAssessment.placement === "beginning" ? "beginning" : "end"
+          );
+          form.setValue("isGraded", editingAssessment.isGraded ?? true);
+          form.setValue(
+            "showCorrectAnswers",
+            editingAssessment.showCorrectAnswers ?? false
+          );
+          form.setValue(
+            "passingScore",
+            editingAssessment.passingScore || undefined
+          );
+          form.setValue(
+            "hasTimeLimit",
+            editingAssessment.hasTimeLimit ?? false
+          );
+          form.setValue("timeLimit", editingAssessment.timeLimit || undefined);
+          form.setValue("maxRetakes", editingAssessment.maxRetakes ?? 3);
+          form.setValue(
+            "hasCertificate",
+            editingAssessment.hasCertificate ?? false
+          );
+          form.setValue(
+            "certificateTemplate",
+            editingAssessment.certificateTemplate || ""
+          );
+          form.setValue("xpPoints", editingAssessment.xpPoints);
+        }, 450);
+      };
+
+      fillSequentially();
     }
-  }, [editingAssessment, form]);
+  }, [editingAssessment, form, units, courses, modules, trainingAreas]);
 
   // Create mutation
   const createMutation = useMutation({
@@ -258,8 +379,15 @@ export default function AssessmentsManagement() {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async (data: { id: number; assessment: Partial<Assessment> }) => {
-      const res = await apiRequest("PATCH", `/api/assessments/${data.id}`, data.assessment);
+    mutationFn: async (data: {
+      id: number;
+      assessment: Partial<Assessment>;
+    }) => {
+      const res = await apiRequest(
+        "PATCH",
+        `/api/assessments/${data.id}`,
+        data.assessment
+      );
       return await res.json();
     },
     onSuccess: () => {
@@ -344,12 +472,16 @@ export default function AssessmentsManagement() {
       // Set the appropriate ID based on assessment type
       unitId: data.assessmentFor === "unit" ? data.unitId : undefined,
       courseId: data.assessmentFor === "course" ? data.courseId : undefined,
-      trainingAreaId: data.assessmentFor === "course" ? data.trainingAreaId : undefined,
+      trainingAreaId:
+        data.assessmentFor === "course" ? data.trainingAreaId : undefined,
       moduleId: data.assessmentFor === "course" ? data.moduleId : undefined,
     };
 
     if (editingAssessment) {
-      updateMutation.mutate({ id: editingAssessment.id, assessment: assessmentData });
+      updateMutation.mutate({
+        id: editingAssessment.id,
+        assessment: assessmentData,
+      });
     } else {
       createMutation.mutate(assessmentData);
     }
@@ -396,8 +528,6 @@ export default function AssessmentsManagement() {
     form.clearErrors();
   };
 
-
-
   // Function to navigate to questions management
   const navigateToQuestions = (assessmentId: number) => {
     window.location.href = `/admin/questions?assessmentId=${assessmentId}`;
@@ -407,14 +537,18 @@ export default function AssessmentsManagement() {
     <AdminLayout>
       <div className="container mx-auto py-8 px-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Assessments Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+            Assessments Management
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Assessment Form */}
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle>{editingAssessment ? "Edit Assessment" : "Add New Assessment"}</CardTitle>
+              <CardTitle>
+                {editingAssessment ? "Edit Assessment" : "Add New Assessment"}
+              </CardTitle>
               <CardDescription>
                 {editingAssessment
                   ? "Update assessment information"
@@ -423,7 +557,10 @@ export default function AssessmentsManagement() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   {/* Assessment For */}
                   <FormField
                     control={form.control}
@@ -439,9 +576,8 @@ export default function AssessmentsManagement() {
                             setSelectedTrainingAreaId(null);
                             setSelectedModuleId(null);
                             setSelectedCourseId(null);
-
                           }}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -467,7 +603,10 @@ export default function AssessmentsManagement() {
                         name="trainingAreaId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Training Area <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel>
+                              Training Area{" "}
+                              <span className="text-red-500">*</span>
+                            </FormLabel>
                             <Select
                               onValueChange={(value) => {
                                 const areaId = parseInt(value);
@@ -490,7 +629,10 @@ export default function AssessmentsManagement() {
                                   </div>
                                 ) : (
                                   trainingAreas?.map((area) => (
-                                    <SelectItem key={area.id} value={area.id.toString()}>
+                                    <SelectItem
+                                      key={area.id}
+                                      value={area.id.toString()}
+                                    >
                                       {area.name}
                                     </SelectItem>
                                   ))
@@ -508,7 +650,9 @@ export default function AssessmentsManagement() {
                         name="moduleId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Module <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel>
+                              Module <span className="text-red-500">*</span>
+                            </FormLabel>
                             <Select
                               onValueChange={(value) => {
                                 const moduleId = parseInt(value);
@@ -531,7 +675,10 @@ export default function AssessmentsManagement() {
                                   </div>
                                 ) : (
                                   modules?.map((module) => (
-                                    <SelectItem key={module.id} value={module.id.toString()}>
+                                    <SelectItem
+                                      key={module.id}
+                                      value={module.id.toString()}
+                                    >
                                       {module.name}
                                     </SelectItem>
                                   ))
@@ -549,7 +696,9 @@ export default function AssessmentsManagement() {
                         name="courseId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Course <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel>
+                              Course <span className="text-red-500">*</span>
+                            </FormLabel>
                             <Select
                               onValueChange={(value) => {
                                 const courseId = parseInt(value);
@@ -571,7 +720,10 @@ export default function AssessmentsManagement() {
                                   </div>
                                 ) : (
                                   courses?.map((course) => (
-                                    <SelectItem key={course.id} value={course.id.toString()}>
+                                    <SelectItem
+                                      key={course.id}
+                                      value={course.id.toString()}
+                                    >
                                       {course.name}
                                     </SelectItem>
                                   ))
@@ -592,11 +744,12 @@ export default function AssessmentsManagement() {
                       name="unitId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Unit <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel>
+                            Unit <span className="text-red-500">*</span>
+                          </FormLabel>
                           <Select
                             onValueChange={(value) => {
                               field.onChange(parseInt(value));
-
                             }}
                             value={field.value?.toString() || ""}
                           >
@@ -612,7 +765,10 @@ export default function AssessmentsManagement() {
                                 </div>
                               ) : (
                                 units?.map((unit) => (
-                                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                                  <SelectItem
+                                    key={unit.id}
+                                    value={unit.id.toString()}
+                                  >
                                     {unit.name}
                                   </SelectItem>
                                 ))
@@ -633,7 +789,10 @@ export default function AssessmentsManagement() {
                       <FormItem>
                         <FormLabel>Assessment Title</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Final Quiz: Culture of Abu Dhabi" {...field} />
+                          <Input
+                            placeholder="e.g. Final Quiz: Culture of Abu Dhabi"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -667,14 +826,19 @@ export default function AssessmentsManagement() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Placement</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select placement" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="beginning">At the beginning</SelectItem>
+                            <SelectItem value="beginning">
+                              At the beginning
+                            </SelectItem>
                             <SelectItem value="end">At the end</SelectItem>
                           </SelectContent>
                         </Select>
@@ -690,9 +854,13 @@ export default function AssessmentsManagement() {
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">This is a graded Assessment</FormLabel>
+                          <FormLabel className="text-base">
+                            This is a graded Assessment
+                          </FormLabel>
                           <div className="text-sm text-muted-foreground">
-                            {field.value ? "Users must achieve passing score" : "Users see correct answers after completion"}
+                            {field.value
+                              ? "Users must achieve passing score"
+                              : "Users see correct answers after completion"}
                           </div>
                         </div>
                         <FormControl>
@@ -714,13 +882,19 @@ export default function AssessmentsManagement() {
                         <FormItem>
                           <FormLabel>Passing Score (%)</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              min="0" 
-                              max="100" 
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
                               {...field}
                               value={field.value || ""}
-                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : undefined
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -736,9 +910,13 @@ export default function AssessmentsManagement() {
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Time Limit</FormLabel>
+                          <FormLabel className="text-base">
+                            Time Limit
+                          </FormLabel>
                           <div className="text-sm text-muted-foreground">
-                            {field.value ? "Assessment has time limit" : "Unlimited time"}
+                            {field.value
+                              ? "Assessment has time limit"
+                              : "Unlimited time"}
                           </div>
                         </div>
                         <FormControl>
@@ -760,12 +938,18 @@ export default function AssessmentsManagement() {
                         <FormItem>
                           <FormLabel>Time Limit (minutes)</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              min="1" 
+                            <Input
+                              type="number"
+                              min="1"
                               {...field}
                               value={field.value || ""}
-                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : undefined
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -782,16 +966,19 @@ export default function AssessmentsManagement() {
                       <FormItem>
                         <FormLabel>Retakes</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
+                          <Input
+                            type="number"
+                            min="0"
                             {...field}
                             value={field.value}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value))
+                            }
                           />
                         </FormControl>
                         <div className="text-sm text-muted-foreground">
-                          Number of times users can retake the assessment to pass
+                          Number of times users can retake the assessment to
+                          pass
                         </div>
                         <FormMessage />
                       </FormItem>
@@ -805,9 +992,13 @@ export default function AssessmentsManagement() {
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Certificate</FormLabel>
+                          <FormLabel className="text-base">
+                            Certificate
+                          </FormLabel>
                           <div className="text-sm text-muted-foreground">
-                            {field.value ? "Award certificate upon completion" : "No certificate"}
+                            {field.value
+                              ? "Award certificate upon completion"
+                              : "No certificate"}
                           </div>
                         </div>
                         <FormControl>
@@ -832,7 +1023,10 @@ export default function AssessmentsManagement() {
                             <CertificateTemplateUpload
                               value={field.value || ""}
                               onChange={field.onChange}
-                              disabled={createMutation.isPending || updateMutation.isPending}
+                              disabled={
+                                createMutation.isPending ||
+                                updateMutation.isPending
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -849,12 +1043,14 @@ export default function AssessmentsManagement() {
                       <FormItem>
                         <FormLabel>XP Points</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
+                          <Input
+                            type="number"
+                            min="0"
                             {...field}
                             value={field.value}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -864,19 +1060,28 @@ export default function AssessmentsManagement() {
 
                   <div className="flex justify-end space-x-2 pt-4">
                     {editingAssessment && (
-                      <Button variant="outline" onClick={handleCancelEdit} type="button">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        type="button"
+                      >
                         Cancel
                       </Button>
                     )}
                     <Button
                       type="submit"
-                      disabled={createMutation.isPending || updateMutation.isPending}
+                      disabled={
+                        createMutation.isPending || updateMutation.isPending
+                      }
                       className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
                     >
-                      {(createMutation.isPending || updateMutation.isPending) && (
+                      {(createMutation.isPending ||
+                        updateMutation.isPending) && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
-                      {editingAssessment ? "Update Assessment" : "Create Assessment"}
+                      {editingAssessment
+                        ? "Update Assessment"
+                        : "Create Assessment"}
                     </Button>
                   </div>
                 </form>
@@ -896,7 +1101,12 @@ export default function AssessmentsManagement() {
               <div className="flex gap-4 mt-4">
                 <div className="flex-1">
                   <label className="text-sm font-medium">Filter by Type</label>
-                  <Select value={displayFilter} onValueChange={(value: "all" | "unit" | "course") => setDisplayFilter(value)}>
+                  <Select
+                    value={displayFilter}
+                    onValueChange={(value: "all" | "unit" | "course") =>
+                      setDisplayFilter(value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -910,8 +1120,17 @@ export default function AssessmentsManagement() {
 
                 {displayFilter === "unit" && (
                   <div className="flex-1">
-                    <label className="text-sm font-medium">Filter by Unit</label>
-                    <Select value={filterUnitId?.toString() || "all"} onValueChange={(value) => setFilterUnitId(value === "all" ? null : parseInt(value))}>
+                    <label className="text-sm font-medium">
+                      Filter by Unit
+                    </label>
+                    <Select
+                      value={filterUnitId?.toString() || "all"}
+                      onValueChange={(value) =>
+                        setFilterUnitId(
+                          value === "all" ? null : parseInt(value)
+                        )
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="All units" />
                       </SelectTrigger>
@@ -929,15 +1148,27 @@ export default function AssessmentsManagement() {
 
                 {displayFilter === "course" && (
                   <div className="flex-1">
-                    <label className="text-sm font-medium">Filter by Course</label>
-                    <Select value={filterCourseId?.toString() || "all"} onValueChange={(value) => setFilterCourseId(value === "all" ? null : parseInt(value))}>
+                    <label className="text-sm font-medium">
+                      Filter by Course
+                    </label>
+                    <Select
+                      value={filterCourseId?.toString() || "all"}
+                      onValueChange={(value) =>
+                        setFilterCourseId(
+                          value === "all" ? null : parseInt(value)
+                        )
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="All courses" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Courses</SelectItem>
                         {courses?.map((course) => (
-                          <SelectItem key={course.id} value={course.id.toString()}>
+                          <SelectItem
+                            key={course.id}
+                            value={course.id.toString()}
+                          >
                             {course.name}
                           </SelectItem>
                         ))}
@@ -1006,7 +1237,7 @@ export default function AssessmentsManagement() {
                 </Table>
               ) : (
                 <div className="text-center py-8 text-abu-charcoal/60">
-                  {displayFilter === "all" 
+                  {displayFilter === "all"
                     ? "No assessments found. Create your first assessment!"
                     : `No ${displayFilter} assessments found with current filters.`}
                 </div>

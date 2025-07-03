@@ -77,15 +77,21 @@ const blockFormSchema = z.object({
   title: z.string().min(2, {
     message: "Block title must be at least 2 characters.",
   }),
-  trainingAreaId: z.string({
-    required_error: "Training Area is required.",
-  }).min(1, "Training Area is required."),
-  moduleId: z.string({
-    required_error: "Module is required.",
-  }).min(1, "Module is required."),
-  courseId: z.string({
-    required_error: "Course is required.",
-  }).min(1, "Course is required."),
+  trainingAreaId: z
+    .string({
+      required_error: "Training Area is required.",
+    })
+    .min(1, "Training Area is required."),
+  moduleId: z
+    .string({
+      required_error: "Module is required.",
+    })
+    .min(1, "Module is required."),
+  courseId: z
+    .string({
+      required_error: "Course is required.",
+    })
+    .min(1, "Course is required."),
   unitId: z.coerce.number({
     required_error: "Unit is required.",
   }),
@@ -169,81 +175,114 @@ export default function LearningBlocksManagement() {
   });
 
   // Filter blocks based on search and filter criteria with live updates
-  const filteredBlocks = allBlocks?.filter((block) => {
-    // Search filter
-    if (
-      searchTerm &&
-      !block.title.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false;
-    }
-
-    // Get unit info for this block
-    const unit = units?.find((u) => u.id === block.unitId);
-    if (!unit) return false;
-
-    // Apply hierarchical filtering based on current selections
-    // Unit filter - direct filter on selected unit
-    if (selectedFilterUnitId !== "all") {
-      if (unit.id.toString() !== selectedFilterUnitId) {
+  const filteredBlocks =
+    allBlocks?.filter((block) => {
+      // Search filter
+      if (
+        searchTerm &&
+        !block.title.toLowerCase().includes(searchTerm.toLowerCase())
+      ) {
         return false;
       }
-    }
 
-    // Get courses that contain this unit
-    const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId as number) || [];
+      // Get unit info for this block
+      const unit = units?.find((u) => u.id === block.unitId);
+      if (!unit) return false;
 
-    // If no courses contain this unit, show it in "all" view only
-    if (unitCourses.length === 0) {
-      return selectedTrainingAreaId === "all" && selectedModuleId === "all" && selectedCourseId === "all";
-    }
+      // Apply hierarchical filtering based on current selections
+      // Unit filter - direct filter on selected unit
+      if (selectedFilterUnitId !== "all") {
+        if (unit.id.toString() !== selectedFilterUnitId) {
+          return false;
+        }
+      }
 
-    // Course filter - direct filter
-    if (selectedCourseId !== "all") {
-      return unitCourses.includes(parseInt(selectedCourseId));
-    }
+      // Get courses that contain this unit
+      const unitCourses =
+        courseUnits
+          ?.filter((cu: any) => cu.unitId === unit.id)
+          .map((cu: any) => cu.courseId as number) || [];
 
-    // Module filter - check if unit belongs to any course in the selected module
-    if (selectedModuleId !== "all") {
-      const moduleCourses = courses?.filter(c => c.moduleId.toString() === selectedModuleId).map(c => c.id) || [];
-      return unitCourses.some((courseId: number) => moduleCourses.includes(courseId));
-    }
+      // If no courses contain this unit, show it in "all" view only
+      if (unitCourses.length === 0) {
+        return (
+          selectedTrainingAreaId === "all" &&
+          selectedModuleId === "all" &&
+          selectedCourseId === "all"
+        );
+      }
 
-    // Training Area filter - check if unit belongs to any course in modules within the training area
-    if (selectedTrainingAreaId !== "all") {
-      const trainingAreaModules = modules?.filter(m => m.trainingAreaId.toString() === selectedTrainingAreaId).map(m => m.id) || [];
-      const trainingAreaCourses = courses?.filter(c => trainingAreaModules.includes(c.moduleId)).map(c => c.id) || [];
-      return unitCourses.some((courseId: number) => trainingAreaCourses.includes(courseId));
-    }
+      // Course filter - direct filter
+      if (selectedCourseId !== "all") {
+        return unitCourses.includes(parseInt(selectedCourseId));
+      }
 
-    // Unit filter - updates display immediately when selected
-    if (
-      selectedFilterUnitId !== "all" &&
-      block.unitId !== parseInt(selectedFilterUnitId)
-    ) {
-      return false;
-    }
+      // Module filter - check if unit belongs to any course in the selected module
+      if (selectedModuleId !== "all") {
+        const moduleCourses =
+          courses
+            ?.filter((c) => c.moduleId.toString() === selectedModuleId)
+            .map((c) => c.id) || [];
+        return unitCourses.some((courseId: number) =>
+          moduleCourses.includes(courseId)
+        );
+      }
+
+      // Training Area filter - check if unit belongs to any course in modules within the training area
+      if (selectedTrainingAreaId !== "all") {
+        const trainingAreaModules =
+          modules
+            ?.filter(
+              (m) => m.trainingAreaId.toString() === selectedTrainingAreaId
+            )
+            .map((m) => m.id) || [];
+        const trainingAreaCourses =
+          courses
+            ?.filter((c) => trainingAreaModules.includes(c.moduleId))
+            .map((c) => c.id) || [];
+        return unitCourses.some((courseId: number) =>
+          trainingAreaCourses.includes(courseId)
+        );
+      }
+
+      // Unit filter - updates display immediately when selected
+      if (
+        selectedFilterUnitId !== "all" &&
+        block.unitId !== parseInt(selectedFilterUnitId)
+      ) {
+        return false;
+      }
 
       return true;
     }) || [];
 
   // Filter dependent dropdowns dynamically for Learning Blocks
-  const filteredModulesForBlocks = modules?.filter(module => 
-    selectedTrainingAreaId === "all" || module.trainingAreaId.toString() === selectedTrainingAreaId
-  ) || [];
+  const filteredModulesForBlocks =
+    modules?.filter(
+      (module) =>
+        selectedTrainingAreaId === "all" ||
+        module.trainingAreaId.toString() === selectedTrainingAreaId
+    ) || [];
 
-  const filteredCoursesForBlocks = courses?.filter(course => 
-    selectedModuleId === "all" || course.moduleId.toString() === selectedModuleId
-  ) || [];
+  const filteredCoursesForBlocks =
+    courses?.filter(
+      (course) =>
+        selectedModuleId === "all" ||
+        course.moduleId.toString() === selectedModuleId
+    ) || [];
 
-  const filteredUnitsForBlocks = units?.filter(unit => {
-    // Filter units based on selected course - updates display immediately
-    if (selectedCourseId !== "all") {
-      const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId as number) || [];
-      return unitCourses.includes(parseInt(selectedCourseId));
-    }
-    return true;
-  }) || [];
+  const filteredUnitsForBlocks =
+    units?.filter((unit) => {
+      // Filter units based on selected course - updates display immediately
+      if (selectedCourseId !== "all") {
+        const unitCourses =
+          courseUnits
+            ?.filter((cu: any) => cu.unitId === unit.id)
+            .map((cu: any) => cu.courseId as number) || [];
+        return unitCourses.includes(parseInt(selectedCourseId));
+      }
+      return true;
+    }) || [];
 
   // Fetch SCORM packages for dropdown selection
   const { data: scormPackages, isLoading: scormPackagesLoading } = useQuery({
@@ -269,23 +308,76 @@ export default function LearningBlocksManagement() {
     },
   });
 
-  // Reset form when editing a block
+  // Reset form when editing a block - fill fields sequentially
   useEffect(() => {
-    if (editingBlock) {
+    if (editingBlock && units && courses && modules && courseUnits) {
+      // Find the course that contains this unit
+      const unitCourse = courseUnits?.find(
+        (cu: any) => cu.unitId === editingBlock.unitId
+      );
+      const course = courses?.find((c) => c.id === unitCourse?.courseId);
+      const module = modules?.find((m) => m.id === course?.moduleId);
+
+      // First reset form to clear previous values
       form.reset({
-        title: editingBlock.title,
-        unitId: editingBlock.unitId,
-        type: editingBlock.type,
-        order: editingBlock.order,
-        xpPoints: editingBlock.xpPoints,
-        content: editingBlock.content,
-        videoUrl: editingBlock.videoUrl,
-        imageUrl: editingBlock.imageUrl,
-        interactiveData: editingBlock.interactiveData as any,
+        title: "",
+        trainingAreaId: "",
+        moduleId: "",
+        courseId: "",
+        unitId: "",
+        type: "text",
+        order: 1,
+        xpPoints: 10,
+        content: "",
+        videoUrl: "",
+        imageUrl: "",
+        interactiveData: null,
+        scormPackageId: null,
       });
+
+      // Fill fields sequentially with small delays
+      const fillSequentially = async () => {
+        // Step 1: Training Area
+        setTimeout(() => {
+          form.setValue(
+            "trainingAreaId",
+            module?.trainingAreaId.toString() || ""
+          );
+        }, 50);
+
+        // Step 2: Module (after training area is set)
+        setTimeout(() => {
+          form.setValue("moduleId", course?.moduleId.toString() || "");
+        }, 150);
+
+        // Step 3: Course (after module is set)
+        setTimeout(() => {
+          form.setValue("courseId", course?.id.toString() || "");
+        }, 250);
+
+        // Step 4: Unit (after course is set)
+        setTimeout(() => {
+          form.setValue("unitId", editingBlock.unitId);
+        }, 350);
+
+        // Step 5: Fill remaining fields
+        setTimeout(() => {
+          form.setValue("title", editingBlock.title);
+          form.setValue("type", editingBlock.type);
+          form.setValue("order", editingBlock.order);
+          form.setValue("xpPoints", editingBlock.xpPoints);
+          form.setValue("content", editingBlock.content || "");
+          form.setValue("videoUrl", editingBlock.videoUrl || "");
+          form.setValue("imageUrl", editingBlock.imageUrl || "");
+          form.setValue("interactiveData", editingBlock.interactiveData as any);
+          form.setValue("scormPackageId", editingBlock.scormPackageId);
+        }, 450);
+      };
+
+      fillSequentially();
       setSelectedUnitId(editingBlock.unitId);
     }
-  }, [editingBlock, form]);
+  }, [editingBlock, form, units, courses, modules, courseUnits]);
 
   // Create mutation
   const createMutation = useMutation({
@@ -326,7 +418,7 @@ export default function LearningBlocksManagement() {
       const res = await apiRequest(
         "PATCH",
         `/api/learning-blocks/${data.id}`,
-        data.block,
+        data.block
       );
       return await res.json();
     },
@@ -495,27 +587,12 @@ export default function LearningBlocksManagement() {
                 >
                   <FormField
                     control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Block Title</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g. Introduction to Abu Dhabi"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
                     name="trainingAreaId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Training Area <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Training Area <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -532,7 +609,10 @@ export default function LearningBlocksManagement() {
                           </FormControl>
                           <SelectContent>
                             {trainingAreas?.map((area) => (
-                              <SelectItem key={area.id} value={area.id.toString()}>
+                              <SelectItem
+                                key={area.id}
+                                value={area.id.toString()}
+                              >
                                 {area.name}
                               </SelectItem>
                             ))}
@@ -548,7 +628,9 @@ export default function LearningBlocksManagement() {
                     name="moduleId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Module <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Module <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -564,11 +646,20 @@ export default function LearningBlocksManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {modules?.filter(m => m.trainingAreaId.toString() === form.watch("trainingAreaId"))?.map((module) => (
-                              <SelectItem key={module.id} value={module.id.toString()}>
-                                {module.name}
-                              </SelectItem>
-                            ))}
+                            {modules
+                              ?.filter(
+                                (m) =>
+                                  m.trainingAreaId.toString() ===
+                                  form.watch("trainingAreaId")
+                              )
+                              ?.map((module) => (
+                                <SelectItem
+                                  key={module.id}
+                                  value={module.id.toString()}
+                                >
+                                  {module.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -581,7 +672,9 @@ export default function LearningBlocksManagement() {
                     name="courseId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Course <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Course <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -596,11 +689,20 @@ export default function LearningBlocksManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {courses?.filter(c => c.moduleId.toString() === form.watch("moduleId"))?.map((course) => (
-                              <SelectItem key={course.id} value={course.id.toString()}>
-                                {course.name}
-                              </SelectItem>
-                            ))}
+                            {courses
+                              ?.filter(
+                                (c) =>
+                                  c.moduleId.toString() ===
+                                  form.watch("moduleId")
+                              )
+                              ?.map((course) => (
+                                <SelectItem
+                                  key={course.id}
+                                  value={course.id.toString()}
+                                >
+                                  {course.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -613,7 +715,9 @@ export default function LearningBlocksManagement() {
                     name="unitId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Unit <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Unit <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(parseInt(value));
@@ -632,21 +736,32 @@ export default function LearningBlocksManagement() {
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               </div>
                             ) : (
-                              units?.filter(unit => {
-                                // Filter units based on selected course
-                                if (form.watch("courseId")) {
-                                  const unitCourses = courseUnits?.filter((cu: any) => cu.unitId === unit.id).map((cu: any) => cu.courseId.toString()) || [];
-                                  return unitCourses.includes(form.watch("courseId"));
-                                }
-                                return false;
-                              })?.map((unit) => (
-                                <SelectItem
-                                  key={unit.id}
-                                  value={unit.id.toString()}
-                                >
-                                  {unit.name}
-                                </SelectItem>
-                              ))
+                              units
+                                ?.filter((unit) => {
+                                  // Filter units based on selected course
+                                  if (form.watch("courseId")) {
+                                    const unitCourses =
+                                      courseUnits
+                                        ?.filter(
+                                          (cu: any) => cu.unitId === unit.id
+                                        )
+                                        .map((cu: any) =>
+                                          cu.courseId.toString()
+                                        ) || [];
+                                    return unitCourses.includes(
+                                      form.watch("courseId")
+                                    );
+                                  }
+                                  return false;
+                                })
+                                ?.map((unit) => (
+                                  <SelectItem
+                                    key={unit.id}
+                                    value={unit.id.toString()}
+                                  >
+                                    {unit.name}
+                                  </SelectItem>
+                                ))
                             )}
                           </SelectContent>
                         </Select>
@@ -657,10 +772,29 @@ export default function LearningBlocksManagement() {
 
                   <FormField
                     control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Block Title</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g. Introduction to Abu Dhabi"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Content Type <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>
+                          Content Type <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -686,35 +820,33 @@ export default function LearningBlocksManagement() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="order"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Display Order</FormLabel>
-                          <FormControl>
-                            <Input type="number" min="1" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name="order"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Display Order</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="1" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="xpPoints"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>XP Points</FormLabel>
-                          <FormControl>
-                            <Input type="number" min="0" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="xpPoints"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>XP Points</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   {form.watch("type") === "text" && (
                     <FormField
@@ -880,7 +1012,7 @@ export default function LearningBlocksManagement() {
                                     >
                                       {pkg.title}
                                     </SelectItem>
-                                  ),
+                                  )
                                 )
                               ) : (
                                 <div className="p-2 text-xs text-muted-foreground">
@@ -1000,7 +1132,7 @@ export default function LearningBlocksManagement() {
                             (module) =>
                               selectedTrainingAreaId === "all" ||
                               module.trainingAreaId ===
-                                parseInt(selectedTrainingAreaId),
+                                parseInt(selectedTrainingAreaId)
                           )
                           .map((module) => (
                             <SelectItem
@@ -1031,8 +1163,8 @@ export default function LearningBlocksManagement() {
                         {courses
                           ?.filter(
                             (course) =>
-                              selectedModuleId === "all"                              ||
-                              course.moduleId === parseInt(selectedModuleId),
+                              selectedModuleId === "all" ||
+                              course.moduleId === parseInt(selectedModuleId)
                           )
                           .map((course) => (
                             <SelectItem
