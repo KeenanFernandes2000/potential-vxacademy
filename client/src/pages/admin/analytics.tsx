@@ -212,9 +212,9 @@ export default function Analytics() {
                       {analyticsData?.summary.totalUsers}
                     </div>
                   )}
-                  <p className="text-xs text-neutrals-500 mt-1">
+                  {/* <p className="text-xs text-neutrals-500 mt-1">
                     <span className="text-success">↑ 12%</span> from last month
-                  </p>
+                  </p> */}
                 </CardContent>
               </Card>
 
@@ -240,9 +240,9 @@ export default function Analytics() {
                       {analyticsData?.summary.avgCompletionRate}%
                     </div>
                   )}
-                  <p className="text-xs text-neutrals-500 mt-1">
+                  {/* <p className="text-xs text-neutrals-500 mt-1">
                     <span className="text-success">↑ 5%</span> from last month
-                  </p>
+                  </p> */}
                 </CardContent>
               </Card>
 
@@ -254,7 +254,7 @@ export default function Analytics() {
                     </CardTitle>
                     <CardDescription>Available courses</CardDescription>
                   </div>
-                  <div className="w-10 h-10 bg-accent bg-opacity-20 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center">
                     <span className="material-icons text-accent">
                       menu_book
                     </span>
@@ -268,9 +268,9 @@ export default function Analytics() {
                       {analyticsData?.enrollments}
                     </div>
                   )}
-                  <p className="text-xs text-neutrals-500 mt-1">
+                  {/* <p className="text-xs text-neutrals-500 mt-1">
                     <span className="text-success">↑ 3</span> new courses added
-                  </p>
+                  </p> */}
                 </CardContent>
               </Card>
             </div>
