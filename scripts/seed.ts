@@ -159,7 +159,7 @@ export async function seedDatabase() {
 
     // Now seed fresh data
     console.log("Creating admin user...");
-    const hashedPassword = await hashPassword("admin123");
+    const hashedPassword = await hashPassword("password");
     await db.insert(users).values({
       username: "admin",
       password: hashedPassword,
