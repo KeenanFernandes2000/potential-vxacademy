@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import {
   users,
   badges,
@@ -36,45 +36,52 @@ let seedDb: any;
 
 async function createSeedConnection() {
   if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL environment variable is not set. Please check your .env file or Replit secrets.");
+    throw new Error(
+      "DATABASE_URL environment variable is not set. Please check your .env file or Replit secrets."
+    );
   }
 
-  const isLocalDatabase = process.env.DATABASE_URL.includes('localhost') || 
-                          process.env.DATABASE_URL.includes('127.0.0.1');
+  const isLocalDatabase =
+    process.env.DATABASE_URL.includes("localhost") ||
+    process.env.DATABASE_URL.includes("127.0.0.1");
 
   try {
     if (isLocalDatabase) {
       // Use traditional PostgreSQL driver for local development
-      const pool = new Pool({ 
+      const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: false,
         connectionTimeoutMillis: 15000,
-        max: 1
+        max: 1,
       });
-      
+
       seedDb = drizzle({ client: pool });
-      
+
       // Test the connection
       await seedDb.execute(sql`SELECT 1`);
       console.log("Connected to local database successfully");
-      
+
       return seedDb;
     } else {
       // Use Neon serverless for production/cloud databases
-      const { drizzle: neonDrizzle } = await import('drizzle-orm/neon-serverless');
-      const { Pool: NeonPool, neonConfig } = await import('@neondatabase/serverless');
-      const ws = await import('ws');
-      
+      const { drizzle: neonDrizzle } = await import(
+        "drizzle-orm/neon-serverless"
+      );
+      const { Pool: NeonPool, neonConfig } = await import(
+        "@neondatabase/serverless"
+      );
+      const ws = await import("ws");
+
       // Configure neon for better reliability
       neonConfig.webSocketConstructor = ws.default;
       neonConfig.poolQueryViaFetch = true;
-      
-      const neonPool = new NeonPool({ 
+
+      const neonPool = new NeonPool({
         connectionString: process.env.DATABASE_URL,
         connectionTimeoutMillis: 30000,
-        max: 1
+        max: 1,
       });
-      
+
       seedDb = neonDrizzle({ client: neonPool });
       await seedDb.execute(sql`SELECT 1`);
       console.log("Connected to Neon database successfully");
@@ -82,7 +89,7 @@ async function createSeedConnection() {
     }
   } catch (error: any) {
     console.error(`Database connection failed: ${error.message}`);
-    
+
     // Final fallback: try importing the server db
     try {
       console.log("Attempting fallback connection...");
@@ -92,7 +99,9 @@ async function createSeedConnection() {
       console.log("Fallback connection successful");
       return seedDb;
     } catch (serverDbError: any) {
-      throw new Error(`All database connection methods failed. Last error: ${serverDbError.message}`);
+      throw new Error(
+        `All database connection methods failed. Last error: ${serverDbError.message}`
+      );
     }
   }
 }
@@ -103,17 +112,17 @@ export async function hashPassword(password: string) {
 
 async function clearDatabase(db: any) {
   console.log("Clearing existing database data...");
-  
+
   try {
     // Delete in order to respect foreign key constraints
     // Delete dependent tables first, then parent tables
-    
+
     // Clear junction/relationship tables first
     await db.delete(userBadges);
     await db.delete(roleMandatoryCourses);
     await db.delete(courseUnits);
     await db.delete(coursePrerequisites);
-    
+
     // Clear user-related data
     await db.delete(userProgress);
     await db.delete(blockCompletions);
@@ -121,7 +130,7 @@ async function clearDatabase(db: any) {
     await db.delete(aiTutorConversations);
     await db.delete(certificates);
     await db.delete(notifications);
-    
+
     // Clear content-related data
     await db.delete(scormTrackingData);
     await db.delete(scormPackages);
@@ -132,15 +141,15 @@ async function clearDatabase(db: any) {
     await db.delete(courses);
     await db.delete(modules);
     await db.delete(trainingAreas);
-    
+
     // Clear system data
     await db.delete(badges);
     await db.delete(mediaFiles);
     await db.delete(roles);
-    
+
     // Clear users last (as other tables may reference it)
     await db.delete(users);
-    
+
     console.log("Database cleared successfully!");
   } catch (error) {
     console.error("Error clearing database:", error);
@@ -151,7 +160,7 @@ async function clearDatabase(db: any) {
 export async function seedDatabase() {
   try {
     console.log("Starting database seeding...");
-    
+
     const db = await createSeedConnection();
 
     // Clear all existing data first
@@ -230,10 +239,13 @@ export async function seedDatabase() {
 }
 
 // Run seeding if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.includes('seed.ts')) {
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.includes("seed.ts")
+) {
   seedDatabase()
     .then(() => {
-      process.exit(0);
+      // process.exit(0);
     })
     .catch((error) => {
       console.error("Database seeding failed:", error);
