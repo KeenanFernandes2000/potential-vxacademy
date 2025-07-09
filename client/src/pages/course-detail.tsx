@@ -43,7 +43,6 @@ import {
 } from "lucide-react";
 import { ComprehensiveAssessment } from "@/components/assessment/ComprehensiveAssessment";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CertificatePrint } from "@/components/certificates/CertificatePrint";
 
 export default function CourseDetail() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -57,8 +56,6 @@ export default function CourseDetail() {
   );
   const [courseStarted, setCourseStarted] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState<any>(null);
-  const [showCertificateDialog, setShowCertificateDialog] = useState(false);
-  const [certificateData, setCertificateData] = useState<any>(null);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -111,13 +108,6 @@ export default function CourseDetail() {
   // Fetch user progress
   const { data: progress, isLoading: isLoadingProgress } = useQuery<any>({
     queryKey: [`/api/progress`],
-  });
-
-  // Fetch user certificates
-  const { data: userCertificates, isLoading: isLoadingCertificates } = useQuery<
-    any[]
-  >({
-    queryKey: [`/api/certificates`],
   });
 
   // Enrollment mutation for when user hasn't enrolled yet
@@ -866,20 +856,15 @@ export default function CourseDetail() {
             <ComprehensiveAssessment
               assessment={activeAssessment}
               userId={currentUser?.id}
-                    onComplete={(result) => {
-        // Handle assessment completion
-        console.log("Assessment completed:", result);
-        setAssessmentDialogOpen(false);
-        setActiveAssessment(null);
+              onComplete={(result) => {
+                // Handle assessment completion
+                console.log("Assessment completed:", result);
+                setAssessmentDialogOpen(false);
+                setActiveAssessment(null);
 
-        // If a certificate was generated, refresh certificates and potentially show it
-        if (result.certificateGenerated) {
-          queryClient.invalidateQueries({ queryKey: ["/api/certificates"] });
-        }
-
-        // Refresh progress
-        queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
-      }}
+                // Refresh progress
+                queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+              }}
               onCancel={() => {
                 setAssessmentDialogOpen(false);
                 setActiveAssessment(null);

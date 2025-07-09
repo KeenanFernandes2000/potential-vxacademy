@@ -38,7 +38,7 @@ export function Sidebar() {
         </span>
       </div>
 
-      <div className="overflow-y-auto flex-grow scroll-smooth sidebar-scroll">
+      <div className="overflow-y-auto flex-grow scroll-smooth">
         <nav className="mt-6">
           <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">
             Main
