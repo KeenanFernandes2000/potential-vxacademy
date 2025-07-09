@@ -120,9 +120,9 @@ export function Sidebar() {
                 </div>
               </Link>
               
-              <Link href="/admin/course-management">
+              <Link href="/admin/training-areas">
                 <div className={`flex items-center mx-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
-                  isActive("/admin/course-management") 
+                  isActive("/admin/training-areas") 
                     ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-white border border-teal-500/30 shadow-lg" 
                     : "hover:bg-white/10 text-slate-300 hover:text-white hover:shadow-md"
                 }`}>

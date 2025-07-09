@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import XLSX from 'xlsx';
 import { Request, Response } from 'express';
-import { hashPassword } from '../scripts/seed';
+import { hashPassword } from '@shared/auth-utils';
 import { IStorage } from './storage';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';

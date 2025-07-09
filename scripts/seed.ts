@@ -25,7 +25,7 @@ import {
   notifications,
   mediaFiles,
 } from "@shared/schema";
-import bcrypt from "bcrypt";
+import { hashPassword } from "@shared/auth-utils";
 import { eq, sql } from "drizzle-orm";
 import dotenv from "dotenv";
 
@@ -95,10 +95,6 @@ async function createSeedConnection() {
       throw new Error(`All database connection methods failed. Last error: ${serverDbError.message}`);
     }
   }
-}
-
-export async function hashPassword(password: string) {
-  return await bcrypt.hash(password, 10);
 }
 
 async function clearDatabase(db: any) {
@@ -230,7 +226,7 @@ export async function seedDatabase() {
 }
 
 // Run seeding if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.includes('seed.ts')) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   seedDatabase()
     .then(() => {
       process.exit(0);

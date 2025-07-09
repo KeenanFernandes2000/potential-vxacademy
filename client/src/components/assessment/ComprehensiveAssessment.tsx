@@ -69,10 +69,14 @@ export function ComprehensiveAssessment({
   // Submit assessment mutation
   const submitAssessmentMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("Making API request to submit assessment:", data);
       const res = await apiRequest("POST", `/api/assessments/${assessment.id}/submit`, data);
-      return res.json();
+      const result = await res.json();
+      console.log("Assessment submission response:", result);
+      return result;
     },
     onSuccess: (result) => {
+      console.log("Assessment submission successful:", result);
       setIsSubmitting(false);
       onComplete({
         passed: result.passed,
@@ -91,7 +95,8 @@ export function ComprehensiveAssessment({
         queryClient.invalidateQueries({ queryKey: [`/api/user/certificates`] });
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Assessment submission error:", error);
       setIsSubmitting(false);
     }
   });
@@ -116,6 +121,26 @@ export function ComprehensiveAssessment({
   const handleSubmitAssessment = () => {
     if (!questions) return;
 
+    console.log("Submitting assessment...", {
+      questionsLength: questions.length,
+      selectedAnswersCount: Object.keys(selectedAnswers).length,
+      selectedAnswers,
+      assessmentId: assessment.id
+    });
+
+    // Log each question and its answer for debugging
+    questions.forEach(question => {
+      const userAnswer = selectedAnswers[question.id.toString()];
+      console.log(`Question ${question.id}:`, {
+        questionText: question.questionText,
+        questionType: question.questionType,
+        userAnswer,
+        correctAnswer: question.correctAnswer,
+        hasAnswer: userAnswer !== undefined,
+        options: question.options
+      });
+    });
+
     // Calculate score on client side before submitting
     let correctAnswers = 0;
     const totalQuestions = questions.length;
@@ -128,6 +153,8 @@ export function ComprehensiveAssessment({
     });
 
     const score = Math.round((correctAnswers / totalQuestions) * 100);
+
+    console.log("Calculated score:", score, "Correct answers:", correctAnswers, "Total questions:", totalQuestions);
 
     setIsSubmitting(true);
     submitAssessmentMutation.mutate({

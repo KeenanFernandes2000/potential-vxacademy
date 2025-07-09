@@ -7,7 +7,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { handleTutorMessage } from "./ai-tutor";
 import { NotificationTriggers } from "./notification-triggers";
-import { hashPassword } from "../scripts/seed";
+import { hashPassword } from "@shared/auth-utils";
 import {
   uploadScormPackage,
   handleScormUpload,
@@ -841,199 +841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/assessments/:assessmentId/submit", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const userId = req.user!.id;
-      const assessmentId = parseInt(req.params.assessmentId);
-      const { answers, score } = req.body;
-
-      if (!answers || typeof score !== "number") {
-        return res
-          .status(400)
-          .json({ message: "Answers and score are required" });
-      }
-
-      // Get assessment to determine if passed
-      const assessment = await storage.getAssessment(assessmentId);
-      if (!assessment) {
-        return res.status(404).json({ message: "Assessment not found" });
-      }
-
-      const passed = score >= (assessment.passingScore || 70);
-
-      // Create attempt record
-      const attempt = await storage.createAssessmentAttempt({
-        userId,
-        assessmentId,
-        score,
-        passed,
-        answers,
-        completedAt: new Date(),
-      });
-
-      // If passed, award XP and potentially mark course as completed
-      if (passed) {
-        // Create a notification for the achievement
-        try {
-          await storage.createNotification({
-            userId,
-            type: "achievement",
-            title: "Assessment Passed!",
-            message: `Congratulations! You scored ${score}% on the assessment.`,
-            read: false,
-            metadata: { assessmentId, score },
-          });
-        } catch (error) {
-          console.log(
-            "Note: Could not create notification - table may not exist yet",
-          );
-        }
-        const user = await storage.getUser(userId);
-        if (user) {
-          // Get the unit this assessment belongs to
-          if (!assessment.unitId) {
-            return res
-              .status(400)
-              .json({ message: "Assessment is not associated with a unit" });
-          }
-          const unit = await storage.getUnit(assessment.unitId as number);
-          if (!unit) {
-            return res.status(404).json({ message: "Unit not found" });
-          }
-
-          // Award XP for completing assessment
-          const newXpPoints = user.xpPoints + (assessment.xpPoints || 50);
-          await storage.updateUser(userId, { xpPoints: newXpPoints });
-
-          // Generate certificate if assessment has certificate enabled
-          if (assessment.hasCertificate) {
-            try {
-              // Check if user already has a certificate for this assessment's course
-              let courseId = assessment.courseId;
-
-              // If this is a unit assessment, get the course from the unit
-              if (!courseId && assessment.unitId) {
-                const unit = await storage.getUnit(assessment.unitId);
-                if (unit) {
-                  const unitCourses = await storage.getCoursesForUnit(unit.id);
-                  if (unitCourses.length > 0) {
-                    courseId = unitCourses[0].id;
-                  }
-                }
-              }
-
-              if (courseId) {
-                const existingCertificate =
-                  await storage.getCertificateByCourseAndUser(userId, courseId);
-
-                if (!existingCertificate) {
-                  // Generate unique certificate number
-                  const certificateNumber = `CERT-${Date.now()}-${userId}-${courseId}`;
-
-                  // Create certificate
-                  const certificate = await storage.createCertificate({
-                    userId,
-                    courseId,
-                    certificateNumber,
-                    status: "active",
-                  });
-
-                  // Get course details for notification
-                  const course = await storage.getCourse(courseId);
-                  const courseName = course ? course.name : "Course";
-
-                  // Send certificate notification
-                  await notificationTriggers.onCertificateEarned(
-                    userId,
-                    certificate.id,
-                    courseName,
-                  );
-                  
-                  console.log(`🎉 Certificate awarded to user ${userId} for course: ${courseName}`);
-                  certificateGenerated = true;
-                }
-              }
-            } catch (certError) {
-              console.error("Error creating certificate:", certError);
-              // Don't fail the assessment submission if certificate creation fails
-            }
-          }
-
-          // Check for first assessment badge
-          const userBadges = await storage.getUserBadges(userId);
-          const allBadges = await storage.getBadges();
-          const firstAssessmentBadge = allBadges.find(
-            (b) => b.type === "assessment",
-          );
-
-          if (
-            firstAssessmentBadge &&
-            !userBadges.some((ub) => ub.badgeId === firstAssessmentBadge.id)
-          ) {
-            console.log("Awarding first assessment badge to user", userId);
-            // Award first assessment badge
-            await storage.createUserBadge({
-              userId,
-              badgeId: firstAssessmentBadge.id,
-            });
-
-            // Also update user XP
-            if (firstAssessmentBadge.xpPoints) {
-              const updatedXP = user.xpPoints + firstAssessmentBadge.xpPoints;
-              await storage.updateUser(userId, { xpPoints: updatedXP });
-            }
-          }
-
-          // Get courses for this unit to update progress
-          const unitCourses = await storage.getCoursesForUnit(unit.id);
-
-          // Update progress for each course this unit belongs to
-          for (const course of unitCourses) {
-            await updateCourseProgress(userId, course.id);
-          }
-        }
-      } else {
-        // Create notification for failed attempt
-        const previousAttempts = await storage.getAssessmentAttempts(userId, assessmentId);
-        const attemptsRemaining = assessment.maxRetakes - previousAttempts.length - 1;
-        try {
-          await storage.createNotification({
-            userId,
-            type: "assessment-failed",
-            title: "Assessment Not Passed",
-            message: `You scored ${score}% on "${assessment.title}". ${attemptsRemaining > 0 ? `You have ${attemptsRemaining} attempts remaining.` : 'No attempts remaining.'}`,
-            read: false
-          });
-        } catch (error) {
-          console.log("Note: Could not create notification - table may not exist yet");
-        }
-      }
-
-      // Get attempts remaining for response
-      const allAttempts = await storage.getAssessmentAttempts(userId, assessmentId);
-      const attemptsRemaining = Math.max(0, assessment.maxRetakes - allAttempts.length);
-
-      res.json({
-        attempt,
-        passed,
-        score,
-        correctAnswers: 0, // Will be calculated properly
-        totalQuestions: 0, // Will be calculated properly
-        certificateGenerated: false,
-        attemptsRemaining,
-        message: passed
-          ? "Congratulations! You passed the assessment."
-          : "You did not meet the passing score. Try again!",
-      });
-    } catch (error) {
-      console.error("Error submitting assessment:", error);
-      res.status(500).json({ message: "Error submitting assessment" });
-    }
-  });
+  // Legacy assessment submission endpoint - removed to prevent conflicts
 
   // Badges
   app.get("/api/badges", async (req, res) => {
@@ -2532,8 +2340,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get questions for scoring
+      console.log("About to fetch questions for assessmentId:", assessmentId);
       const questions = await storage.getQuestions(assessmentId);
+      console.log("Questions fetched for assessment:", questions?.length || 0);
+      console.log("Questions data:", JSON.stringify(questions, null, 2));
+      
       if (!questions || questions.length === 0) {
+        console.log("No questions found for assessment ID:", assessmentId);
         return res.status(400).json({ message: "No questions found for assessment" });
       }
 
@@ -2541,11 +2354,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let correctAnswers = 0;
       const totalQuestions = questions.length;
 
+      console.log("Starting assessment scoring...");
+      console.log("Total questions:", totalQuestions);
+      console.log("User answers:", answers);
+
       questions.forEach(question => {
-        const userAnswer = answers[question.id.toString()];
-        if (userAnswer === question.correctAnswer) {
+        const questionId = question.id.toString();
+        const userAnswer = answers[questionId];
+        const correctAnswer = question.correctAnswer;
+        
+        // Handle case-insensitive comparison for true/false questions
+        let isCorrect = false;
+        if (question.questionType === 'true_false') {
+          isCorrect = userAnswer?.toLowerCase() === correctAnswer?.toLowerCase();
+        } else {
+          isCorrect = userAnswer === correctAnswer;
+        }
+        
+        console.log(`Question ${questionId}:`, {
+          questionText: question.questionText,
+          userAnswer,
+          correctAnswer,
+          isCorrect,
+          questionType: question.questionType,
+          comparisonUsed: question.questionType === 'true_false' ? 'case-insensitive' : 'exact'
+        });
+        
+        if (isCorrect) {
           correctAnswers++;
         }
+      });
+
+      console.log("Final scoring results:", {
+        correctAnswers,
+        totalQuestions,
+        percentage: Math.round((correctAnswers / totalQuestions) * 100)
       });
 
       const score = Math.round((correctAnswers / totalQuestions) * 100);
@@ -2670,7 +2513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({
+      const responseData = {
         success: true,
         score,
         passed,
@@ -2678,7 +2521,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalQuestions,
         certificateGenerated,
         attemptsRemaining: assessment.maxRetakes - previousAttempts.length - 1
-      });
+      };
+
+      console.log("Sending response:", responseData);
+      res.json(responseData);
 
     } catch (error) {
       console.error("Error submitting assessment:", error);
