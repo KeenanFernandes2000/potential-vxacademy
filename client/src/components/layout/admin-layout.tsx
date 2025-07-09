@@ -177,7 +177,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -185,10 +185,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           onClick={() => setSidebarOpen(false)}
         >
           <div
-            className="absolute top-0 left-0 bottom-0 w-64 bg-slate-900/95 backdrop-blur-xl"
+            className="absolute top-0 left-0 bottom-0 w-64 bg-slate-900/95 backdrop-blur-xl flex flex-col h-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <GraduationCap className="h-6 w-6 text-teal-400" />
                 <h1 className="text-lg font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
@@ -202,8 +203,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="overflow-y-auto flex-grow">
-              <nav className="mt-6">
+
+            {/* Scrollable Navigation Area */}
+            <div className="flex-1 overflow-y-auto sidebar-scroll">
+              <nav className="mt-6 pb-6">
                 <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">
                   Admin
                 </div>
@@ -230,15 +233,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:flex-col w-64 bg-slate-900/95 backdrop-blur-xl text-white border-r border-white/10">
-        <div className="p-6 flex items-center justify-center border-b border-white/10">
+      <aside className="hidden md:flex md:flex-col w-64 h-full bg-slate-900/95 backdrop-blur-xl text-white border-r border-white/10 flex-shrink-0">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 p-6 flex items-center justify-center border-b border-white/10">
           <GraduationCap className="h-8 w-8 text-teal-400 mr-3" />
           <span className="font-bold text-xl bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
             VX Academy
           </span>
         </div>
-        <div className="overflow-y-auto flex-grow">
-          <nav className="mt-6">
+
+        {/* Scrollable Navigation Area */}
+        <div className="flex-1 overflow-y-auto sidebar-scroll">
+          <nav className="mt-6 pb-6">
             <div className="px-6 py-2 text-slate-400 uppercase text-xs font-semibold tracking-wider">
               Admin
             </div>
@@ -259,7 +265,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ))}
           </nav>
         </div>
-        <div className="p-6 border-t border-white/10">
+
+        {/* Fixed Footer */}
+        <div className="flex-shrink-0 p-6 border-t border-white/10">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-12 w-12 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-lg font-bold mr-4 shadow-lg">
               {user.firstName?.charAt(0) || user.username?.charAt(0) || "?"}
@@ -302,9 +310,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
         {/* Mobile header */}
-        <header className="md:hidden bg-slate-900/95 backdrop-blur-xl text-white p-4 shadow-lg border-b border-white/10">
+        <header className="md:hidden bg-slate-900/95 backdrop-blur-xl text-white p-4 shadow-lg border-b border-white/10 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-6 w-6 text-teal-400" />
@@ -341,7 +349,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Main content area */}
-        <main className="flex-1 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <main className="flex-1 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 overflow-y-auto main-content-scroll">
           {children}
         </main>
       </div>

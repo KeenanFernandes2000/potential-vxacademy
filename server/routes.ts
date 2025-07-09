@@ -44,6 +44,294 @@ import {
   canManageUser,
 } from "./permissions";
 
+// Helper function to generate certificate HTML
+function generateCertificateHTML({ certificate, course, user }: { 
+  certificate: any, 
+  course: any, 
+  user: any 
+}) {
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Certificate - ${user.firstName} ${user.lastName}</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 20px;
+                font-family: 'Georgia', serif;
+                background: #f5f5f5;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .certificate {
+                max-width: 800px;
+                margin: 0 auto;
+                background: white;
+                border: 8px double #0d9488;
+                padding: 60px;
+                position: relative;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            }
+            
+            .corner {
+                position: absolute;
+                width: 40px;
+                height: 40px;
+                border: 3px solid #0d9488;
+            }
+            
+            .corner.top-left {
+                top: 20px;
+                left: 20px;
+                border-right: none;
+                border-bottom: none;
+            }
+            
+            .corner.top-right {
+                top: 20px;
+                right: 20px;
+                border-left: none;
+                border-bottom: none;
+            }
+            
+            .corner.bottom-left {
+                bottom: 20px;
+                left: 20px;
+                border-right: none;
+                border-top: none;
+            }
+            
+            .corner.bottom-right {
+                bottom: 20px;
+                right: 20px;
+                border-left: none;
+                border-top: none;
+            }
+            
+            .logo {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            
+            .logo-circle {
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #0d9488, #06b6d4);
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 30px;
+                font-weight: bold;
+                margin-bottom: 15px;
+            }
+            
+            .academy-name {
+                font-size: 32px;
+                font-weight: bold;
+                color: #0f766e;
+                margin: 0;
+            }
+            
+            .divider {
+                width: 120px;
+                height: 3px;
+                background: linear-gradient(to right, #0d9488, #06b6d4);
+                margin: 10px auto 40px;
+            }
+            
+            .certificate-title {
+                text-align: center;
+                font-size: 36px;
+                font-weight: bold;
+                color: #374151;
+                margin-bottom: 30px;
+            }
+            
+            .certifies-text {
+                text-align: center;
+                font-size: 18px;
+                color: #6b7280;
+                margin-bottom: 20px;
+            }
+            
+            .recipient-name {
+                text-align: center;
+                font-size: 42px;
+                font-weight: bold;
+                color: #0f766e;
+                margin: 30px 0;
+                border-bottom: 2px solid #a7f3d0;
+                padding-bottom: 10px;
+            }
+            
+            .completion-text {
+                text-align: center;
+                font-size: 18px;
+                color: #4b5563;
+                margin-bottom: 15px;
+            }
+            
+            .course-name {
+                text-align: center;
+                font-size: 28px;
+                font-weight: bold;
+                color: #374151;
+                background: #f9fafb;
+                padding: 20px;
+                border: 2px solid #e5e7eb;
+                border-radius: 10px;
+                margin: 20px 0 40px;
+            }
+            
+            .certificate-details {
+                display: flex;
+                justify-content: center;
+                gap: 60px;
+                margin-bottom: 50px;
+            }
+            
+            .detail-item {
+                text-align: center;
+            }
+            
+            .detail-label {
+                font-size: 14px;
+                color: #6b7280;
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
+            
+            .detail-value {
+                font-size: 16px;
+                font-weight: bold;
+                color: #374151;
+                font-family: 'Courier New', monospace;
+            }
+            
+            .signature-section {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+                margin-top: 60px;
+            }
+            
+            .signature {
+                text-align: center;
+                width: 200px;
+            }
+            
+            .signature-line {
+                width: 180px;
+                height: 2px;
+                background: #9ca3af;
+                margin: 0 auto 10px;
+            }
+            
+            .signature-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: #4b5563;
+            }
+            
+            .signature-subtitle {
+                font-size: 12px;
+                color: #6b7280;
+            }
+            
+            .seal {
+                width: 80px;
+                height: 80px;
+                background: #d1fae5;
+                border: 2px solid #10b981;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+                color: #047857;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+            
+            @media print {
+                body { background: white; padding: 0; }
+                .certificate { 
+                    box-shadow: none; 
+                    page-break-inside: avoid;
+                }
+                @page {
+                    margin: 0.5in;
+                    size: landscape;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="certificate">
+            <div class="corner top-left"></div>
+            <div class="corner top-right"></div>
+            <div class="corner bottom-left"></div>
+            <div class="corner bottom-right"></div>
+            
+            <div class="logo">
+                <div class="logo-circle">VX</div>
+                <h1 class="academy-name">VX Academy</h1>
+                <div class="divider"></div>
+            </div>
+            
+            <h2 class="certificate-title">Certificate of Completion</h2>
+            
+            <p class="certifies-text">This is to certify that</p>
+            
+            <div class="recipient-name">${user.firstName} ${user.lastName}</div>
+            
+            <p class="completion-text">has successfully completed the course</p>
+            
+            <div class="course-name">${course.name}</div>
+            
+            <div class="certificate-details">
+                <div class="detail-item">
+                    <div class="detail-label">Certificate ID</div>
+                    <div class="detail-value">${certificate.certificateNumber}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Date Issued</div>
+                    <div class="detail-value">${formatDate(certificate.createdAt)}</div>
+                </div>
+            </div>
+            
+            <div class="signature-section">
+                <div class="signature">
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Director, VX Academy</div>
+                    <div class="signature-subtitle">Abu Dhabi, UAE</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="seal">OFFICIAL<br>SEAL</div>
+                    <div class="signature-subtitle">Official Seal</div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+}
+
 // Helper function to calculate and update course progress
 async function updateCourseProgress(userId: number, courseId: number) {
   try {
@@ -2272,6 +2560,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate certificate PDF
+  app.get("/api/certificates/:id/pdf", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const certificateId = parseInt(req.params.id);
+      const certificate = await storage.getCertificate(certificateId);
+
+      if (!certificate) {
+        return res.status(404).json({ message: "Certificate not found" });
+      }
+
+      // Verify that the certificate belongs to the requesting user
+      if (certificate.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get course and user details
+      const course = await storage.getCourse(certificate.courseId);
+      const user = await storage.getUser(certificate.userId);
+
+      if (!course || !user) {
+        return res.status(404).json({ message: "Course or user not found" });
+      }
+
+      // Generate HTML for the certificate
+      const certificateHtml = generateCertificateHTML({
+        certificate,
+        course,
+        user
+      });
+
+      // For now, return the HTML - in production you'd convert to PDF
+      res.setHeader('Content-Type', 'text/html');
+      res.send(certificateHtml);
+    } catch (error) {
+      console.error("Error generating certificate PDF:", error);
+      res.status(500).json({ message: "Error generating certificate PDF" });
+    }
+  });
+
   // SCORM Package Management
   app.get("/api/scorm-packages", getScormPackages);
   app.get("/api/scorm-packages/:id", getScormPackage);
@@ -2447,7 +2778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Generate certificate if enabled and user passed
-        if (assessment.hasCertificate && assessment.certificateTemplate) {
+        if (assessment.hasCertificate) {
           try {
             // Get course information for certificate
             let courseId = assessment.courseId;

@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Loader2,
   Pencil,
@@ -856,11 +857,11 @@ export default function LearningBlocksManagement() {
                         <FormItem>
                           <FormLabel>Content</FormLabel>
                           <FormControl>
-                            <Textarea
-                              placeholder="Enter the learning content text here..."
-                              className="min-h-[150px]"
-                              {...field}
+                            <RichTextEditor
                               value={field.value || ""}
+                              onChange={field.onChange}
+                              placeholder="Enter the learning content text here..."
+                              className="min-h-[200px]"
                             />
                           </FormControl>
                           <FormMessage />

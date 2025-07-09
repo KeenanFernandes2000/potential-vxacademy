@@ -24,8 +24,8 @@ import {
   certificates,
   notifications,
   mediaFiles,
-} from "@shared/schema";
-import { hashPassword } from "@shared/auth-utils";
+} from "../shared/schema";
+import { hashPassword } from "../shared/auth-utils";
 import { eq, sql } from "drizzle-orm";
 import dotenv from "dotenv";
 

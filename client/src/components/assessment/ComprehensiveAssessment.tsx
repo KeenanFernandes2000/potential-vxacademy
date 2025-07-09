@@ -8,7 +8,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Trophy, AlertTriangle, Clock, Award, CheckCircle } from "lucide-react";
+import {
+  Trophy,
+  AlertTriangle,
+  Clock,
+  Award,
+  CheckCircle,
+  Printer,
+} from "lucide-react";
 
 interface ComprehensiveAssessmentProps {
   assessment: Assessment;
@@ -22,36 +29,52 @@ interface ComprehensiveAssessmentProps {
   onCancel: () => void;
 }
 
-export function ComprehensiveAssessment({ 
-  assessment, 
-  userId, 
-  onComplete, 
-  onCancel 
+export function ComprehensiveAssessment({
+  assessment,
+  userId,
+  onComplete,
+  onCancel,
 }: ComprehensiveAssessmentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<string, string>
+  >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [assessmentStarted, setAssessmentStarted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(
-    assessment?.hasTimeLimit && assessment?.timeLimit ? assessment.timeLimit * 60 : 0
+    assessment?.hasTimeLimit && assessment?.timeLimit
+      ? assessment.timeLimit * 60
+      : 0
   );
   const [timeExpired, setTimeExpired] = useState(false);
 
   // Fetch questions
-  const { data: questions, isLoading: isLoadingQuestions } = useQuery<Question[]>({
+  const { data: questions, isLoading: isLoadingQuestions } = useQuery<
+    Question[]
+  >({
     queryKey: [`/api/assessments/${assessment.id}/questions`],
     enabled: !!assessment.id,
   });
 
   // Fetch previous attempts
-  const { data: attempts = [], isLoading: isLoadingAttempts } = useQuery<any[]>({
-    queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
-    enabled: !!assessment.id && !!userId,
-  });
+  const { data: attempts = [], isLoading: isLoadingAttempts } = useQuery<any[]>(
+    {
+      queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
+      enabled: !!assessment.id && !!userId,
+    }
+  );
+
+  // No need to fetch certificates - we'll use the certificate template URL directly
 
   // Timer effect
   useEffect(() => {
-    if (!assessmentStarted || !assessment.hasTimeLimit || timeExpired || isSubmitting) return;
+    if (
+      !assessmentStarted ||
+      !assessment.hasTimeLimit ||
+      timeExpired ||
+      isSubmitting
+    )
+      return;
 
     if (timeRemaining <= 0) {
       setTimeExpired(true);
@@ -60,7 +83,7 @@ export function ComprehensiveAssessment({
     }
 
     const timer = setInterval(() => {
-      setTimeRemaining(prev => prev - 1);
+      setTimeRemaining((prev) => prev - 1);
     }, 1000);
 
     return () => clearInterval(timer);
@@ -70,7 +93,11 @@ export function ComprehensiveAssessment({
   const submitAssessmentMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log("Making API request to submit assessment:", data);
-      const res = await apiRequest("POST", `/api/assessments/${assessment.id}/submit`, data);
+      const res = await apiRequest(
+        "POST",
+        `/api/assessments/${assessment.id}/submit`,
+        data
+      );
       const result = await res.json();
       console.log("Assessment submission response:", result);
       return result;
@@ -82,39 +109,46 @@ export function ComprehensiveAssessment({
         passed: result.passed,
         score: result.score,
         certificateGenerated: result.certificateGenerated,
-        attemptsRemaining: result.attemptsRemaining
+        attemptsRemaining: result.attemptsRemaining,
       });
 
       // Invalidate related queries
-      queryClient.invalidateQueries({ 
-        queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`] 
+      queryClient.invalidateQueries({
+        queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
       });
       queryClient.invalidateQueries({ queryKey: [`/api/user/progress`] });
-
-      if (result.certificateGenerated) {
-        queryClient.invalidateQueries({ queryKey: [`/api/user/certificates`] });
-      }
     },
     onError: (error) => {
       console.error("Assessment submission error:", error);
       setIsSubmitting(false);
-    }
+    },
   });
 
   const attemptsUsed = attempts.length;
   const attemptsRemaining = Math.max(0, assessment.maxRetakes - attemptsUsed);
   const canTakeAssessment = attemptsRemaining > 0;
-  const hasPassed = attempts.some(attempt => attempt.passed);
+  const hasPassed = attempts.some((attempt) => attempt.passed);
   const lastAttempt = attempts[attempts.length - 1];
+
+  // Simple certificate check - just use the certificate template URL from assessment
+  const hasCertificateUrl =
+    assessment?.hasCertificate && assessment?.certificateTemplate;
 
   const handleStartAssessment = () => {
     setAssessmentStarted(true);
   };
 
+  const handleViewCertificate = () => {
+    if (assessment?.certificateTemplate) {
+      // Open certificate URL in new tab/window
+      window.open(assessment.certificateTemplate, "_blank");
+    }
+  };
+
   const handleAnswerSelect = (questionId: string, answer: string) => {
-    setSelectedAnswers(prev => ({
+    setSelectedAnswers((prev) => ({
       ...prev,
-      [questionId]: answer
+      [questionId]: answer,
     }));
   };
 
@@ -125,11 +159,11 @@ export function ComprehensiveAssessment({
       questionsLength: questions.length,
       selectedAnswersCount: Object.keys(selectedAnswers).length,
       selectedAnswers,
-      assessmentId: assessment.id
+      assessmentId: assessment.id,
     });
 
     // Log each question and its answer for debugging
-    questions.forEach(question => {
+    questions.forEach((question) => {
       const userAnswer = selectedAnswers[question.id.toString()];
       console.log(`Question ${question.id}:`, {
         questionText: question.questionText,
@@ -137,7 +171,7 @@ export function ComprehensiveAssessment({
         userAnswer,
         correctAnswer: question.correctAnswer,
         hasAnswer: userAnswer !== undefined,
-        options: question.options
+        options: question.options,
       });
     });
 
@@ -145,7 +179,7 @@ export function ComprehensiveAssessment({
     let correctAnswers = 0;
     const totalQuestions = questions.length;
 
-    questions.forEach(question => {
+    questions.forEach((question) => {
       const userAnswer = selectedAnswers[question.id.toString()];
       if (userAnswer === question.correctAnswer) {
         correctAnswers++;
@@ -154,21 +188,28 @@ export function ComprehensiveAssessment({
 
     const score = Math.round((correctAnswers / totalQuestions) * 100);
 
-    console.log("Calculated score:", score, "Correct answers:", correctAnswers, "Total questions:", totalQuestions);
+    console.log(
+      "Calculated score:",
+      score,
+      "Correct answers:",
+      correctAnswers,
+      "Total questions:",
+      totalQuestions
+    );
 
     setIsSubmitting(true);
     submitAssessmentMutation.mutate({
       answers: selectedAnswers,
       score,
       timeExpired,
-      startedAt: new Date().toISOString()
+      startedAt: new Date().toISOString(),
     });
   };
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   const getTimeWarning = () => {
@@ -198,21 +239,30 @@ export function ComprehensiveAssessment({
           </h3>
           <p className="text-gray-600 mb-4">
             You have successfully passed this assessment with a score of{" "}
-            {attempts.find(a => a.passed)?.score}%.
+            {attempts.find((a) => a.passed)?.score}%.
           </p>
-          {assessment.hasCertificate && (
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center justify-center gap-2 text-yellow-800">
+          {hasCertificateUrl && (
+            <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-center gap-2 text-green-800 mb-3">
                 <Award className="h-5 w-5" />
                 <span className="font-medium">Certificate Earned!</span>
               </div>
-              <p className="text-sm text-yellow-700 mt-1">
-                Check your Achievements page to view your certificate.
-              </p>
+              <div className="text-center">
+                <p className="text-sm text-green-700 mb-3">
+                  Congratulations! Your certificate is ready to view and print.
+                </p>
+                <Button
+                  onClick={handleViewCertificate}
+                  className="bg-gradient-to-r from-teal-600 to-green-600 hover:from-teal-700 hover:to-green-700 text-white"
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  View Certificate
+                </Button>
+              </div>
             </div>
           )}
-          <Button 
-            onClick={onCancel} 
+          <Button
+            onClick={onCancel}
             variant="outline"
             disabled
             className="cursor-not-allowed opacity-75"
@@ -237,20 +287,25 @@ export function ComprehensiveAssessment({
         <CardContent>
           <Alert className="border-red-200 bg-red-50 mb-4">
             <AlertDescription className="text-red-700">
-              You have used all your allowed attempts ({assessment.maxRetakes}) for this assessment.
+              You have used all your allowed attempts ({assessment.maxRetakes})
+              for this assessment.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2 mb-4">
-            <p><strong>Attempts used:</strong> {attemptsUsed} / {assessment.maxRetakes}</p>
+            <p>
+              <strong>Attempts used:</strong> {attemptsUsed} /{" "}
+              {assessment.maxRetakes}
+            </p>
             {attempts.length > 0 && (
-              <p><strong>Best score:</strong> {Math.max(...attempts.map(a => a.score))}%</p>
+              <p>
+                <strong>Best score:</strong>{" "}
+                {Math.max(...attempts.map((a) => a.score))}%
+              </p>
             )}
           </div>
 
-          <Button onClick={onCancel}>
-            Back to Course
-          </Button>
+          <Button onClick={onCancel}>Back to Course</Button>
         </CardContent>
       </Card>
     );
@@ -274,11 +329,17 @@ export function ComprehensiveAssessment({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <h4 className="font-semibold">Assessment Details:</h4>
-              <p><strong>Questions:</strong> {questions?.length || 0}</p>
+              <p>
+                <strong>Questions:</strong> {questions?.length || 0}
+              </p>
               {assessment.isGraded && assessment.passingScore && (
-                <p><strong>Passing Score:</strong> {assessment.passingScore}%</p>
+                <p>
+                  <strong>Passing Score:</strong> {assessment.passingScore}%
+                </p>
               )}
-              <p><strong>XP Points:</strong> {assessment.xpPoints}</p>
+              <p>
+                <strong>XP Points:</strong> {assessment.xpPoints}
+              </p>
               {assessment.hasCertificate && (
                 <div className="flex items-center text-green-600">
                   <Award className="mr-1 h-4 w-4" />
@@ -289,8 +350,13 @@ export function ComprehensiveAssessment({
 
             <div className="space-y-2">
               <h4 className="font-semibold">Attempt Information:</h4>
-              <p><strong>Attempts used:</strong> {attemptsUsed} / {assessment.maxRetakes}</p>
-              <p><strong>Attempts remaining:</strong> {attemptsRemaining}</p>
+              <p>
+                <strong>Attempts used:</strong> {attemptsUsed} /{" "}
+                {assessment.maxRetakes}
+              </p>
+              <p>
+                <strong>Attempts remaining:</strong> {attemptsRemaining}
+              </p>
               {assessment.hasTimeLimit && assessment.timeLimit && (
                 <div className="flex items-center text-orange-600">
                   <Clock className="mr-1 h-4 w-4" />
@@ -303,13 +369,17 @@ export function ComprehensiveAssessment({
           {attempts.length > 0 && (
             <Alert className="border-blue-200 bg-blue-50">
               <AlertDescription className="text-blue-700">
-                Previous attempts: {attempts.map(a => `${a.score}%`).join(", ")}
+                Previous attempts:{" "}
+                {attempts.map((a) => `${a.score}%`).join(", ")}
               </AlertDescription>
             </Alert>
           )}
 
           <div className="flex space-x-3">
-            <Button onClick={handleStartAssessment} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleStartAssessment}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               Start Assessment
             </Button>
             <Button onClick={onCancel} variant="outline">
@@ -377,7 +447,9 @@ export function ComprehensiveAssessment({
             <span className="text-sm font-medium">
               Question {currentQuestionIndex + 1} of {questions.length}
             </span>
-            <span className="text-sm text-gray-500">{Math.round(progress)}% complete</span>
+            <span className="text-sm text-gray-500">
+              {Math.round(progress)}% complete
+            </span>
           </div>
           <Progress value={progress} className="h-2" />
         </CardContent>
@@ -391,44 +463,60 @@ export function ComprehensiveAssessment({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {currentQuestion.questionType === "mcq" && currentQuestion.options && (
-            <RadioGroup
-              value={selectedAnswers[currentQuestion.id.toString()] || ""}
-              onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
-              className="space-y-3"
-            >
-              {(() => {
-                let options = currentQuestion.options;
+          {currentQuestion.questionType === "mcq" &&
+            currentQuestion.options && (
+              <RadioGroup
+                value={selectedAnswers[currentQuestion.id.toString()] || ""}
+                onValueChange={(value) =>
+                  handleAnswerSelect(currentQuestion.id.toString(), value)
+                }
+                className="space-y-3"
+              >
+                {(() => {
+                  let options = currentQuestion.options;
 
-                // Handle different option formats
-                if (typeof options === 'string') {
-                  try {
-                    options = JSON.parse(options);
-                  } catch {
-                    options = [options];
+                  // Handle different option formats
+                  if (typeof options === "string") {
+                    try {
+                      options = JSON.parse(options);
+                    } catch {
+                      options = [options];
+                    }
                   }
-                }
 
-                if (!Array.isArray(options)) {
-                  return <div className="text-red-600">No options available</div>;
-                }
+                  if (!Array.isArray(options)) {
+                    return (
+                      <div className="text-red-600">No options available</div>
+                    );
+                  }
 
-                return options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                    <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                    <Label htmlFor={`option-${index}`} className="cursor-pointer flex-1">
-                      {String(option)}
-                    </Label>
-                  </div>
-                ));
-              })()}
-            </RadioGroup>
-          )}
+                  return options.map((option, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50"
+                    >
+                      <RadioGroupItem
+                        value={index.toString()}
+                        id={`option-${index}`}
+                      />
+                      <Label
+                        htmlFor={`option-${index}`}
+                        className="cursor-pointer flex-1"
+                      >
+                        {String(option)}
+                      </Label>
+                    </div>
+                  ));
+                })()}
+              </RadioGroup>
+            )}
 
           {currentQuestion.questionType === "true_false" && (
             <RadioGroup
               value={selectedAnswers[currentQuestion.id.toString()] || ""}
-              onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
+              onValueChange={(value) =>
+                handleAnswerSelect(currentQuestion.id.toString(), value)
+              }
               className="space-y-3"
             >
               <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
@@ -462,7 +550,11 @@ export function ComprehensiveAssessment({
 
             <div className="flex space-x-2">
               {currentQuestionIndex < questions.length - 1 ? (
-                <Button onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}>
+                <Button
+                  onClick={() =>
+                    setCurrentQuestionIndex(currentQuestionIndex + 1)
+                  }
+                >
                   Next
                 </Button>
               ) : (

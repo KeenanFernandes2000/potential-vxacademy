@@ -1153,7 +1153,9 @@ export default function EnhancedCourseDetail() {
                         selectedBlock.videoUrl && (
                           <div className="aspect-video">
                             <iframe
-                              src={selectedBlock.videoUrl}
+                              src={getEmbeddableYouTubeUrl(
+                                selectedBlock.videoUrl
+                              )}
                               className="w-full h-full rounded-lg"
                               allowFullScreen
                             />
@@ -1260,4 +1262,51 @@ export default function EnhancedCourseDetail() {
       </div>
     </Layout>
   );
+}
+
+// Helper function to convert YouTube URLs to embeddable format
+function getEmbeddableYouTubeUrl(url: string): string {
+  if (!url) return url;
+
+  try {
+    // If it's already an embed URL, return as is
+    if (url.includes("youtube.com/embed/")) {
+      return url;
+    }
+
+    let videoId = "";
+
+    // Handle youtube.com/watch?v= format
+    if (url.includes("youtube.com/watch?v=")) {
+      const urlParams = new URLSearchParams(url.split("?")[1]);
+      videoId = urlParams.get("v") || "";
+    }
+    // Handle youtu.be/ format
+    else if (url.includes("youtu.be/")) {
+      const pathParts = url.split("youtu.be/")[1];
+      videoId = pathParts ? pathParts.split("?")[0].split("&")[0] : "";
+    }
+    // Handle youtube.com/v/ format
+    else if (url.includes("youtube.com/v/")) {
+      const pathParts = url.split("youtube.com/v/")[1];
+      videoId = pathParts ? pathParts.split("?")[0].split("&")[0] : "";
+    }
+    // Handle m.youtube.com format
+    else if (url.includes("m.youtube.com/watch?v=")) {
+      const urlParams = new URLSearchParams(url.split("?")[1]);
+      videoId = urlParams.get("v") || "";
+    }
+
+    // If we found a video ID, create embed URL
+    if (videoId && videoId.length === 11) {
+      // YouTube video IDs are always 11 characters
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    // If it's not a YouTube URL or we couldn't parse it, return original
+    return url;
+  } catch (error) {
+    console.error("Error parsing YouTube URL:", error);
+    return url;
+  }
 }
