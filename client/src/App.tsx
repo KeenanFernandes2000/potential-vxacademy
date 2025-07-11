@@ -34,6 +34,43 @@ import MediaManagementPage from "@/pages/admin/media";
 
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
+import { useEffect } from "react";
+
+function ChatbotLoader() {
+  const { user } = useAuth();
+  const [location] = useLocation();
+
+  useEffect(() => {
+    // Only load for authenticated users not on admin routes
+    if (!location.startsWith("/admin")) {
+      // Add the chatbot script
+      const script1 = document.createElement("script");
+      // script1.charset = "utf-8";
+      script1.type = "text/javascript";
+      script1.src = "https://ai.potential.com/static/embed/chat.js";
+      script1.crossOrigin = "anonymous";
+
+      script1.onload = () => {
+        // Initialize chatbot
+        const script2 = document.createElement("script");
+        script2.innerHTML = `
+          chatbotembed({
+            botId: "68049d13024d653c8feb0eec",
+            botIcon: "https://ai.potential.com/static/mentors/VBBAICoach-1745132818840-EHC.jpg",
+            botColor: "#007BC3"
+          });
+        `;
+        document.head.appendChild(script2);
+      };
+
+      document.head.appendChild(script1);
+    }
+  }, [location]);
+
+  return null;
+}
 
 function Router() {
   return (
@@ -41,7 +78,7 @@ function Router() {
       {/* Public routes */}
       <Route path="/" component={HomePage} />
       <Route path="/auth" component={AuthPage} />
-      
+
       {/* Protected routes */}
       <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/courses" component={Courses} />
@@ -50,25 +87,40 @@ function Router() {
       <ProtectedRoute path="/leaderboard" component={Leaderboard} />
       <ProtectedRoute path="/ai-tutor" component={AiTutor} />
       <ProtectedRoute path="/profile" component={Profile} />
-      
+
       {/* Admin routes */}
       <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} />
       <ProtectedRoute path="/admin/users" component={UserManagement} />
       <ProtectedRoute path="/admin/roles" component={RolesManagement} />
       <ProtectedRoute path="/admin/content" component={ContentManagement} />
-      <ProtectedRoute path="/admin/content-management" component={ContentManagement} />
+      <ProtectedRoute
+        path="/admin/content-management"
+        component={ContentManagement}
+      />
       <ProtectedRoute path="/admin/analytics" component={Analytics} />
-      <ProtectedRoute path="/admin/course-management" component={CourseManagement} />
+      <ProtectedRoute
+        path="/admin/course-management"
+        component={CourseManagement}
+      />
       <ProtectedRoute path="/admin/modules" component={ModuleManagement} />
-      <ProtectedRoute path="/admin/training-areas" component={TrainingAreaManagement} />
+      <ProtectedRoute
+        path="/admin/training-areas"
+        component={TrainingAreaManagement}
+      />
       <ProtectedRoute path="/admin/units" component={UnitsManagement} />
-      <ProtectedRoute path="/admin/learning-blocks" component={LearningBlocksManagement} />
-      <ProtectedRoute path="/admin/assessments" component={AssessmentsManagement} />
+      <ProtectedRoute
+        path="/admin/learning-blocks"
+        component={LearningBlocksManagement}
+      />
+      <ProtectedRoute
+        path="/admin/assessments"
+        component={AssessmentsManagement}
+      />
       <ProtectedRoute path="/admin/questions" component={QuestionsManagement} />
       <ProtectedRoute path="/admin/badges" component={BadgesManagement} />
       <ProtectedRoute path="/admin/scorm" component={ScormPackagesManagement} />
       <ProtectedRoute path="/admin/media" component={MediaManagementPage} />
-      
+
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
@@ -81,6 +133,7 @@ function App() {
       <AuthProvider>
         <Router />
         <Toaster />
+        <ChatbotLoader />
       </AuthProvider>
     </QueryClientProvider>
   );

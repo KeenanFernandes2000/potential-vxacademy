@@ -30,7 +30,11 @@ export function ProtectedRoute({
   }
 
   // Admin routes check - allow both admin and sub-admin
-  if (path.startsWith("/admin") && user.role !== "admin" && user.role !== "sub-admin") {
+  if (
+    path.startsWith("/admin") &&
+    user.role !== "admin" &&
+    user.role !== "sub-admin"
+  ) {
     return (
       <Route path={path}>
         <Redirect to="/" />
@@ -38,5 +42,5 @@ export function ProtectedRoute({
     );
   }
 
-  return <Route path={path} component={Component} />
+  return <Route path={path} component={Component} />;
 }

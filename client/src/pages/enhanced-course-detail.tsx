@@ -122,12 +122,12 @@ export default function EnhancedCourseDetail() {
     enabled: !!courseId,
   });
 
-  // Fetch learning blocks for active unit
+  // Fetch all learning blocks for the course
   const { data: blocks = [], isLoading: blocksLoading } = useQuery<
     LearningBlock[]
   >({
-    queryKey: [`/api/units/${activeUnitId}/blocks`],
-    enabled: !!activeUnitId,
+    queryKey: [`/api/courses/${courseId}/blocks`],
+    enabled: !!courseId,
   });
 
   // Fetch user progress
@@ -1143,7 +1143,7 @@ export default function EnhancedCourseDetail() {
                     <CardContent>
                       {selectedBlock.type === "text" && (
                         <div
-                          className="prose max-w-none"
+                          className="prose max-w-none [&_br]:block [&_br]:my-1 [&_p]:whitespace-pre-line [&_p:empty]:min-h-[1em] [&_p:empty]:block"
                           dangerouslySetInnerHTML={{
                             __html: selectedBlock.content || "",
                           }}

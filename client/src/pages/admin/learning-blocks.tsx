@@ -299,6 +299,10 @@ export default function LearningBlocksManagement() {
     resolver: zodResolver(blockFormSchema),
     defaultValues: {
       title: "",
+      trainingAreaId: "",
+      moduleId: "",
+      courseId: "",
+      unitId: undefined,
       type: "text",
       order: 1,
       xpPoints: 10,
@@ -306,6 +310,7 @@ export default function LearningBlocksManagement() {
       videoUrl: "",
       imageUrl: "",
       interactiveData: null,
+      scormPackageId: null,
     },
   });
 
@@ -325,7 +330,7 @@ export default function LearningBlocksManagement() {
         trainingAreaId: "",
         moduleId: "",
         courseId: "",
-        unitId: "",
+        unitId: undefined,
         type: "text",
         order: 1,
         xpPoints: 10,
@@ -393,6 +398,10 @@ export default function LearningBlocksManagement() {
       });
       form.reset({
         title: "",
+        trainingAreaId: "",
+        moduleId: "",
+        courseId: "",
+        unitId: undefined,
         type: "text",
         order: 1,
         xpPoints: 10,
@@ -400,6 +409,7 @@ export default function LearningBlocksManagement() {
         videoUrl: "",
         imageUrl: "",
         interactiveData: null,
+        scormPackageId: null,
       });
       setEditingBlock(null);
       queryClient.invalidateQueries({ queryKey: ["/api/learning-blocks"] });
@@ -431,6 +441,10 @@ export default function LearningBlocksManagement() {
       setEditingBlock(null);
       form.reset({
         title: "",
+        trainingAreaId: "",
+        moduleId: "",
+        courseId: "",
+        unitId: undefined,
         type: "text",
         order: 1,
         xpPoints: 10,
@@ -438,6 +452,7 @@ export default function LearningBlocksManagement() {
         videoUrl: "",
         imageUrl: "",
         interactiveData: null,
+        scormPackageId: null,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/learning-blocks"] });
     },
@@ -523,6 +538,10 @@ export default function LearningBlocksManagement() {
     setEditingBlock(null);
     form.reset({
       title: "",
+      trainingAreaId: "",
+      moduleId: "",
+      courseId: "",
+      unitId: undefined,
       type: "text",
       order: 1,
       xpPoints: 10,
@@ -530,6 +549,7 @@ export default function LearningBlocksManagement() {
       videoUrl: "",
       imageUrl: "",
       interactiveData: null,
+      scormPackageId: null,
     });
   };
 

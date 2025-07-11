@@ -73,12 +73,12 @@ export default function CourseDetail() {
     enabled: !!courseId,
   });
 
-  // Fetch learning blocks for the active unit
+  // Fetch all learning blocks for the course
   const { data: blocks, isLoading: isLoadingBlocks } = useQuery<
     LearningBlock[]
   >({
-    queryKey: [`/api/units/${activeUnitId}/blocks`],
-    enabled: !!activeUnitId,
+    queryKey: [`/api/courses/${courseId}/blocks`],
+    enabled: !!courseId,
   });
 
   // Fetch beginning assessments for the course
@@ -186,10 +186,16 @@ export default function CourseDetail() {
 
   // Set first block as active when blocks load
   useEffect(() => {
-    if (blocks && blocks.length > 0 && !activeBlockId) {
-      setActiveBlockId(blocks[0].id);
+    if (blocks && blocks.length > 0 && !activeBlockId && activeUnitId) {
+      // Find the first block for the active unit
+      const activeUnitBlocks = blocks.filter(
+        (block) => block.unitId === activeUnitId
+      );
+      if (activeUnitBlocks.length > 0) {
+        setActiveBlockId(activeUnitBlocks[0].id);
+      }
     }
-  }, [blocks, activeBlockId]);
+  }, [blocks, activeBlockId, activeUnitId]);
 
   // Calculate course progress
   const courseProgress =
@@ -243,13 +249,16 @@ export default function CourseDetail() {
   const handleCompleteBlock = (blockId: number) => {
     completeBlockMutation.mutate(blockId);
 
-    // Find and set the next block as active
-    if (blocks) {
-      const currentIndex = blocks.findIndex((b) => b.id === blockId);
-      if (currentIndex < blocks.length - 1) {
-        setActiveBlockId(blocks[currentIndex + 1].id);
+    // Find and set the next block as active within the current unit
+    if (blocks && activeUnitId) {
+      const activeUnitBlocks = blocks.filter(
+        (block) => block.unitId === activeUnitId
+      );
+      const currentIndex = activeUnitBlocks.findIndex((b) => b.id === blockId);
+      if (currentIndex < activeUnitBlocks.length - 1) {
+        setActiveBlockId(activeUnitBlocks[currentIndex + 1].id);
       } else if (unitAssessments && unitAssessments.length > 0) {
-        // If no more blocks, open assessment if available
+        // If no more blocks in this unit, open assessment if available
         setActiveAssessment(unitAssessments[0]);
         setAssessmentDialogOpen(true);
       }
@@ -257,7 +266,7 @@ export default function CourseDetail() {
 
     // Update course progress
     if (course && blocks) {
-      // Simple calculation: percentage of blocks completed
+      // Simple calculation: percentage of blocks completed across all units
       const percentComplete = Math.round(
         ((currentIndex + 1) / blocks.length) * 100
       );
@@ -278,10 +287,14 @@ export default function CourseDetail() {
     }
   };
 
-  // Calculate current block index
+  // Calculate current block index within the active unit
+  const activeUnitBlocks =
+    blocks && activeUnitId
+      ? blocks.filter((block) => block.unitId === activeUnitId)
+      : [];
   const currentIndex =
-    blocks && activeBlockId
-      ? blocks.findIndex((b) => b.id === activeBlockId)
+    activeUnitBlocks && activeBlockId
+      ? activeUnitBlocks.findIndex((b) => b.id === activeBlockId)
       : 0;
 
   // Format minutes into hours and minutes
@@ -424,69 +437,72 @@ export default function CourseDetail() {
                           </AccordionTrigger>
                           <AccordionContent>
                             <div className="px-4 pb-3 space-y-2">
-                              {isLoadingBlocks && activeUnitId === unit.id ? (
+                              {isLoadingBlocks ? (
                                 <Skeleton className="h-20 w-full" />
                               ) : (
                                 <>
                                   {blocks &&
-                                    activeUnitId === unit.id &&
-                                    blocks.map((block) => (
-                                      <div
-                                        key={block.id}
-                                        className={`px-3 py-3 rounded-lg cursor-pointer transition-all duration-200 border ${
-                                          activeBlockId === block.id
-                                            ? "bg-primary/10 border-primary/30 text-primary shadow-sm"
-                                            : "bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700 hover:border-gray-300"
-                                        }`}
-                                        onClick={() =>
-                                          setActiveBlockId(block.id)
-                                        }
-                                      >
-                                        <div className="flex items-center">
-                                          <div
-                                            className={`p-1.5 rounded-md mr-3 ${
-                                              activeBlockId === block.id
-                                                ? "bg-primary/20"
-                                                : "bg-white"
-                                            }`}
-                                          >
-                                            {block.type === "video" && (
-                                              <span className="material-icons text-sm">
-                                                videocam
+                                    blocks
+                                      .filter(
+                                        (block) => block.unitId === unit.id
+                                      )
+                                      .map((block) => (
+                                        <div
+                                          key={block.id}
+                                          className={`px-3 py-3 rounded-lg cursor-pointer transition-all duration-200 border ${
+                                            activeBlockId === block.id
+                                              ? "bg-primary/10 border-primary/30 text-primary shadow-sm"
+                                              : "bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700 hover:border-gray-300"
+                                          }`}
+                                          onClick={() =>
+                                            setActiveBlockId(block.id)
+                                          }
+                                        >
+                                          <div className="flex items-center">
+                                            <div
+                                              className={`p-1.5 rounded-md mr-3 ${
+                                                activeBlockId === block.id
+                                                  ? "bg-primary/20"
+                                                  : "bg-white"
+                                              }`}
+                                            >
+                                              {block.type === "video" && (
+                                                <span className="material-icons text-sm">
+                                                  videocam
+                                                </span>
+                                              )}
+                                              {block.type === "text" && (
+                                                <span className="material-icons text-sm">
+                                                  article
+                                                </span>
+                                              )}
+                                              {block.type === "interactive" && (
+                                                <span className="material-icons text-sm">
+                                                  quiz
+                                                </span>
+                                              )}
+                                              {block.type === "image" && (
+                                                <span className="material-icons text-sm">
+                                                  image
+                                                </span>
+                                              )}
+                                            </div>
+                                            <div className="flex-1">
+                                              <span className="text-sm font-medium line-clamp-1">
+                                                {block.title}
                                               </span>
-                                            )}
-                                            {block.type === "text" && (
-                                              <span className="material-icons text-sm">
-                                                article
-                                              </span>
-                                            )}
-                                            {block.type === "interactive" && (
-                                              <span className="material-icons text-sm">
-                                                quiz
-                                              </span>
-                                            )}
-                                            {block.type === "image" && (
-                                              <span className="material-icons text-sm">
-                                                image
-                                              </span>
-                                            )}
-                                          </div>
-                                          <div className="flex-1">
-                                            <span className="text-sm font-medium line-clamp-1">
-                                              {block.title}
-                                            </span>
-                                            <div className="flex items-center mt-1">
-                                              <span className="material-icons text-xs text-gray-500 mr-1">
-                                                schedule
-                                              </span>
-                                              <span className="text-xs text-gray-500">
-                                                {block.xpPoints} XP
-                                              </span>
+                                              <div className="flex items-center mt-1">
+                                                <span className="material-icons text-xs text-gray-500 mr-1">
+                                                  schedule
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                  {block.xpPoints} XP
+                                                </span>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ))}
 
                                   {/* Handle loading state for assessments */}
                                   {isLoadingUnitAssessments &&
@@ -668,7 +684,7 @@ export default function CourseDetail() {
                               <div className="mb-8">
                                 <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 shadow-sm">
                                   <div
-                                    className="prose prose-lg max-w-none text-gray-700 leading-relaxed"
+                                    className="prose prose-lg max-w-none text-gray-700 leading-relaxed [&_br]:block [&_br]:my-1 [&_p]:whitespace-pre-line [&_p:empty]:min-h-[1em] [&_p:empty]:block"
                                     dangerouslySetInnerHTML={{
                                       __html: block.content,
                                     }}
@@ -723,7 +739,9 @@ export default function CourseDetail() {
                               variant="outline"
                               onClick={() => {
                                 if (currentIndex > 0) {
-                                  setActiveBlockId(blocks[currentIndex - 1].id);
+                                  setActiveBlockId(
+                                    activeUnitBlocks[currentIndex - 1].id
+                                  );
                                 }
                               }}
                               disabled={currentIndex === 0}
@@ -734,7 +752,7 @@ export default function CourseDetail() {
                               Previous
                             </Button>
 
-                            {currentIndex < blocks.length - 1 ? (
+                            {currentIndex < activeUnitBlocks.length - 1 ? (
                               <Button
                                 onClick={() => {
                                   handleCompleteBlock(block.id);

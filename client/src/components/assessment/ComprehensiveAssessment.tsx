@@ -138,10 +138,48 @@ export function ComprehensiveAssessment({
     setAssessmentStarted(true);
   };
 
-  const handleViewCertificate = () => {
-    if (assessment?.certificateTemplate) {
-      // Open certificate URL in new tab/window
-      window.open(assessment.certificateTemplate, "_blank");
+  const handleViewCertificate = async () => {
+    if (!assessment?.hasCertificate || !assessment?.certificateTemplate) {
+      console.error("Certificate not available");
+      return;
+    }
+
+    try {
+      console.log("Generating certificate for assessment:", assessment.id);
+
+      const response = await apiRequest("POST", "/api/certificate/generate", {
+        assessmentId: assessment.id,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to generate certificate");
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+
+      // Create download URL and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Certificate_${assessment.title
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .replace(/\s+/g, "_")}.pdf`;
+      link.style.display = "none";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up the URL
+      window.URL.revokeObjectURL(url);
+
+      console.log("Certificate download initiated successfully");
+    } catch (error) {
+      console.error("Error generating certificate:", error);
+      // You could show a toast notification here
+      alert("Failed to generate certificate. Please try again.");
     }
   };
 
@@ -412,6 +450,36 @@ export function ComprehensiveAssessment({
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
   const allAnswered = Object.keys(selectedAnswers).length === questions.length;
 
+  // Helper function to render MCQ options with proper typing
+  const renderMCQOptions = (): React.ReactNode => {
+    let options = currentQuestion.options;
+
+    // Handle different option formats
+    if (typeof options === "string") {
+      try {
+        options = JSON.parse(options);
+      } catch {
+        options = [options];
+      }
+    }
+
+    if (!Array.isArray(options)) {
+      return <div className="text-red-600">No options available</div>;
+    }
+
+    return options.map((option, index) => (
+      <div
+        key={index}
+        className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50"
+      >
+        <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+        <Label htmlFor={`option-${index}`} className="cursor-pointer flex-1">
+          {String(option)}
+        </Label>
+      </div>
+    ));
+  };
+
   return (
     <div className="space-y-4">
       {/* Timer */}
@@ -464,7 +532,7 @@ export function ComprehensiveAssessment({
         </CardHeader>
         <CardContent>
           {currentQuestion.questionType === "mcq" &&
-            currentQuestion.options && (
+            currentQuestion.options != null && (
               <RadioGroup
                 value={selectedAnswers[currentQuestion.id.toString()] || ""}
                 onValueChange={(value) =>
@@ -472,42 +540,7 @@ export function ComprehensiveAssessment({
                 }
                 className="space-y-3"
               >
-                {(() => {
-                  let options = currentQuestion.options;
-
-                  // Handle different option formats
-                  if (typeof options === "string") {
-                    try {
-                      options = JSON.parse(options);
-                    } catch {
-                      options = [options];
-                    }
-                  }
-
-                  if (!Array.isArray(options)) {
-                    return (
-                      <div className="text-red-600">No options available</div>
-                    );
-                  }
-
-                  return options.map((option, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50"
-                    >
-                      <RadioGroupItem
-                        value={index.toString()}
-                        id={`option-${index}`}
-                      />
-                      <Label
-                        htmlFor={`option-${index}`}
-                        className="cursor-pointer flex-1"
-                      >
-                        {String(option)}
-                      </Label>
-                    </div>
-                  ));
-                })()}
+                {renderMCQOptions()}
               </RadioGroup>
             )}
 

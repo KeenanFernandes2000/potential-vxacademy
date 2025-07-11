@@ -26,6 +26,7 @@ import {
   uploadCertificateTemplate,
   handleCertificateTemplateUpload,
 } from "./certificate-handler";
+import { CertificatePDFService, type CertificateData } from "./certificate-pdf-service";
 import { uploadExcel, processExcelUpload } from "./excel-upload-handler";
 import {
   uploadMedia,
@@ -747,6 +748,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching learning blocks:", error);
       res.status(500).json({
         message: "Error fetching learning blocks",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+
+  // New endpoint: Get all learning blocks for a course
+  app.get("/api/courses/:courseId/blocks", async (req, res) => {
+    try {
+      const courseId = parseInt(req.params.courseId);
+      if (isNaN(courseId)) {
+        return res.status(400).json({ message: "Invalid course ID" });
+      }
+
+      console.log(`Fetching all learning blocks for course ID: ${courseId}`);
+      
+      // Get all units for this course
+      const units = await storage.getUnits(courseId);
+      let allBlocks = [];
+
+      // Fetch blocks for each unit in the course
+      for (const unit of units) {
+        const blocks = await storage.getLearningBlocks(unit.id);
+        allBlocks = allBlocks.concat(blocks || []);
+      }
+
+      console.log(`Retrieved ${allBlocks.length} total learning blocks for course ID: ${courseId}`);
+      res.json(allBlocks);
+    } catch (error) {
+      console.error("Error fetching course learning blocks:", error);
+      res.status(500).json({
+        message: "Error fetching course learning blocks",
         error: error instanceof Error ? error.message : String(error),
       });
     }
@@ -2904,6 +2936,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching course assessments:", error);
       res.status(500).json({ message: "Error fetching course assessments" });
+    }
+  });
+
+  // Test PDF endpoint to verify binary handling
+  app.get("/api/test-pdf", async (req, res) => {
+    try {
+      const templatePath = path.resolve('attached_assets/Certificate_Template_With_Placeholders_1750244699874.pdf');
+      
+      if (!fs.existsSync(templatePath)) {
+        return res.status(404).json({ message: "Test template not found" });
+      }
+      
+      const buffer = fs.readFileSync(templatePath);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="test-original.pdf"');
+      res.setHeader('Content-Length', buffer.length.toString());
+      res.end(buffer);
+      
+    } catch (error) {
+      console.error("Test PDF error:", error);
+      res.status(500).json({ message: "Test failed" });
+    }
+  });
+
+  // Certificate Generation Endpoint  
+  app.post("/api/certificate/generate", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { assessmentId } = req.body;
+      const userId = req.user!.id;
+
+      if (!assessmentId) {
+        return res.status(400).json({ message: "Assessment ID is required" });
+      }
+
+      console.log(`🎓 Certificate generation requested for assessment ${assessmentId} by user ${userId}`);
+
+      // Get assessment details
+      const assessment = await storage.getAssessment(assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Check if assessment has certificate enabled
+      if (!assessment.hasCertificate || !assessment.certificateTemplate) {
+        return res.status(400).json({ 
+          message: "Certificate not available for this assessment" 
+        });
+      }
+
+      // Check if user has passed this assessment
+      const attempts = await storage.getAssessmentAttempts(userId, assessmentId);
+      const hasPassedAttempt = attempts.some(attempt => attempt.passed);
+      
+      if (!hasPassedAttempt) {
+        return res.status(403).json({ 
+          message: "You must pass the assessment to generate a certificate" 
+        });
+      }
+
+      // Get user and course details
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get course information
+      let courseId = assessment.courseId;
+      if (!courseId && assessment.unitId) {
+        // Get course from unit if assessment is unit-level
+        const courses = await storage.getCoursesForUnit(assessment.unitId);
+        courseId = courses[0]?.id;
+      }
+
+      const course = courseId ? await storage.getCourse(courseId) : null;
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      // Get the best attempt for certificate details
+      const bestAttempt = attempts
+        .filter(attempt => attempt.passed)
+        .sort((a, b) => b.score - a.score)[0];
+
+      // Prepare certificate data
+      const certificateData: CertificateData = {
+        userName: `${user.firstName} ${user.lastName}`,
+        courseName: course.name,
+        date: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        certificateId: `CERT-${assessmentId}-${userId}-${bestAttempt.id}`,
+        issueDate: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        completionDate: bestAttempt.completedAt 
+          ? new Date(bestAttempt.completedAt).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            }) 
+          : undefined,
+      };
+
+      console.log(`📋 Certificate data prepared:`, certificateData);
+
+      // TEMPORARY: Use a hardcoded path to test certificate generation
+      // TODO: Fix this to use assessment.certificateTemplate when path resolution is working
+      const templatePath = path.resolve('attached_assets/Certificate_Template_With_Placeholders_1750244699874.pdf');
+      console.log(`📁 Using template path: ${templatePath}`);
+
+      // Validate template exists
+      const templateExists = await CertificatePDFService.validateTemplate(templatePath);
+      if (!templateExists) {
+        console.log(`❌ Template not found at: ${templatePath}`);
+        console.log(`📋 Assessment template URL: ${assessment.certificateTemplate}`);
+        
+        return res.status(404).json({ 
+          message: "Certificate template not found or inaccessible",
+          templatePath: templatePath,
+          originalUrl: assessment.certificateTemplate
+        });
+      }
+
+      // Generate the certificate PDF
+      const certificatePdfBuffer = await CertificatePDFService.generateCertificate(
+        templatePath, 
+        certificateData
+      );
+
+      // Clean filename for download
+      const cleanUserName = certificateData.userName
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .replace(/\s+/g, '_');
+      const cleanCourseName = course.name
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .replace(/\s+/g, '_');
+      const filename = `Certificate_${cleanUserName}_${cleanCourseName}.pdf`;
+
+      console.log(`📥 Sending certificate PDF: ${filename} (${certificatePdfBuffer.length} bytes)`);
+
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', certificatePdfBuffer.length.toString());
+      res.setHeader('Cache-Control', 'no-cache');
+
+      // Send the PDF buffer (without encoding parameter to prevent corruption)
+      res.end(certificatePdfBuffer);
+
+    } catch (error) {
+      console.error("❌ Error generating certificate:", error);
+      res.status(500).json({ 
+        message: "Error generating certificate",
+        error: error.message 
+      });
     }
   });
 

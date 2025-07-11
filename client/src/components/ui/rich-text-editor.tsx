@@ -45,6 +45,7 @@ import {
   Table as TableIcon,
   Quote,
   Minus,
+  CornerDownLeft,
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -64,7 +65,18 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Configure hard break to preserve line breaks
+        hardBreak: {
+          keepMarks: true,
+        },
+        // Configure paragraph to better handle whitespace
+        paragraph: {
+          HTMLAttributes: {
+            class: "tiptap-paragraph",
+          },
+        },
+      }),
       Underline,
       Strike,
       Highlight.configure({
@@ -73,6 +85,7 @@ export function RichTextEditor({
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
+
       Table.configure({
         resizable: true,
       }),
@@ -102,9 +115,16 @@ export function RichTextEditor({
           "prose-th:border prose-th:border-gray-300 prose-th:bg-gray-100 prose-th:p-2",
           "prose-td:border prose-td:border-gray-300 prose-td:p-2",
 
-          "text-foreground",
+          "text-foreground whitespace-pre-line",
           disabled && "opacity-50 cursor-not-allowed"
         ),
+      },
+      handleKeyDown: (view, event) => {
+        // Handle Shift+Enter as line break, Enter as paragraph break
+        if (event.key === "Enter" && event.shiftKey) {
+          return editor?.commands.setHardBreak() || false;
+        }
+        return false;
       },
     },
   });
@@ -395,6 +415,17 @@ export function RichTextEditor({
             </PopoverContent>
           </Popover>
 
+          <div className="w-px h-6 bg-border mx-1" />
+
+          {/* Line Break */}
+          <MenuButton
+            onClick={() => editor.chain().focus().setHardBreak().run()}
+            disabled={disabled}
+            tooltip="Line break (Shift+Enter)"
+          >
+            <CornerDownLeft className="h-4 w-4" />
+          </MenuButton>
+
           {/* Horizontal Rule */}
           <MenuButton
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
@@ -412,7 +443,10 @@ export function RichTextEditor({
               {placeholder}
             </div>
           )}
-          <EditorContent editor={editor} />
+          <EditorContent 
+            editor={editor}
+            className="[&_.ProseMirror]:whitespace-pre-line [&_br]:block [&_br]:my-0.5"
+          />
         </div>
       </div>
     </TooltipProvider>
