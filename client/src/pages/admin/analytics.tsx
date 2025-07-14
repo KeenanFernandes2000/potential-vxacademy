@@ -95,18 +95,24 @@ export default function Analytics() {
   };
 
   // Fetch analytics data
-  const { data: analyticsData, isLoading: isLoadingAnalytics } =
-    useQuery<AnalyticsData>({
-      queryKey: [`/api/admin/analytics?timeRange=${timeRange}`],
-      enabled: !!user && user.role === "admin",
-    });
+  const {
+    data: analyticsData,
+    isLoading: isLoadingAnalytics,
+    refetch: refetchAnalytics,
+  } = useQuery<AnalyticsData>({
+    queryKey: [`/api/admin/analytics?timeRange=${timeRange}`],
+    enabled: !!user && user.role === "admin",
+  });
 
   // Fetch time series data
-  const { data: timeSeriesData, isLoading: isLoadingTimeSeries } =
-    useQuery<TimeSeriesData>({
-      queryKey: [`/api/admin/analytics/timeseries?timeRange=${timeRange}`],
-      enabled: !!user && user.role === "admin",
-    });
+  const {
+    data: timeSeriesData,
+    isLoading: isLoadingTimeSeries,
+    refetch: refetchTimeSeries,
+  } = useQuery<TimeSeriesData>({
+    queryKey: [`/api/admin/analytics/timeseries?timeRange=${timeRange}`],
+    enabled: !!user && user.role === "admin",
+  });
 
   // Loading state
   const isLoading = isLoadingAnalytics || isLoadingTimeSeries;
@@ -182,6 +188,22 @@ export default function Analytics() {
                     <SelectItem value="year">Last Year</SelectItem>
                   </SelectContent>
                 </Select>
+
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    await Promise.all([
+                      refetchAnalytics(),
+                      refetchTimeSeries(),
+                    ]);
+                  }}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <span className="animate-spin mr-2">⏳</span>
+                  ) : null}
+                  Refresh
+                </Button>
 
                 <Button variant="outline" onClick={() => exportDashboardData()}>
                   <Download className="h-4 w-4 mr-2" />

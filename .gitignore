@@ -35,3 +35,4 @@ vite.config.ts.*
 .cache/
 tmp/
 .replit.nix
+migrations/

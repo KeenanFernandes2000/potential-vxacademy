@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import { ComprehensiveAssessment } from "@/components/assessment/ComprehensiveAssessment";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
+import { useBlockAssessmentProgress } from "@/hooks/use-block-assessment-progress";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -234,7 +235,22 @@ export default function EnhancedCourseDetail() {
     completedAssessments,
   ]);
 
-  // Fetch block completions
+  // Use the new per-course-per-user block and assessment progress system
+  const {
+    blockProgress,
+    assessmentProgress,
+    isBlockCompleted,
+    isAssessmentCompleted,
+    markBlockComplete,
+    markAssessmentComplete,
+    isLoading: isLoadingBlockAssessmentProgress,
+  } = useBlockAssessmentProgress(
+    user?.id || 0,
+    courseId || 0,
+    selectedUnit?.id || 0
+  );
+
+  // Legacy block completions (for backward compatibility during transition)
   const { data: blockCompletions = [] } = useQuery({
     queryKey: ["/api/block-completions"],
   });
@@ -268,9 +284,14 @@ export default function EnhancedCourseDetail() {
     enabled: !!courseId,
   });
 
-  // Mutation for completing blocks
+  // Mutation for completing blocks (using new per-course-per-user system)
   const blockCompletionMutation = useMutation({
     mutationFn: async (blockId: number) => {
+      // Use the new per-course-per-user block completion
+      if (selectedUnit) {
+        markBlockComplete({ blockId });
+      }
+      // Fallback to old system for backward compatibility
       const res = await apiRequest("POST", `/api/blocks/${blockId}/complete`);
       return res.json();
     },
@@ -435,7 +456,12 @@ export default function EnhancedCourseDetail() {
     const { passed, assessmentId, certificateGenerated } = result;
 
     if (passed) {
-      // Add completed assessment to local state immediately
+      // Use the new per-course-per-user assessment completion
+      if (selectedUnit) {
+        markAssessmentComplete({ assessmentId });
+      }
+
+      // Add completed assessment to local state immediately (for backward compatibility)
       setCompletedAssessments((prev) => new Set(prev).add(assessmentId));
 
       // Check if certificate should be generated
@@ -778,10 +804,12 @@ export default function EnhancedCourseDetail() {
                   {showCourseAssessmentAtBeginning &&
                     courseAssessments
                       ?.filter(
-                        (assessment) => assessment.placement === "beginning"
+                        (assessment) =>
+                          assessment.placement === "beginning" &&
+                          assessment.moduleId !== null
                       )
                       .map((assessment) => {
-                        const isCompleted = completedAssessments.has(
+                        const isCompleted = isAssessmentCompleted(
                           assessment.id
                         );
                         const isSelected =
@@ -926,7 +954,7 @@ export default function EnhancedCourseDetail() {
 
                             {/* Learning blocks */}
                             {unitBlocks.map((block) => {
-                              const isCompleted = completedBlocks.has(block.id);
+                              const isCompleted = isBlockCompleted(block.id);
                               const isSelected =
                                 selectedContent?.type === "block" &&
                                 selectedContent?.id === block.id;
@@ -1040,10 +1068,12 @@ export default function EnhancedCourseDetail() {
                         </h4>
                         {courseAssessments
                           ?.filter(
-                            (assessment) => assessment.placement === "end"
+                            (assessment) =>
+                              assessment.placement === "end" &&
+                              assessment.moduleId !== null
                           )
                           .map((assessment) => {
-                            const isCompleted = completedAssessments.has(
+                            const isCompleted = isAssessmentCompleted(
                               assessment.id
                             );
                             return (
@@ -1177,7 +1207,7 @@ export default function EnhancedCourseDetail() {
                         </div>
                       )}
                       <div className="mt-6">
-                        {completedBlocks.has(selectedBlock.id) ? (
+                        {isBlockCompleted(selectedBlock.id) ? (
                           <Button
                             disabled
                             className="bg-green-600 text-white cursor-not-allowed opacity-75"
@@ -1212,7 +1242,7 @@ export default function EnhancedCourseDetail() {
                 )}
                 {selectedContent.type === "assessment" && (
                   <div>
-                    {completedAssessments.has(selectedContent.id) ? (
+                    {isAssessmentCompleted(selectedContent.id) ? (
                       <Card>
                         <CardContent className="p-6 text-center">
                           <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />

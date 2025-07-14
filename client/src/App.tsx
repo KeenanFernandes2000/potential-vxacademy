@@ -34,43 +34,6 @@ import MediaManagementPage from "@/pages/admin/media";
 
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
-import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
-import { useEffect } from "react";
-
-function ChatbotLoader() {
-  const { user } = useAuth();
-  const [location] = useLocation();
-
-  useEffect(() => {
-    // Only load for authenticated users not on admin routes
-    if (!location.startsWith("/admin")) {
-      // Add the chatbot script
-      const script1 = document.createElement("script");
-      // script1.charset = "utf-8";
-      script1.type = "text/javascript";
-      script1.src = "https://ai.potential.com/static/embed/chat.js";
-      script1.crossOrigin = "anonymous";
-
-      script1.onload = () => {
-        // Initialize chatbot
-        const script2 = document.createElement("script");
-        script2.innerHTML = `
-          chatbotembed({
-            botId: "68049d13024d653c8feb0eec",
-            botIcon: "https://ai.potential.com/static/mentors/VBBAICoach-1745132818840-EHC.jpg",
-            botColor: "#007BC3"
-          });
-        `;
-        document.head.appendChild(script2);
-      };
-
-      document.head.appendChild(script1);
-    }
-  }, [location]);
-
-  return null;
-}
 
 function Router() {
   return (
@@ -133,7 +96,6 @@ function App() {
       <AuthProvider>
         <Router />
         <Toaster />
-        <ChatbotLoader />
       </AuthProvider>
     </QueryClientProvider>
   );

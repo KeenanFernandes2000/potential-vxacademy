@@ -3,7 +3,10 @@ import { users, type User, type InsertUser, modules, type Module, type InsertMod
   units, type Unit, type InsertUnit, courseUnits, type CourseUnit, type InsertCourseUnit,
   learningBlocks, type LearningBlock, type InsertLearningBlock,
   assessments, type Assessment, type InsertAssessment, questions, type Question, type InsertQuestion,
-  userProgress, type UserProgress, type InsertUserProgress, blockCompletions, type BlockCompletion, type InsertBlockCompletion,
+  userProgress, type UserProgress, type InsertUserProgress, userUnitProgress, type UserUnitProgress, type InsertUserUnitProgress,
+  userBlockProgress, type UserBlockProgress, type InsertUserBlockProgress,
+  userAssessmentProgress, type UserAssessmentProgress, type InsertUserAssessmentProgress,
+  blockCompletions, type BlockCompletion, type InsertBlockCompletion,
   assessmentAttempts, type AssessmentAttempt, type InsertAssessmentAttempt, badges, type Badge, type InsertBadge,
   userBadges, type UserBadge, type InsertUserBadge, aiTutorConversations, type AiTutorConversation, type InsertAiTutorConversation,
   scormPackages, type ScormPackage, type InsertScormPackage, scormTrackingData, type ScormTrackingData, type InsertScormTrackingData,
@@ -367,6 +370,224 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(userProgress.userId, userId), eq(userProgress.courseId, courseId)))
       .returning();
     return updatedProgress;
+  }
+
+  // User Unit Progress
+  async getUserUnitProgress(userId: number, courseId: number, unitId: number): Promise<UserUnitProgress | undefined> {
+    const result = await db
+      .select()
+      .from(userUnitProgress)
+      .where(and(
+        eq(userUnitProgress.userId, userId),
+        eq(userUnitProgress.courseId, courseId),
+        eq(userUnitProgress.unitId, unitId)
+      ));
+
+    return result[0];
+  }
+
+  async getUserUnitProgressForCourse(userId: number, courseId: number): Promise<UserUnitProgress[]> {
+    return await db
+      .select()
+      .from(userUnitProgress)
+      .where(and(
+        eq(userUnitProgress.userId, userId),
+        eq(userUnitProgress.courseId, courseId)
+      ));
+  }
+
+  async createUserUnitProgress(progress: InsertUserUnitProgress): Promise<UserUnitProgress> {
+    const [newProgress] = await db
+      .insert(userUnitProgress)
+      .values(progress)
+      .returning();
+    return newProgress;
+  }
+
+  async updateUserUnitProgress(userId: number, courseId: number, unitId: number, data: Partial<UserUnitProgress>): Promise<UserUnitProgress | undefined> {
+    const [updatedProgress] = await db
+      .update(userUnitProgress)
+      .set(data)
+      .where(and(
+        eq(userUnitProgress.userId, userId),
+        eq(userUnitProgress.courseId, courseId),
+        eq(userUnitProgress.unitId, unitId)
+      ))
+      .returning();
+    return updatedProgress;
+  }
+
+  async markUnitAsComplete(userId: number, courseId: number, unitId: number): Promise<UserUnitProgress> {
+    // Check if progress record exists
+    const existingProgress = await this.getUserUnitProgress(userId, courseId, unitId);
+    
+    if (existingProgress) {
+      // Update existing record
+      const updatedProgress = await this.updateUserUnitProgress(userId, courseId, unitId, {
+        isCompleted: true,
+        completedAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      if (!updatedProgress) {
+        throw new Error('Failed to update unit progress');
+      }
+      
+      return updatedProgress;
+    } else {
+      // Create new record
+      return await this.createUserUnitProgress({
+        userId,
+        courseId,
+        unitId,
+        isCompleted: true,
+        completedAt: new Date()
+      });
+    }
+  }
+
+  // User Block Progress
+  async getUserBlockProgress(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress | undefined> {
+    const result = await db
+      .select()
+      .from(userBlockProgress)
+      .where(
+        and(
+          eq(userBlockProgress.userId, userId),
+          eq(userBlockProgress.courseId, courseId),
+          eq(userBlockProgress.unitId, unitId),
+          eq(userBlockProgress.blockId, blockId)
+        )
+      );
+    return result[0];
+  }
+
+  async getUserBlockProgressForUnit(userId: number, courseId: number, unitId: number): Promise<UserBlockProgress[]> {
+    return await db
+      .select()
+      .from(userBlockProgress)
+      .where(
+        and(
+          eq(userBlockProgress.userId, userId),
+          eq(userBlockProgress.courseId, courseId),
+          eq(userBlockProgress.unitId, unitId)
+        )
+      );
+  }
+
+  async markBlockComplete(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress> {
+    const [progress] = await db
+      .insert(userBlockProgress)
+      .values({
+        userId,
+        courseId,
+        unitId,
+        blockId,
+        isCompleted: true,
+        completedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [userBlockProgress.userId, userBlockProgress.courseId, userBlockProgress.unitId, userBlockProgress.blockId],
+        set: {
+          isCompleted: true,
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return progress;
+  }
+
+  async markBlockIncomplete(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress | undefined> {
+    const [progress] = await db
+      .update(userBlockProgress)
+      .set({
+        isCompleted: false,
+        completedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(userBlockProgress.userId, userId),
+          eq(userBlockProgress.courseId, courseId),
+          eq(userBlockProgress.unitId, unitId),
+          eq(userBlockProgress.blockId, blockId)
+        )
+      )
+      .returning();
+    return progress[0];
+  }
+
+  // User Assessment Progress
+  async getUserAssessmentProgress(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress | undefined> {
+    const result = await db
+      .select()
+      .from(userAssessmentProgress)
+      .where(
+        and(
+          eq(userAssessmentProgress.userId, userId),
+          eq(userAssessmentProgress.courseId, courseId),
+          eq(userAssessmentProgress.unitId, unitId),
+          eq(userAssessmentProgress.assessmentId, assessmentId)
+        )
+      );
+    return result[0];
+  }
+
+  async getUserAssessmentProgressForUnit(userId: number, courseId: number, unitId: number): Promise<UserAssessmentProgress[]> {
+    return await db
+      .select()
+      .from(userAssessmentProgress)
+      .where(
+        and(
+          eq(userAssessmentProgress.userId, userId),
+          eq(userAssessmentProgress.courseId, courseId),
+          eq(userAssessmentProgress.unitId, unitId)
+        )
+      );
+  }
+
+  async markAssessmentComplete(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress> {
+    const [progress] = await db
+      .insert(userAssessmentProgress)
+      .values({
+        userId,
+        courseId,
+        unitId,
+        assessmentId,
+        isCompleted: true,
+        completedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [userAssessmentProgress.userId, userAssessmentProgress.courseId, userAssessmentProgress.unitId, userAssessmentProgress.assessmentId],
+        set: {
+          isCompleted: true,
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return progress;
+  }
+
+  async markAssessmentIncomplete(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress | undefined> {
+    const [progress] = await db
+      .update(userAssessmentProgress)
+      .set({
+        isCompleted: false,
+        completedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(userAssessmentProgress.userId, userId),
+          eq(userAssessmentProgress.courseId, courseId),
+          eq(userAssessmentProgress.unitId, unitId),
+          eq(userAssessmentProgress.assessmentId, assessmentId)
+        )
+      )
+      .returning();
+    return progress[0];
   }
 
   // Block Completions

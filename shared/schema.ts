@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, unique, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, unique, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -259,7 +259,27 @@ export const userProgress = pgTable("user_progress", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User Unit Progress - tracks unit completion per course per user
+export const userUnitProgress = pgTable("user_unit_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  courseId: integer("course_id").notNull(),
+  unitId: integer("unit_id").notNull(),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueUserCourseUnit: uniqueIndex("user_unit_progress_user_course_unit_idx").on(table.userId, table.courseId, table.unitId),
+}));
+
 export const insertUserProgressSchema = createInsertSchema(userProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserUnitProgressSchema = createInsertSchema(userUnitProgress).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -372,6 +392,9 @@ export type Question = typeof questions.$inferSelect;
 
 export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
 export type UserProgress = typeof userProgress.$inferSelect;
+
+export type InsertUserUnitProgress = z.infer<typeof insertUserUnitProgressSchema>;
+export type UserUnitProgress = typeof userUnitProgress.$inferSelect;
 
 export type InsertBlockCompletion = z.infer<typeof insertBlockCompletionSchema>;
 export type BlockCompletion = typeof blockCompletions.$inferSelect;
@@ -493,6 +516,7 @@ export const roleMandatoryCoursesRelations = relations(roleMandatoryCourses, ({ 
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   progress: many(userProgress),
+  userUnitProgress: many(userUnitProgress),
   blockCompletions: many(blockCompletions),
   badges: many(userBadges),
   assessmentAttempts: many(assessmentAttempts),
@@ -535,6 +559,7 @@ export const coursesRelations = relations(courses, ({ one, many }) => ({
   }),
   courseUnits: many(courseUnits),
   userProgress: many(userProgress),
+  userUnitProgress: many(userUnitProgress),
   certificates: many(certificates),
   roleMandatoryCourses: many(roleMandatoryCourses),
   assessments: many(assessments),
@@ -545,6 +570,7 @@ export const unitsRelations = relations(units, ({ many }) => ({
   courseUnits: many(courseUnits),
   learningBlocks: many(learningBlocks),
   assessments: many(assessments),
+  userUnitProgress: many(userUnitProgress),
 }));
 
 export const courseUnitsRelations = relations(courseUnits, ({ one }) => ({
@@ -594,6 +620,21 @@ export const userProgressRelations = relations(userProgress, ({ one }) => ({
   course: one(courses, {
     fields: [userProgress.courseId],
     references: [courses.id],
+  }),
+}));
+
+export const userUnitProgressRelations = relations(userUnitProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [userUnitProgress.userId],
+    references: [users.id],
+  }),
+  course: one(courses, {
+    fields: [userUnitProgress.courseId],
+    references: [courses.id],
+  }),
+  unit: one(units, {
+    fields: [userUnitProgress.unitId],
+    references: [units.id],
   }),
 }));
 
@@ -765,3 +806,49 @@ export const courseEnrollmentsRelations = relations(courseEnrollments, ({ one })
 }));
 
 // No additional relations needed - using existing userActivityLogs
+
+// User Block Progress - tracks block completion per course per user per unit
+export const userBlockProgress = pgTable("user_block_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  courseId: integer("course_id").notNull(),
+  unitId: integer("unit_id").notNull(),
+  blockId: integer("block_id").notNull(),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userCourseUnitBlockUnique: uniqueIndex("user_block_progress_user_course_unit_block_idx").on(table.userId, table.courseId, table.unitId, table.blockId),
+}));
+
+// User Assessment Progress - tracks assessment completion per course per user per unit
+export const userAssessmentProgress = pgTable("user_assessment_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  courseId: integer("course_id").notNull(),
+  unitId: integer("unit_id").notNull(),
+  assessmentId: integer("assessment_id").notNull(),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userCourseUnitAssessmentUnique: uniqueIndex("user_assessment_progress_user_course_unit_assessment_idx").on(table.userId, table.courseId, table.unitId, table.assessmentId),
+}));
+
+export const insertUserBlockProgressSchema = createInsertSchema(userBlockProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const insertUserAssessmentProgressSchema = createInsertSchema(userAssessmentProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserBlockProgress = z.infer<typeof insertUserBlockProgressSchema>;
+export type UserBlockProgress = typeof userBlockProgress.$inferSelect;
+export type InsertUserAssessmentProgress = z.infer<typeof insertUserAssessmentProgressSchema>;
+export type UserAssessmentProgress = typeof userAssessmentProgress.$inferSelect;

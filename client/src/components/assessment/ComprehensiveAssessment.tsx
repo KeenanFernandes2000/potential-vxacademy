@@ -275,6 +275,9 @@ export function ComprehensiveAssessment({
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Assessment Completed
           </h3>
+          <div className="text-base font-semibold text-gray-800 mb-2">
+            {assessment.title}
+          </div>
           <p className="text-gray-600 mb-4">
             You have successfully passed this assessment with a score of{" "}
             {attempts.find((a) => a.passed)?.score}%.
@@ -350,7 +353,16 @@ export function ComprehensiveAssessment({
   }
 
   // Assessment start screen
-  if (!assessmentStarted) {
+  if (!assessmentStarted && questions?.length === 0) {
+    const handleSubmitNoQuestions = () => {
+      setIsSubmitting(true);
+      submitAssessmentMutation.mutate({
+        answers: {},
+        score: 100,
+        timeExpired: false,
+        startedAt: new Date().toISOString(),
+      });
+    };
     return (
       <Card>
         <CardHeader>
@@ -368,7 +380,7 @@ export function ComprehensiveAssessment({
             <div className="space-y-2">
               <h4 className="font-semibold">Assessment Details:</h4>
               <p>
-                <strong>Questions:</strong> {questions?.length || 0}
+                <strong>Questions:</strong> 0
               </p>
               {assessment.isGraded && assessment.passingScore && (
                 <p>
@@ -415,10 +427,11 @@ export function ComprehensiveAssessment({
 
           <div className="flex space-x-3">
             <Button
-              onClick={handleStartAssessment}
-              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleSubmitNoQuestions}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isSubmitting}
             >
-              Start Assessment
+              {isSubmitting ? "Submitting..." : "Submit Assessment"}
             </Button>
             <Button onClick={onCancel} variant="outline">
               Cancel

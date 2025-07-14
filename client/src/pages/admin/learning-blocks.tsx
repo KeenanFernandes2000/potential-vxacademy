@@ -96,9 +96,13 @@ const blockFormSchema = z.object({
   unitId: z.coerce.number({
     required_error: "Unit is required.",
   }),
-  type: z.string({
-    required_error: "Please select a content type.",
-  }),
+  type: z
+    .string({
+      required_error: "Please select a content type.",
+    })
+    .refine((val) => val !== "line-break", {
+      message: "Line break option is not allowed.",
+    }),
   order: z.coerce.number().min(1).default(1),
   xpPoints: z.coerce.number().min(0).default(10),
   content: z.string().optional().nullable(),

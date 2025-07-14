@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, courseUnits, type CourseUnit, type InsertCourseUnit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification, mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite, userActivityLogs, type UserActivityLog, type InsertUserActivityLog, courseEnrollments, type CourseEnrollment, type InsertCourseEnrollment } from "@shared/schema";
+import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, userUnitProgress, type UserUnitProgress, type InsertUserUnitProgress, userBlockProgress, type UserBlockProgress, type InsertUserBlockProgress, userAssessmentProgress, type UserAssessmentProgress, type InsertUserAssessmentProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, courseUnits, type CourseUnit, type InsertCourseUnit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification, mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite, userActivityLogs, type UserActivityLog, type InsertUserActivityLog, courseEnrollments, type CourseEnrollment, type InsertCourseEnrollment } from "@shared/schema";
 import session from "express-session";
 
 export interface IStorage {
@@ -51,6 +51,25 @@ export interface IStorage {
   getUserProgressForAllCourses(userId: number): Promise<UserProgress[]>;
   createUserProgress(progress: InsertUserProgress): Promise<UserProgress>;
   updateUserProgress(userId: number, courseId: number, data: Partial<UserProgress>): Promise<UserProgress | undefined>;
+
+  // User Unit Progress
+  getUserUnitProgress(userId: number, courseId: number, unitId: number): Promise<UserUnitProgress | undefined>;
+  getUserUnitProgressForCourse(userId: number, courseId: number): Promise<UserUnitProgress[]>;
+  createUserUnitProgress(progress: InsertUserUnitProgress): Promise<UserUnitProgress>;
+  updateUserUnitProgress(userId: number, courseId: number, unitId: number, data: Partial<UserUnitProgress>): Promise<UserUnitProgress | undefined>;
+  markUnitAsComplete(userId: number, courseId: number, unitId: number): Promise<UserUnitProgress>;
+
+  // User Block Progress
+  getUserBlockProgress(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress | undefined>;
+  getUserBlockProgressForUnit(userId: number, courseId: number, unitId: number): Promise<UserBlockProgress[]>;
+  markBlockComplete(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress>;
+  markBlockIncomplete(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress | undefined>;
+
+  // User Assessment Progress
+  getUserAssessmentProgress(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress | undefined>;
+  getUserAssessmentProgressForUnit(userId: number, courseId: number, unitId: number): Promise<UserAssessmentProgress[]>;
+  markAssessmentComplete(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress>;
+  markAssessmentIncomplete(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress | undefined>;
 
   // Block Completions
   getBlockCompletion(userId: number, blockId: number): Promise<BlockCompletion | undefined>;

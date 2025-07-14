@@ -219,7 +219,7 @@ export default function CourseManagement() {
       });
       form.reset({
         trainingAreaId: undefined,
-        moduleId: undefined,
+        moduleId: "", // Set to empty string to reset dropdown
         name: "",
         description: "",
         imageUrl: "",
@@ -232,6 +232,7 @@ export default function CourseManagement() {
       });
       form.clearErrors();
       setSelectedTrainingAreaId(null);
+      form.setValue("moduleId", ""); // Explicitly set to empty string
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
     },
     onError: (error: Error) => {
@@ -367,7 +368,7 @@ export default function CourseManagement() {
     setSelectedTrainingAreaId(null);
     form.reset({
       trainingAreaId: undefined,
-      moduleId: undefined,
+      moduleId: "", // Set to empty string to reset dropdown
       name: "",
       description: "",
       imageUrl: "",
@@ -380,6 +381,7 @@ export default function CourseManagement() {
     });
     // Clear any form errors
     form.clearErrors();
+    form.setValue("moduleId", ""); // Explicitly set to empty string
   }
 
   function handleDuplicate(course: Course) {

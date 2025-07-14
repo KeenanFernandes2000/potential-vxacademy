@@ -680,18 +680,20 @@ export default function CourseDetail() {
                               </div>
                             )}
 
-                            {block.type === "text" && block.content && (
-                              <div className="mb-8">
-                                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 shadow-sm">
-                                  <div
-                                    className="prose prose-lg max-w-none text-gray-700 leading-relaxed [&_br]:block [&_br]:my-1 [&_p]:whitespace-pre-line [&_p:empty]:min-h-[1em] [&_p:empty]:block"
-                                    dangerouslySetInnerHTML={{
-                                      __html: block.content,
-                                    }}
-                                  ></div>
+                            {block.type !== "line-break" &&
+                              block.type === "text" &&
+                              block.content && (
+                                <div className="mb-8">
+                                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                    <div
+                                      className="prose prose-lg max-w-none text-gray-700 leading-relaxed [&_br]:block [&_br]:my-1 [&_p]:whitespace-pre-line [&_p:empty]:min-h-[1em] [&_p:empty]:block"
+                                      dangerouslySetInnerHTML={{
+                                        __html: block.content,
+                                      }}
+                                    ></div>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
 
                             {block.type === "interactive" && (
                               <div className="mb-8">

@@ -194,6 +194,15 @@ export default function AssessmentsManagement() {
     },
   });
 
+  // Fetch course-unit relationships for filtering units by course
+  const { data: courseUnits, isLoading: courseUnitsLoading } = useQuery({
+    queryKey: ["/api/course-units"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/course-units");
+      return await res.json();
+    },
+  });
+
   // Filter assessments based on display filters
   const filteredAssessments =
     allAssessments?.filter((assessment) => {
@@ -238,7 +247,8 @@ export default function AssessmentsManagement() {
   // Update form when editing an existing assessment - fill fields sequentially
   useEffect(() => {
     if (editingAssessment && units && courses && modules && trainingAreas) {
-      const assessmentFor = editingAssessment.courseId ? "course" : "unit";
+      // Corrected logic: assessmentFor is 'unit' if unitId is present, otherwise 'course'
+      const assessmentFor = editingAssessment.unitId ? "unit" : "course";
 
       // First reset form to clear previous values
       form.reset({
@@ -356,16 +366,31 @@ export default function AssessmentsManagement() {
         title: "Success",
         description: "Assessment created successfully.",
       });
+      // Reset both form and UI state
+      setAssessmentFor("unit");
+      setSelectedTrainingAreaId(null);
+      setSelectedModuleId(null);
+      setSelectedCourseId(null);
       form.reset({
         assessmentFor: "unit",
+        trainingAreaId: undefined,
+        moduleId: undefined,
+        courseId: undefined,
+        unitId: undefined,
         title: "",
         description: "",
         placement: "end",
         isGraded: true,
+        showCorrectAnswers: false,
         passingScore: 70,
+        hasTimeLimit: false,
         timeLimit: 30,
+        maxRetakes: 3,
+        hasCertificate: false,
+        certificateTemplate: "",
         xpPoints: 50,
       });
+      form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
     onError: (error) => {
@@ -737,48 +762,114 @@ export default function AssessmentsManagement() {
                     </>
                   )}
 
-                  {/* Unit-level field */}
+                  {/* Unit-level fields with course selection */}
                   {assessmentFor === "unit" && (
-                    <FormField
-                      control={form.control}
-                      name="unitId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Unit <span className="text-red-500">*</span>
-                          </FormLabel>
-                          <Select
-                            onValueChange={(value) => {
-                              field.onChange(parseInt(value));
-                            }}
-                            value={field.value?.toString() || ""}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a unit" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {unitsLoading ? (
-                                <div className="flex justify-center p-2">
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                </div>
-                              ) : (
-                                units?.map((unit) => (
-                                  <SelectItem
-                                    key={unit.id}
-                                    value={unit.id.toString()}
-                                  >
-                                    {unit.name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <>
+                      {/* Course Dropdown for Unit Assessment */}
+                      <FormField
+                        control={form.control}
+                        name="courseId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Course <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <Select
+                              onValueChange={(value) => {
+                                const courseId = parseInt(value);
+                                field.onChange(courseId);
+                                setSelectedCourseId(courseId);
+                                // Reset unit selection when course changes
+                                form.setValue("unitId", undefined);
+                              }}
+                              value={field.value?.toString() || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select course" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {coursesLoading ? (
+                                  <div className="flex justify-center p-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  </div>
+                                ) : (
+                                  courses?.map((course) => (
+                                    <SelectItem
+                                      key={course.id}
+                                      value={course.id.toString()}
+                                    >
+                                      {course.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Unit Dropdown filtered by selected course */}
+                      <FormField
+                        control={form.control}
+                        name="unitId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Unit <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <Select
+                              onValueChange={(value) => {
+                                field.onChange(parseInt(value));
+                              }}
+                              value={field.value?.toString() || ""}
+                              disabled={!form.watch("courseId")}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a unit" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {unitsLoading ? (
+                                  <div className="flex justify-center p-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  </div>
+                                ) : (
+                                  // Only show units for the selected course
+                                  units
+                                    ?.filter((unit) => {
+                                      if (!form.watch("courseId")) return false;
+                                      // Use courseUnits relationship to filter
+                                      // We'll need to fetch courseUnits in this component
+                                      // For now, fallback to units with a courseId property if available
+                                      // (but in this schema, units are many-to-many, so we need courseUnits)
+                                      // We'll use a local state for courseUnits
+                                      if (!courseUnits) return true;
+                                      return courseUnits.some(
+                                        (cu) =>
+                                          cu.unitId === unit.id &&
+                                          cu.courseId === form.watch("courseId")
+                                      );
+                                    })
+                                    .map((unit) => (
+                                      <SelectItem
+                                        key={unit.id}
+                                        value={unit.id.toString()}
+                                      >
+                                        {unit.name}
+                                      </SelectItem>
+                                    ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
                   )}
 
                   {/* Assessment Title */}

@@ -351,81 +351,6 @@ export function RichTextEditor({
 
           <div className="w-px h-6 bg-border mx-1" />
 
-          {/* Table */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <MenuButton
-                onClick={() => {}}
-                disabled={disabled}
-                tooltip="Table options"
-              >
-                <TableIcon className="h-4 w-4" />
-              </MenuButton>
-            </PopoverTrigger>
-            <PopoverContent className="w-60">
-              <div className="space-y-2">
-                <h4 className="font-medium">Table Actions</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      editor
-                        .chain()
-                        .focus()
-                        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                        .run();
-                    }}
-                  >
-                    Insert Table
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      editor.chain().focus().addRowBefore().run();
-                    }}
-                  >
-                    Add Row
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      editor.chain().focus().addColumnBefore().run();
-                    }}
-                  >
-                    Add Column
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      editor.chain().focus().deleteTable().run();
-                    }}
-                  >
-                    Delete Table
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <div className="w-px h-6 bg-border mx-1" />
-
-          {/* Line Break */}
-          <MenuButton
-            onClick={() => editor.chain().focus().setHardBreak().run()}
-            disabled={disabled}
-            tooltip="Line break (Shift+Enter)"
-          >
-            <CornerDownLeft className="h-4 w-4" />
-          </MenuButton>
-
           {/* Horizontal Rule */}
           <MenuButton
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
@@ -443,7 +368,7 @@ export function RichTextEditor({
               {placeholder}
             </div>
           )}
-          <EditorContent 
+          <EditorContent
             editor={editor}
             className="[&_.ProseMirror]:whitespace-pre-line [&_br]:block [&_br]:my-0.5"
           />
