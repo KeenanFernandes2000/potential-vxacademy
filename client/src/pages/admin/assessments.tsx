@@ -13,6 +13,7 @@ import {
   Course,
   Module,
   TrainingArea,
+  CourseUnit, // <-- add this
 } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
@@ -195,7 +196,9 @@ export default function AssessmentsManagement() {
   });
 
   // Fetch course-unit relationships for filtering units by course
-  const { data: courseUnits, isLoading: courseUnitsLoading } = useQuery({
+  const { data: courseUnits, isLoading: courseUnitsLoading } = useQuery<
+    CourseUnit[]
+  >({
     queryKey: ["/api/course-units"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/course-units");
@@ -307,10 +310,24 @@ export default function AssessmentsManagement() {
             }
           }, 350);
         } else {
-          // Step 2: Unit (for unit assessments)
+          // Step 2: For unit assessments, set courseId and unitId
           setTimeout(() => {
             const unitId = editingAssessment.unitId;
-            if (unitId) {
+            if (unitId && courseUnits) {
+              // Find the first courseUnit with this unitId
+              const found = courseUnits.find(
+                (cu: CourseUnit) => cu.unitId === unitId
+              );
+              if (found) {
+                setSelectedCourseId(found.courseId);
+                form.setValue("courseId", found.courseId);
+              }
+              // Set the unitId after courseId is set
+              setTimeout(() => {
+                form.setValue("unitId", unitId);
+              }, 100);
+            } else if (unitId) {
+              // fallback: just set unitId
               form.setValue("unitId", unitId);
             }
           }, 150);
