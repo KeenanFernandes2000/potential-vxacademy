@@ -104,9 +104,12 @@ export function useCourseProgress(courseId: number | null, userId: number | null
       };
     }
 
-    // Calculate total items
+    // Calculate total items (excluding final assessments)
     const totalBlocks = blocks.length;
-    const totalAssessments = allAssessments.length;
+    const nonFinalAssessments = allAssessments.filter(
+      (assessment) => assessment.placement !== "end"
+    );
+    const totalAssessments = nonFinalAssessments.length;
     const totalItems = totalBlocks + totalAssessments;
 
     if (totalItems === 0) {
@@ -131,9 +134,14 @@ export function useCourseProgress(courseId: number | null, userId: number | null
         blocks.some((block) => block.id === progress.blockId)
     ).length;
 
-    // Calculate completed assessments
+    // Calculate completed assessments (excluding final assessments)
     const completedAssessments = allAssessmentProgress.filter(
-      (progress: any) => progress.isCompleted === true
+      (progress: any) => {
+        const isCompleted = progress.isCompleted === true;
+        const assessment = allAssessments.find(a => a.id === progress.assessmentId);
+        // Only count non-final assessments
+        return isCompleted && assessment && assessment.placement !== "end";
+      }
     ).length;
 
     const completedItems = completedBlocks + completedAssessments;

@@ -274,13 +274,19 @@ export default function AssessmentsManagement() {
         }
       }
 
-      // Reset form with the correct assessment type and all values
-      const formValues = {
+      // Update UI state first
+      setAssessmentFor(assessmentFor);
+      setSelectedTrainingAreaId(editingAssessment.trainingAreaId || null);
+      setSelectedModuleId(editingAssessment.moduleId || null);
+      setSelectedCourseId(courseId || null);
+
+      // First, set the course and other form values (without unit)
+      const formValuesWithoutUnit = {
         assessmentFor: assessmentFor as "course" | "unit",
         trainingAreaId: editingAssessment.trainingAreaId || undefined,
         moduleId: editingAssessment.moduleId || undefined,
         courseId: courseId || undefined,
-        unitId: editingAssessment.unitId || undefined,
+        unitId: undefined, // Don't set unit yet
         title: editingAssessment.title,
         description: editingAssessment.description || "",
         placement: (editingAssessment.placement === "beginning"
@@ -297,14 +303,15 @@ export default function AssessmentsManagement() {
         xpPoints: editingAssessment.xpPoints,
       };
 
-      // Reset form with all values at once
-      form.reset(formValues);
+      // Reset form without unit first
+      form.reset(formValuesWithoutUnit);
 
-      // Update UI state
-      setAssessmentFor(assessmentFor);
-      setSelectedTrainingAreaId(editingAssessment.trainingAreaId || null);
-      setSelectedModuleId(editingAssessment.moduleId || null);
-      setSelectedCourseId(courseId || null);
+      // Then, after a delay, set the unit
+      setTimeout(() => {
+        if (editingAssessment.unitId) {
+          form.setValue("unitId", editingAssessment.unitId);
+        }
+      }, 200); // 200ms delay to ensure course dropdown is enabled
     }
   }, [
     editingAssessment,

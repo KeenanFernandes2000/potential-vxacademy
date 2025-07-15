@@ -564,8 +564,9 @@ export default function EnhancedCourseDetail() {
       completedAssessments.has(assessment.id)
     );
 
+  // Check if all content is complete (excluding final assessment)
   const isAllContentComplete = () => {
-    return courseProgressData.percentComplete >= 80;
+    return courseProgressData.percentComplete === 100;
   };
 
   // Auto-enroll if user accesses course but has no progress record
@@ -760,7 +761,7 @@ export default function EnhancedCourseDetail() {
                   percent={courseProgressData.percentComplete}
                   hasEndAssessment={endAssessments.length > 0}
                   endAssessmentAvailable={
-                    courseProgressData.percentComplete >= 80 &&
+                    courseProgressData.percentComplete === 100 &&
                     endAssessments.length > 0
                   }
                 />
@@ -1085,6 +1086,26 @@ export default function EnhancedCourseDetail() {
                               </Button>
                             );
                           })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show message when final assessment is not yet available */}
+                  {showCourseAssessmentAtEnd && !isAllContentComplete() && (
+                    <div className="mt-4 p-3 border-t border-gray-200">
+                      <div className="text-center">
+                        <h4 className="font-medium mb-2 flex items-center justify-center gap-2">
+                          <Lock className="h-4 w-4 text-gray-500" />
+                          Final Assessment Locked
+                        </h4>
+                        <p className="text-sm text-gray-500 mb-2">
+                          Complete all course content to unlock the final
+                          assessment
+                        </p>
+                        <div className="text-xs text-gray-400">
+                          Progress: {courseProgressData.percentComplete}%
+                          Complete
+                        </div>
                       </div>
                     </div>
                   )}
