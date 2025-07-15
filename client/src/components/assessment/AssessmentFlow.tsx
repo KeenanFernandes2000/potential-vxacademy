@@ -14,19 +14,32 @@ import { AssessmentTimer } from "./AssessmentTimer";
 interface AssessmentFlowProps {
   assessment: Assessment;
   userId: number;
-  onComplete: (passed: boolean, score: number, certificateGenerated?: boolean) => void;
+  onComplete: (
+    passed: boolean,
+    score: number,
+    certificateGenerated?: boolean
+  ) => void;
   onCancel: () => void;
 }
 
-export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: AssessmentFlowProps) {
+export function AssessmentFlow({
+  assessment,
+  userId,
+  onComplete,
+  onCancel,
+}: AssessmentFlowProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<string, string>
+  >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [assessmentStarted, setAssessmentStarted] = useState(false);
   const [timeExpired, setTimeExpired] = useState(false);
 
   // Fetch questions for the assessment
-  const { data: questions, isLoading: isLoadingQuestions } = useQuery<Question[]>({
+  const { data: questions, isLoading: isLoadingQuestions } = useQuery<
+    Question[]
+  >({
     queryKey: [`/api/assessments/${assessment.id}/questions`],
     enabled: !!assessment.id,
   });
@@ -40,7 +53,11 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
   // Submit assessment mutation
   const submitAssessmentMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", `/api/assessments/${assessment.id}/submit`, data);
+      const res = await apiRequest(
+        "POST",
+        `/api/assessments/${assessment.id}/submit`,
+        data
+      );
       return res.json();
     },
     onSuccess: (result) => {
@@ -48,7 +65,9 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
       onComplete(result.passed, result.score, result.certificateGenerated);
 
       // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
+      });
       queryClient.invalidateQueries({ queryKey: [`/api/user/progress`] });
 
       if (result.certificateGenerated) {
@@ -57,7 +76,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
     },
     onError: () => {
       setIsSubmitting(false);
-    }
+    },
   });
 
   const attemptsUsed = attempts?.length || 0;
@@ -69,9 +88,9 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
   };
 
   const handleAnswerSelect = (questionId: string, answer: string) => {
-    setSelectedAnswers(prev => ({
+    setSelectedAnswers((prev) => ({
       ...prev,
-      [questionId]: answer
+      [questionId]: answer,
     }));
   };
 
@@ -88,13 +107,16 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
   };
 
   const handleSubmitAssessment = () => {
-    if (timeExpired || Object.keys(selectedAnswers).length === questions?.length) {
+    if (
+      timeExpired ||
+      Object.keys(selectedAnswers).length === questions?.length
+    ) {
       setIsSubmitting(true);
 
       submitAssessmentMutation.mutate({
         answers: selectedAnswers,
         timeExpired,
-        startedAt: new Date().toISOString()
+        startedAt: new Date().toISOString(),
       });
     }
   };
@@ -106,7 +128,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
     submitAssessmentMutation.mutate({
       answers: selectedAnswers,
       timeExpired: true,
-      startedAt: new Date().toISOString()
+      startedAt: new Date().toISOString(),
     });
   };
 
@@ -132,13 +154,20 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
         <CardContent>
           <Alert className="border-red-200 bg-red-50">
             <AlertDescription className="text-red-700">
-              You have used all your allowed attempts ({assessment.maxRetakes}) for this assessment.
+              You have used all your allowed attempts ({assessment.maxRetakes})
+              for this assessment.
             </AlertDescription>
           </Alert>
           <div className="mt-4 space-y-2">
-            <p><strong>Attempts used:</strong> {attemptsUsed} / {assessment.maxRetakes}</p>
+            <p>
+              <strong>Attempts used:</strong> {attemptsUsed} /{" "}
+              {assessment.maxRetakes}
+            </p>
             {attempts && attempts.length > 0 && (
-              <p><strong>Best score:</strong> {Math.max(...attempts.map(a => a.score))}%</p>
+              <p>
+                <strong>Best score:</strong>{" "}
+                {Math.max(...attempts.map((a) => a.score))}%
+              </p>
             )}
           </div>
           <Button onClick={onCancel} className="mt-4">
@@ -166,11 +195,17 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <h4 className="font-semibold">Assessment Details:</h4>
-              <p><strong>Questions:</strong> {questions?.length || 0}</p>
+              <p>
+                <strong>Questions:</strong> {questions?.length || 0}
+              </p>
               {assessment.isGraded && assessment.passingScore && (
-                <p><strong>Passing Score:</strong> {assessment.passingScore}%</p>
+                <p>
+                  <strong>Passing Score:</strong> {assessment.passingScore}%
+                </p>
               )}
-              <p><strong>XP Points:</strong> {assessment.xpPoints}</p>
+              <p>
+                <strong>XP Points:</strong> {assessment.xpPoints}
+              </p>
               {assessment.hasCertificate && (
                 <div className="flex items-center text-green-600">
                   <Award className="mr-1 h-4 w-4" />
@@ -181,8 +216,13 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
 
             <div className="space-y-2">
               <h4 className="font-semibold">Attempt Information:</h4>
-              <p><strong>Attempts used:</strong> {attemptsUsed} / {assessment.maxRetakes}</p>
-              <p><strong>Attempts remaining:</strong> {attemptsRemaining}</p>
+              <p>
+                <strong>Attempts used:</strong> {attemptsUsed} /{" "}
+                {assessment.maxRetakes}
+              </p>
+              <p>
+                <strong>Attempts remaining:</strong> {attemptsRemaining}
+              </p>
               {assessment.hasTimeLimit && assessment.timeLimit && (
                 <div className="flex items-center text-orange-600">
                   <Clock className="mr-1 h-4 w-4" />
@@ -195,13 +235,17 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
           {attempts && attempts.length > 0 && (
             <Alert className="border-blue-200 bg-blue-50">
               <AlertDescription className="text-blue-700">
-                Previous attempts: {attempts.map(a => `${a.score}%`).join(", ")}
+                Previous attempts:{" "}
+                {attempts.map((a) => `${a.score}%`).join(", ")}
               </AlertDescription>
             </Alert>
           )}
 
           <div className="flex space-x-3">
-            <Button onClick={handleStartAssessment} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleStartAssessment}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               Start Assessment
             </Button>
             <Button onClick={onCancel} variant="outline">
@@ -252,7 +296,9 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
             <span className="text-sm font-medium">
               Question {currentQuestionIndex + 1} of {questions.length}
             </span>
-            <span className="text-sm text-gray-500">{Math.round(progress)}% complete</span>
+            <span className="text-sm text-gray-500">
+              {Math.round(progress)}% complete
+            </span>
           </div>
           <Progress value={progress} className="h-2" />
         </CardContent>
@@ -266,44 +312,60 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {currentQuestion.questionType === "mcq" && currentQuestion.options && (
-            <RadioGroup
-              value={selectedAnswers[currentQuestion.id.toString()] || ""}
-              onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
-              className="space-y-3"
-            >
-              {(() => {
-                let options = currentQuestion.options;
+          {currentQuestion.questionType === "mcq" &&
+            currentQuestion.options && (
+              <RadioGroup
+                value={selectedAnswers[currentQuestion.id.toString()] || ""}
+                onValueChange={(value) =>
+                  handleAnswerSelect(currentQuestion.id.toString(), value)
+                }
+                className="space-y-3"
+              >
+                {(() => {
+                  let options = currentQuestion.options;
 
-                // Handle different option formats
-                if (typeof options === 'string') {
-                  try {
-                    options = JSON.parse(options);
-                  } catch {
-                    options = [options];
+                  // Handle different option formats
+                  if (typeof options === "string") {
+                    try {
+                      options = JSON.parse(options);
+                    } catch {
+                      options = [options];
+                    }
                   }
-                }
 
-                if (!Array.isArray(options)) {
-                  return <div className="text-red-600">No options available</div>;
-                }
+                  if (!Array.isArray(options)) {
+                    return (
+                      <div className="text-red-600">No options available</div>
+                    );
+                  }
 
-                return options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                    <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                    <Label htmlFor={`option-${index}`} className="cursor-pointer flex-1">
-                      {String(option)}
-                    </Label>
-                  </div>
-                ));
-              })()}
-            </RadioGroup>
-          )}
+                  return options.map((option, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50"
+                    >
+                      <RadioGroupItem
+                        value={index.toString()}
+                        id={`option-${index}`}
+                      />
+                      <Label
+                        htmlFor={`option-${index}`}
+                        className="cursor-pointer flex-1"
+                      >
+                        {String(option)}
+                      </Label>
+                    </div>
+                  ));
+                })()}
+              </RadioGroup>
+            )}
 
           {currentQuestion.questionType === "true_false" && (
             <RadioGroup
               value={selectedAnswers[currentQuestion.id.toString()] || ""}
-              onValueChange={(value) => handleAnswerSelect(currentQuestion.id.toString(), value)}
+              onValueChange={(value) =>
+                handleAnswerSelect(currentQuestion.id.toString(), value)
+              }
               className="space-y-3"
             >
               <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
@@ -337,9 +399,7 @@ export function AssessmentFlow({ assessment, userId, onComplete, onCancel }: Ass
 
             <div className="flex space-x-2">
               {currentQuestionIndex < questions.length - 1 ? (
-                <Button onClick={handleNextQuestion}>
-                  Next
-                </Button>
+                <Button onClick={handleNextQuestion}>Next</Button>
               ) : (
                 <Button
                   onClick={handleSubmitAssessment}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -98,12 +98,25 @@ export default function CourseDetail() {
     enabled: !!courseId,
   });
 
-  // Fetch assessments for the active unit
-  const { data: unitAssessments, isLoading: isLoadingUnitAssessments } =
-    useQuery<Assessment[]>({
-      queryKey: [`/api/units/${activeUnitId}/assessments`],
-      enabled: !!activeUnitId,
-    });
+  // Fetch all course assessments (both course-level and unit-level)
+  const { data: allCourseAssessments = [] } = useQuery<Assessment[]>({
+    queryKey: [`/api/courses/${courseId}/assessments`],
+    enabled: !!courseId,
+  });
+
+  // Filter unit assessments from all course assessments based on active unit
+  const unitAssessments = useMemo(() => {
+    if (!activeUnitId || !allCourseAssessments) return [];
+    return allCourseAssessments.filter(
+      (assessment) => assessment.unitId === activeUnitId
+    );
+  }, [activeUnitId, allCourseAssessments]);
+
+  // Filter course-level assessments (those without unitId)
+  const courseAssessments = useMemo(() => {
+    if (!allCourseAssessments) return [];
+    return allCourseAssessments.filter((assessment) => !assessment.unitId);
+  }, [allCourseAssessments]);
 
   // Fetch user progress
   const { data: progress, isLoading: isLoadingProgress } = useQuery<any>({
@@ -305,7 +318,11 @@ export default function CourseDetail() {
   };
 
   // Loading state
-  const isLoading = isLoadingCourse || isLoadingUnits;
+  const isLoading =
+    isLoadingCourse ||
+    isLoadingUnits ||
+    isLoadingBeginningAssessments ||
+    isLoadingEndAssessments;
 
   return (
     <div className="h-screen flex flex-col md:flex-row">
@@ -504,60 +521,60 @@ export default function CourseDetail() {
                                         </div>
                                       ))}
 
-                                  {/* Handle loading state for assessments */}
-                                  {isLoadingUnitAssessments &&
-                                  activeUnitId === unit.id ? (
-                                    <Skeleton className="h-10 w-full mt-2" />
-                                  ) : (
-                                    <>
-                                      {/* Check if we have assessments and show them */}
-                                      {unitAssessments &&
-                                        activeUnitId === unit.id && (
-                                          <>
-                                            {/* If there are no assessments for this unit, don't render anything */}
-                                            {unitAssessments.length === 0 &&
-                                              unit.id === 8 && (
-                                                <div
-                                                  className="px-3 py-2 rounded-md cursor-pointer hover:bg-neutrals-100 flex items-center mt-2"
-                                                  onClick={() => {
-                                                    // Navigate to the specific assessment for Unit 4
-                                                    handleStartAssessment(3); // Using the known assessment ID
-                                                  }}
-                                                >
-                                                  <span className="material-icons text-sm mr-2 text-warning">
-                                                    quiz
-                                                  </span>
-                                                  <span className="text-sm font-medium">
-                                                    Final Assessment
-                                                  </span>
-                                                </div>
-                                              )}
-
-                                            {/* Map through available assessments */}
-                                            {unitAssessments.map(
-                                              (assessment) => (
-                                                <div
-                                                  key={assessment.id}
-                                                  className="px-3 py-2 rounded-md cursor-pointer hover:bg-neutrals-100 flex items-center mt-2"
-                                                  onClick={() =>
-                                                    handleStartAssessment(
-                                                      assessment.id
-                                                    )
-                                                  }
-                                                >
-                                                  <span className="material-icons text-sm mr-2 text-warning">
-                                                    quiz
-                                                  </span>
-                                                  <span className="text-sm font-medium">
-                                                    {assessment.title}
-                                                  </span>
-                                                </div>
-                                              )
+                                  {/* Check if we have assessments and show them */}
+                                  {(() => {
+                                    const unitSpecificAssessments =
+                                      allCourseAssessments.filter(
+                                        (assessment) =>
+                                          assessment.unitId === unit.id
+                                      );
+                                    return (
+                                      unitSpecificAssessments.length > 0 && (
+                                        <>
+                                          {/* If there are no assessments for this unit, don't render anything */}
+                                          {unitAssessments.length === 0 &&
+                                            unit.id === 8 && (
+                                              <div
+                                                className="px-3 py-2 rounded-md cursor-pointer hover:bg-neutrals-100 flex items-center mt-2"
+                                                onClick={() => {
+                                                  // Navigate to the specific assessment for Unit 4
+                                                  handleStartAssessment(3); // Using the known assessment ID
+                                                }}
+                                              >
+                                                <span className="material-icons text-sm mr-2 text-warning">
+                                                  quiz
+                                                </span>
+                                                <span className="text-sm font-medium">
+                                                  Final Assessment
+                                                </span>
+                                              </div>
                                             )}
-                                          </>
-                                        )}
-                                    </>
-                                  )}
+
+                                          {/* Map through available assessments */}
+                                          {unitSpecificAssessments.map(
+                                            (assessment) => (
+                                              <div
+                                                key={assessment.id}
+                                                className="px-3 py-2 rounded-md cursor-pointer hover:bg-neutrals-100 flex items-center mt-2"
+                                                onClick={() =>
+                                                  handleStartAssessment(
+                                                    assessment.id
+                                                  )
+                                                }
+                                              >
+                                                <span className="material-icons text-sm mr-2 text-warning">
+                                                  quiz
+                                                </span>
+                                                <span className="text-sm font-medium">
+                                                  {assessment.title}
+                                                </span>
+                                              </div>
+                                            )
+                                          )}
+                                        </>
+                                      )
+                                    );
+                                  })()}
                                 </>
                               )}
                             </div>

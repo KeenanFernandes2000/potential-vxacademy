@@ -2885,6 +2885,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           if (courseId) {
             await updateCourseProgress(userId, courseId);
+            
+            // Mark assessment as complete in the progress tracking system
+            if (assessment.unitId) {
+              await storage.markAssessmentComplete(userId, courseId, assessment.unitId, assessmentId);
+            }
           }
         } catch (error) {
           console.error("Error updating course progress after assessment:", error);
@@ -3037,6 +3042,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (courseId) {
             await updateCourseProgress(userId, courseId);
+            
+            // Mark assessment as complete in the progress tracking system
+            if (assessment.unitId) {
+              await storage.markAssessmentComplete(userId, courseId, assessment.unitId, assessmentId);
+            }
           }
         } catch (error) {
           console.error("Error updating course progress after assessment:", error);

@@ -223,154 +223,98 @@ export default function AssessmentsManagement() {
       return true; // "all" filter
     }) || [];
 
+  // Helper function for consistent form reset values
+  const getDefaultFormValues = (): AssessmentFormData => ({
+    assessmentFor: "unit",
+    trainingAreaId: undefined,
+    moduleId: undefined,
+    courseId: undefined,
+    unitId: undefined,
+    title: "",
+    description: "",
+    placement: "end",
+    isGraded: true,
+    showCorrectAnswers: false,
+    passingScore: 70,
+    hasTimeLimit: false,
+    timeLimit: 30,
+    maxRetakes: 3,
+    hasCertificate: false,
+    certificateTemplate: "",
+    xpPoints: 50,
+  });
+
   // Form setup
   const form = useForm<AssessmentFormData>({
     resolver: zodResolver(assessmentFormSchema),
-    defaultValues: {
-      assessmentFor: "unit" as const,
-      trainingAreaId: undefined,
-      moduleId: undefined,
-      courseId: undefined,
-      unitId: undefined,
-      title: "",
-      description: "",
-      placement: "end",
-      isGraded: true,
-      showCorrectAnswers: false,
-      passingScore: 70,
-      hasTimeLimit: false,
-      timeLimit: 30,
-      maxRetakes: 3,
-      hasCertificate: false,
-      certificateTemplate: "",
-      xpPoints: 50,
-    },
+    defaultValues: getDefaultFormValues(),
   });
 
-  // Update form when editing an existing assessment - fill fields sequentially
+  // Update form when editing an existing assessment
   useEffect(() => {
-    if (editingAssessment && units && courses && modules && trainingAreas) {
-      // Corrected logic: assessmentFor is 'unit' if unitId is present, otherwise 'course'
+    if (
+      editingAssessment &&
+      units &&
+      courses &&
+      modules &&
+      trainingAreas &&
+      courseUnits
+    ) {
+      // Determine assessment type
       const assessmentFor = editingAssessment.unitId ? "unit" : "course";
 
-      // First reset form to clear previous values
-      form.reset({
-        assessmentFor: "unit",
-        trainingAreaId: undefined,
-        moduleId: undefined,
-        courseId: undefined,
-        unitId: undefined,
-        title: "",
-        description: "",
-        placement: "end",
-        isGraded: true,
-        showCorrectAnswers: false,
-        passingScore: 70,
-        hasTimeLimit: false,
-        timeLimit: 30,
-        maxRetakes: 3,
-        hasCertificate: false,
-        certificateTemplate: "",
-        xpPoints: 50,
-      });
-
-      // Fill fields sequentially with small delays
-      const fillSequentially = async () => {
-        // Step 1: Set assessment type
-        setTimeout(() => {
-          setAssessmentFor(assessmentFor);
-          form.setValue("assessmentFor", assessmentFor);
-        }, 50);
-
-        if (assessmentFor === "course") {
-          // Step 2: Training Area
-          setTimeout(() => {
-            const trainingAreaId = editingAssessment.trainingAreaId;
-            if (trainingAreaId) {
-              setSelectedTrainingAreaId(trainingAreaId);
-              form.setValue("trainingAreaId", trainingAreaId);
-            }
-          }, 150);
-
-          // Step 3: Module
-          setTimeout(() => {
-            const moduleId = editingAssessment.moduleId;
-            if (moduleId) {
-              setSelectedModuleId(moduleId);
-              form.setValue("moduleId", moduleId);
-            }
-          }, 250);
-
-          // Step 4: Course
-          setTimeout(() => {
-            const courseId = editingAssessment.courseId;
-            if (courseId) {
-              setSelectedCourseId(courseId);
-              form.setValue("courseId", courseId);
-            }
-          }, 350);
-        } else {
-          // Step 2: For unit assessments, set courseId and unitId
-          setTimeout(() => {
-            const unitId = editingAssessment.unitId;
-            if (unitId && courseUnits) {
-              // Find the first courseUnit with this unitId
-              const found = courseUnits.find(
-                (cu: CourseUnit) => cu.unitId === unitId
-              );
-              if (found) {
-                setSelectedCourseId(found.courseId);
-                form.setValue("courseId", found.courseId);
-              }
-              // Set the unitId after courseId is set
-              setTimeout(() => {
-                form.setValue("unitId", unitId);
-              }, 100);
-            } else if (unitId) {
-              // fallback: just set unitId
-              form.setValue("unitId", unitId);
-            }
-          }, 150);
+      // For unit assessments, find the course that contains this unit
+      let courseId = editingAssessment.courseId;
+      if (assessmentFor === "unit" && editingAssessment.unitId && courseUnits) {
+        const found = courseUnits.find(
+          (cu: CourseUnit) => cu.unitId === editingAssessment.unitId
+        );
+        if (found) {
+          courseId = found.courseId;
         }
+      }
 
-        // Step 5: Fill remaining fields
-        setTimeout(() => {
-          form.setValue("title", editingAssessment.title);
-          form.setValue("description", editingAssessment.description || "");
-          form.setValue(
-            "placement",
-            editingAssessment.placement === "beginning" ? "beginning" : "end"
-          );
-          form.setValue("isGraded", editingAssessment.isGraded ?? true);
-          form.setValue(
-            "showCorrectAnswers",
-            editingAssessment.showCorrectAnswers ?? false
-          );
-          form.setValue(
-            "passingScore",
-            editingAssessment.passingScore || undefined
-          );
-          form.setValue(
-            "hasTimeLimit",
-            editingAssessment.hasTimeLimit ?? false
-          );
-          form.setValue("timeLimit", editingAssessment.timeLimit || undefined);
-          form.setValue("maxRetakes", editingAssessment.maxRetakes ?? 3);
-          form.setValue(
-            "hasCertificate",
-            editingAssessment.hasCertificate ?? false
-          );
-          form.setValue(
-            "certificateTemplate",
-            editingAssessment.certificateTemplate || ""
-          );
-          form.setValue("xpPoints", editingAssessment.xpPoints);
-        }, 450);
+      // Reset form with the correct assessment type and all values
+      const formValues = {
+        assessmentFor: assessmentFor as "course" | "unit",
+        trainingAreaId: editingAssessment.trainingAreaId || undefined,
+        moduleId: editingAssessment.moduleId || undefined,
+        courseId: courseId || undefined,
+        unitId: editingAssessment.unitId || undefined,
+        title: editingAssessment.title,
+        description: editingAssessment.description || "",
+        placement: (editingAssessment.placement === "beginning"
+          ? "beginning"
+          : "end") as "beginning" | "end",
+        isGraded: editingAssessment.isGraded ?? true,
+        showCorrectAnswers: editingAssessment.showCorrectAnswers ?? false,
+        passingScore: editingAssessment.passingScore || undefined,
+        hasTimeLimit: editingAssessment.hasTimeLimit ?? false,
+        timeLimit: editingAssessment.timeLimit || undefined,
+        maxRetakes: editingAssessment.maxRetakes ?? 3,
+        hasCertificate: editingAssessment.hasCertificate ?? false,
+        certificateTemplate: editingAssessment.certificateTemplate || "",
+        xpPoints: editingAssessment.xpPoints,
       };
 
-      fillSequentially();
+      // Reset form with all values at once
+      form.reset(formValues);
+
+      // Update UI state
+      setAssessmentFor(assessmentFor);
+      setSelectedTrainingAreaId(editingAssessment.trainingAreaId || null);
+      setSelectedModuleId(editingAssessment.moduleId || null);
+      setSelectedCourseId(courseId || null);
     }
-  }, [editingAssessment, form, units, courses, modules, trainingAreas]);
+  }, [
+    editingAssessment,
+    form,
+    units,
+    courses,
+    modules,
+    trainingAreas,
+    courseUnits,
+  ]);
 
   // Create mutation
   const createMutation = useMutation({
@@ -388,25 +332,7 @@ export default function AssessmentsManagement() {
       setSelectedTrainingAreaId(null);
       setSelectedModuleId(null);
       setSelectedCourseId(null);
-      form.reset({
-        assessmentFor: "unit",
-        trainingAreaId: undefined,
-        moduleId: undefined,
-        courseId: undefined,
-        unitId: undefined,
-        title: "",
-        description: "",
-        placement: "end",
-        isGraded: true,
-        showCorrectAnswers: false,
-        passingScore: 70,
-        hasTimeLimit: false,
-        timeLimit: 30,
-        maxRetakes: 3,
-        hasCertificate: false,
-        certificateTemplate: "",
-        xpPoints: 50,
-      });
+      form.reset(getDefaultFormValues());
       form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
@@ -442,25 +368,7 @@ export default function AssessmentsManagement() {
       setSelectedTrainingAreaId(null);
       setSelectedModuleId(null);
       setSelectedCourseId(null);
-      form.reset({
-        assessmentFor: "unit",
-        trainingAreaId: undefined,
-        moduleId: undefined,
-        courseId: undefined,
-        unitId: undefined,
-        title: "",
-        description: "",
-        placement: "end",
-        isGraded: true,
-        showCorrectAnswers: false,
-        passingScore: 70,
-        hasTimeLimit: false,
-        timeLimit: 30,
-        maxRetakes: 3,
-        hasCertificate: false,
-        certificateTemplate: "",
-        xpPoints: 50,
-      });
+      form.reset(getDefaultFormValues());
       form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
@@ -548,25 +456,7 @@ export default function AssessmentsManagement() {
     setSelectedTrainingAreaId(null);
     setSelectedModuleId(null);
     setSelectedCourseId(null);
-    form.reset({
-      assessmentFor: "unit",
-      trainingAreaId: undefined,
-      moduleId: undefined,
-      courseId: undefined,
-      unitId: undefined,
-      title: "",
-      description: "",
-      placement: "end",
-      isGraded: true,
-      showCorrectAnswers: false,
-      passingScore: 70,
-      hasTimeLimit: false,
-      timeLimit: 30,
-      maxRetakes: 3,
-      hasCertificate: false,
-      certificateTemplate: "",
-      xpPoints: 50,
-    });
+    form.reset(getDefaultFormValues());
     form.clearErrors();
   };
 
@@ -812,14 +702,22 @@ export default function AssessmentsManagement() {
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                   </div>
                                 ) : (
-                                  courses?.map((course) => (
-                                    <SelectItem
-                                      key={course.id}
-                                      value={course.id.toString()}
-                                    >
-                                      {course.name}
-                                    </SelectItem>
-                                  ))
+                                  // Only show courses that have units
+                                  courses
+                                    ?.filter((course) => {
+                                      if (!courseUnits) return true;
+                                      return courseUnits.some(
+                                        (cu) => cu.courseId === course.id
+                                      );
+                                    })
+                                    .map((course) => (
+                                      <SelectItem
+                                        key={course.id}
+                                        value={course.id.toString()}
+                                      >
+                                        {course.name}
+                                      </SelectItem>
+                                    ))
                                 )}
                               </SelectContent>
                             </Select>
@@ -936,7 +834,7 @@ export default function AssessmentsManagement() {
                         <FormLabel>Placement</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>

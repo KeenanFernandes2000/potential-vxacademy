@@ -176,17 +176,25 @@ export default function EnhancedCourseDetail() {
     enabled: !!courseId,
   });
 
-  // Fetch unit assessments
-  const { data: unitAssessments = [] } = useQuery<Assessment[]>({
-    queryKey: [`/api/units/${activeUnitId}/assessments`],
-    enabled: !!activeUnitId,
-  });
-
-  // Fetch course assessments
-  const { data: courseAssessments = [] } = useQuery<Assessment[]>({
+  // Fetch all course assessments (both course-level and unit-level)
+  const { data: allCourseAssessments = [] } = useQuery<Assessment[]>({
     queryKey: [`/api/courses/${courseId}/assessments`],
     enabled: !!courseId,
   });
+
+  // Filter unit assessments from all course assessments based on active unit
+  const unitAssessments = useMemo(() => {
+    if (!activeUnitId || !allCourseAssessments) return [];
+    return allCourseAssessments.filter(
+      (assessment) => assessment.unitId === activeUnitId
+    );
+  }, [activeUnitId, allCourseAssessments]);
+
+  // Filter course-level assessments (those without unitId)
+  const courseAssessments = useMemo(() => {
+    if (!allCourseAssessments) return [];
+    return allCourseAssessments.filter((assessment) => !assessment.unitId);
+  }, [allCourseAssessments]);
 
   // Calculate course progress
   const courseProgressData = useMemo(() => {
@@ -250,39 +258,75 @@ export default function EnhancedCourseDetail() {
     selectedUnit?.id || 0
   );
 
+  // Fetch assessment progress for ALL units in the course to properly show completion status
+  const {
+    data: allAssessmentProgress = [],
+    isLoading: isLoadingAllAssessmentProgress,
+  } = useQuery({
+    queryKey: [`/api/progress/assessment/all/${courseId}`],
+    queryFn: async () => {
+      if (!courseId || !units) return [];
+
+      // Fetch assessment progress for all units in the course
+      const allProgress = [];
+      for (const unit of units) {
+        try {
+          const res = await apiRequest(
+            "GET",
+            `/api/progress/assessment/${courseId}/${unit.id}`
+          );
+          const unitProgress = await res.json();
+          allProgress.push(...unitProgress);
+        } catch (error) {
+          console.error(`Error fetching progress for unit ${unit.id}:`, error);
+        }
+      }
+      return allProgress;
+    },
+    enabled: !!courseId && !!units && units.length > 0,
+  });
+
+  // Enhanced assessment completion check that works across all units
+  const isAssessmentCompletedGlobal = (assessmentId: number): boolean => {
+    const isCompleted = allAssessmentProgress.some(
+      (progress) =>
+        progress.assessmentId === assessmentId && progress.isCompleted
+    );
+
+    // Debug logging to help identify issues
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Assessment ${assessmentId} completion check:`, {
+        isCompleted,
+        allAssessmentProgress: allAssessmentProgress.filter(
+          (p) => p.assessmentId === assessmentId
+        ),
+        totalProgress: allAssessmentProgress.length,
+      });
+    }
+
+    return isCompleted;
+  };
+
   // Legacy block completions (for backward compatibility during transition)
   const { data: blockCompletions = [] } = useQuery({
     queryKey: ["/api/block-completions"],
   });
 
-  // Fetch beginning assessments (placement = "beginning")
-  const { data: beginningAssessments = [] } = useQuery<Assessment[]>({
-    queryKey: [
-      `/api/courses/${courseId}/assessments`,
-      { placement: "beginning" },
-    ],
-    queryFn: async () => {
-      const res = await apiRequest(
-        "GET",
-        `/api/courses/${courseId}/assessments?placement=beginning`
-      );
-      return res.json();
-    },
-    enabled: !!courseId,
-  });
+  // Filter beginning assessments from all course assessments
+  const beginningAssessments = useMemo(() => {
+    if (!allCourseAssessments) return [];
+    return allCourseAssessments.filter(
+      (assessment) => assessment.placement === "beginning"
+    );
+  }, [allCourseAssessments]);
 
-  // Fetch end assessments (placement = "end")
-  const { data: endAssessments = [] } = useQuery<Assessment[]>({
-    queryKey: [`/api/courses/${courseId}/assessments`, { placement: "end" }],
-    queryFn: async () => {
-      const res = await apiRequest(
-        "GET",
-        `/api/courses/${courseId}/assessments?placement=end`
-      );
-      return res.json();
-    },
-    enabled: !!courseId,
-  });
+  // Filter end assessments from all course assessments
+  const endAssessments = useMemo(() => {
+    if (!allCourseAssessments) return [];
+    return allCourseAssessments.filter(
+      (assessment) => assessment.placement === "end"
+    );
+  }, [allCourseAssessments]);
 
   // Mutation for completing blocks (using new per-course-per-user system)
   const blockCompletionMutation = useMutation({
@@ -456,8 +500,23 @@ export default function EnhancedCourseDetail() {
     const { passed, assessmentId, certificateGenerated } = result;
 
     if (passed) {
+      // Find the assessment to get its unitId and other properties
+      const assessment = [...unitAssessments, ...courseAssessments].find(
+        (a) => a.id === assessmentId
+      );
+
       // Use the new per-course-per-user assessment completion
-      if (selectedUnit) {
+      if (assessment?.unitId && courseId) {
+        // Call the API directly since we need to specify unitId
+        apiRequest("POST", "/api/progress/assessment/complete", {
+          courseId,
+          unitId: assessment.unitId,
+          assessmentId,
+        }).catch((error) => {
+          console.error("Error marking assessment complete:", error);
+        });
+      } else if (selectedUnit) {
+        // Fallback to the hook method if we have selectedUnit
         markAssessmentComplete({ assessmentId });
       }
 
@@ -465,9 +524,6 @@ export default function EnhancedCourseDetail() {
       setCompletedAssessments((prev) => new Set(prev).add(assessmentId));
 
       // Check if certificate should be generated
-      const assessment = [...unitAssessments, ...courseAssessments].find(
-        (a) => a.id === assessmentId
-      );
       if (assessment?.hasCertificate && !certificateGenerated) {
         generateCertificateMutation.mutate({
           courseId: courseId!,
@@ -490,9 +546,43 @@ export default function EnhancedCourseDetail() {
     queryClient.invalidateQueries({
       queryKey: [`/api/courses/${courseId}/assessments`],
     });
+
+    // Invalidate assessment progress queries
+    if (selectedUnit) {
+      queryClient.invalidateQueries({
+        queryKey: [`/api/progress/assessment/${courseId}/${selectedUnit.id}`],
+      });
+    }
+
+    // Also invalidate for the assessment's unit if different from selectedUnit
+    const assessmentForInvalidation = [
+      ...unitAssessments,
+      ...courseAssessments,
+    ].find((a) => a.id === assessmentId);
+    if (
+      assessmentForInvalidation?.unitId &&
+      assessmentForInvalidation.unitId !== selectedUnit?.id
+    ) {
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/progress/assessment/${courseId}/${assessmentForInvalidation.unitId}`,
+        ],
+      });
+    }
+
+    // Invalidate the global assessment progress query
     queryClient.invalidateQueries({
-      queryKey: [`/api/units/${activeUnitId}/assessments`],
+      queryKey: [`/api/progress/assessment/all/${courseId}`],
     });
+
+    // Invalidate all unit-specific assessment progress queries for this course
+    if (units) {
+      for (const unit of units) {
+        queryClient.invalidateQueries({
+          queryKey: [`/api/progress/assessment/${courseId}/${unit.id}`],
+        });
+      }
+    }
 
     if (passed) {
       // Determine next action based on assessment type and placement
@@ -628,7 +718,7 @@ export default function EnhancedCourseDetail() {
         const firstUnitBlocks = blocks.filter(
           (block) => block.unitId === firstUnit.id
         );
-        const firstUnitAssessments = unitAssessments.filter(
+        const firstUnitAssessments = allCourseAssessments.filter(
           (assessment) => assessment.unitId === firstUnit.id
         );
 
@@ -667,7 +757,7 @@ export default function EnhancedCourseDetail() {
     courseAssessments,
     units,
     blocks,
-    unitAssessments,
+    allCourseAssessments,
     completedAssessments,
   ]);
 
@@ -809,7 +899,7 @@ export default function EnhancedCourseDetail() {
                           assessment.moduleId !== null
                       )
                       .map((assessment) => {
-                        const isCompleted = isAssessmentCompleted(
+                        const isCompleted = isAssessmentCompletedGlobal(
                           assessment.id
                         );
                         const isSelected =
@@ -862,7 +952,7 @@ export default function EnhancedCourseDetail() {
                     const unitBlocks = blocks.filter(
                       (block) => block.unitId === unit.id
                     );
-                    const unitSpecificAssessments = unitAssessments.filter(
+                    const unitSpecificAssessments = allCourseAssessments.filter(
                       (assessment) => assessment.unitId === unit.id
                     );
                     const isUnitExpanded = selectedUnit?.id === unit.id;
@@ -1010,7 +1100,7 @@ export default function EnhancedCourseDetail() {
                                 (assessment) => assessment.placement === "end"
                               )
                               .map((assessment) => {
-                                const isCompleted = completedAssessments.has(
+                                const isCompleted = isAssessmentCompletedGlobal(
                                   assessment.id
                                 );
                                 const isSelected =
@@ -1073,7 +1163,7 @@ export default function EnhancedCourseDetail() {
                               assessment.moduleId !== null
                           )
                           .map((assessment) => {
-                            const isCompleted = isAssessmentCompleted(
+                            const isCompleted = isAssessmentCompletedGlobal(
                               assessment.id
                             );
                             return (
