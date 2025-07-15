@@ -50,6 +50,7 @@ import {
 import { ComprehensiveAssessment } from "@/components/assessment/ComprehensiveAssessment";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
 import { useBlockAssessmentProgress } from "@/hooks/use-block-assessment-progress";
+import { useCourseProgress } from "@/hooks/use-course-progress";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -196,52 +197,13 @@ export default function EnhancedCourseDetail() {
     return allCourseAssessments.filter((assessment) => !assessment.unitId);
   }, [allCourseAssessments]);
 
-  // Calculate course progress
-  const courseProgressData = useMemo(() => {
-    if (!units || !blocks)
-      return {
-        percentComplete: 0,
-        completed: false,
-        totalItems: 0,
-        completedItems: 0,
-      };
-
-    const totalBlocks = blocks.length;
-    const totalAssessments = [
-      ...(unitAssessments || []),
-      ...(courseAssessments || []),
-    ].length;
-    const totalItems = totalBlocks + totalAssessments;
-
-    if (totalItems === 0)
-      return {
-        percentComplete: 100,
-        completed: true,
-        totalItems: 0,
-        completedItems: 0,
-      };
-
-    const completedItemsCount =
-      completedBlocks.size + completedAssessments.size;
-    const percentComplete = Math.round(
-      (completedItemsCount / totalItems) * 100
-    );
-    const completed = percentComplete === 100;
-
-    return {
-      percentComplete,
-      completed,
-      totalItems,
-      completedItems: completedItemsCount,
-    };
-  }, [
-    units,
-    blocks,
-    unitAssessments,
-    courseAssessments,
-    completedBlocks,
-    completedAssessments,
-  ]);
+  // Use unified progress calculation
+  const {
+    progressData: courseProgressData,
+    isBlockCompleted: isBlockCompletedUnified,
+    isAssessmentCompleted: isAssessmentCompletedUnified,
+    invalidateProgress,
+  } = useCourseProgress(courseId, user?.id || null);
 
   // Use the new per-course-per-user block and assessment progress system
   const {
@@ -307,10 +269,7 @@ export default function EnhancedCourseDetail() {
     return isCompleted;
   };
 
-  // Legacy block completions (for backward compatibility during transition)
-  const { data: blockCompletions = [] } = useQuery({
-    queryKey: ["/api/block-completions"],
-  });
+  // Course-specific block progress is handled by useCourseProgress hook
 
   // Filter beginning assessments from all course assessments
   const beginningAssessments = useMemo(() => {
@@ -328,26 +287,22 @@ export default function EnhancedCourseDetail() {
     );
   }, [allCourseAssessments]);
 
-  // Mutation for completing blocks (using new per-course-per-user system)
+  // Mutation for completing blocks (using course-specific system)
   const blockCompletionMutation = useMutation({
     mutationFn: async (blockId: number) => {
-      // Use the new per-course-per-user block completion
+      // Use the course-specific block completion
       if (selectedUnit) {
         markBlockComplete({ blockId });
+      } else {
+        throw new Error("No unit selected for block completion");
       }
-      // Fallback to old system for backward compatibility
-      const res = await apiRequest("POST", `/api/blocks/${blockId}/complete`);
-      return res.json();
     },
     onSuccess: (data, blockId) => {
       // Add completed block to local state immediately
       setCompletedBlocks((prev) => new Set(prev).add(blockId));
 
-      // Invalidate all relevant queries to update progress
-      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/block-completions"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+      // Use unified progress invalidation
+      invalidateProgress();
     },
   });
 
@@ -410,26 +365,8 @@ export default function EnhancedCourseDetail() {
     }
   }, [progress, courseId]);
 
-  useEffect(() => {
-    if (blockCompletions && Array.isArray(blockCompletions)) {
-      const completedBlockIds = blockCompletions
-        .filter((completion: any) => completion && completion.blockId)
-        .map((completion: any) => completion.blockId);
-
-      setCompletedBlocks((prev) => {
-        const newSet = new Set(completedBlockIds);
-        // Only update if the set is actually different
-        if (
-          prev.size !== newSet.size ||
-          [...prev].some((id) => !newSet.has(id))
-        ) {
-          console.log("Updated completed blocks:", completedBlockIds);
-          return newSet;
-        }
-        return prev;
-      });
-    }
-  }, [blockCompletions]);
+  // Course-specific block progress is handled by useCourseProgress hook
+  // No need to initialize completedBlocks from legacy data
 
   const courseProgress =
     progress && Array.isArray(progress)
@@ -535,54 +472,8 @@ export default function EnhancedCourseDetail() {
     setShowAssessment(false);
     setCurrentAssessment(null);
 
-    // Invalidate and refetch progress data to update UI
-    queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/block-completions"] });
-    queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
-    queryClient.invalidateQueries({
-      queryKey: [`/api/courses/${courseId}/units`],
-    });
-    queryClient.invalidateQueries({
-      queryKey: [`/api/courses/${courseId}/assessments`],
-    });
-
-    // Invalidate assessment progress queries
-    if (selectedUnit) {
-      queryClient.invalidateQueries({
-        queryKey: [`/api/progress/assessment/${courseId}/${selectedUnit.id}`],
-      });
-    }
-
-    // Also invalidate for the assessment's unit if different from selectedUnit
-    const assessmentForInvalidation = [
-      ...unitAssessments,
-      ...courseAssessments,
-    ].find((a) => a.id === assessmentId);
-    if (
-      assessmentForInvalidation?.unitId &&
-      assessmentForInvalidation.unitId !== selectedUnit?.id
-    ) {
-      queryClient.invalidateQueries({
-        queryKey: [
-          `/api/progress/assessment/${courseId}/${assessmentForInvalidation.unitId}`,
-        ],
-      });
-    }
-
-    // Invalidate the global assessment progress query
-    queryClient.invalidateQueries({
-      queryKey: [`/api/progress/assessment/all/${courseId}`],
-    });
-
-    // Invalidate all unit-specific assessment progress queries for this course
-    if (units) {
-      for (const unit of units) {
-        queryClient.invalidateQueries({
-          queryKey: [`/api/progress/assessment/${courseId}/${unit.id}`],
-        });
-      }
-    }
+    // Use unified progress invalidation
+    invalidateProgress();
 
     if (passed) {
       // Determine next action based on assessment type and placement
@@ -674,7 +565,7 @@ export default function EnhancedCourseDetail() {
     );
 
   const isAllContentComplete = () => {
-    return detailedProgress.percent >= 80;
+    return courseProgressData.percentComplete >= 80;
   };
 
   // Auto-enroll if user accesses course but has no progress record
@@ -864,12 +755,13 @@ export default function EnhancedCourseDetail() {
             <div className="lg:w-80">
               <div className="bg-white rounded-lg p-4 border border-gray-200">
                 <CourseProgressBar
-                  completedUnits={detailedProgress.completedUnits}
-                  totalUnits={detailedProgress.totalUnits}
+                  completedUnits={courseProgressData.completedItems}
+                  totalUnits={courseProgressData.totalItems}
                   percent={courseProgressData.percentComplete}
                   hasEndAssessment={endAssessments.length > 0}
                   endAssessmentAvailable={
-                    detailedProgress.percent >= 80 && endAssessments.length > 0
+                    courseProgressData.percentComplete >= 80 &&
+                    endAssessments.length > 0
                   }
                 />
               </div>
@@ -1200,33 +1092,8 @@ export default function EnhancedCourseDetail() {
                   {/* No assessment message */}
                   {courseId === 2 &&
                     courseAssessments &&
-                    courseAssessments.length === 0 && (
-                      <div className="mt-4 p-3 border-t border-gray-200">
-                        <div className="text-center">
-                          <h4 className="font-medium mb-2 text-orange-600">
-                            No Final Assessment Available
-                          </h4>
-                          <p className="text-sm text-gray-600 mb-3">
-                            This course doesn't have a final assessment yet.
-                            Admins can create one through the admin panel.
-                          </p>
-                          {user?.role === "admin" && (
-                            <Button
-                              onClick={() => {
-                                window.open(
-                                  `/admin/assessments?courseId=${courseId}`,
-                                  "_blank"
-                                );
-                              }}
-                              className="w-full bg-blue-600 hover:bg-blue-700"
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              Create Final Assessment
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    courseAssessments.length === 0 &&
+                    ""}
                 </div>
               </CardContent>
             </Card>
@@ -1297,7 +1164,7 @@ export default function EnhancedCourseDetail() {
                         </div>
                       )}
                       <div className="mt-6">
-                        {isBlockCompleted(selectedBlock.id) ? (
+                        {isBlockCompletedUnified(selectedBlock.id) ? (
                           <Button
                             disabled
                             className="bg-green-600 text-white cursor-not-allowed opacity-75"
@@ -1332,7 +1199,7 @@ export default function EnhancedCourseDetail() {
                 )}
                 {selectedContent.type === "assessment" && (
                   <div>
-                    {isAssessmentCompleted(selectedContent.id) ? (
+                    {isAssessmentCompletedUnified(selectedContent.id) ? (
                       <Card>
                         <CardContent className="p-6 text-center">
                           <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />

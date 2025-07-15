@@ -1,7 +1,9 @@
 import { Link } from "wouter";
-import { Course, UserProgress } from "@shared/schema";
+import { Course, UserProgress, Assessment } from "@shared/schema";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCourseProgress } from "@/hooks/use-course-progress";
+import { useQuery } from "@tanstack/react-query";
 
 interface CourseCardProps {
   course: Course;
@@ -10,6 +12,7 @@ interface CourseCardProps {
   onEnroll?: (courseId: number) => void;
   formatDuration: (minutes: number) => string;
   isLoading?: boolean;
+  userId?: number;
 }
 
 export function CourseCard({
@@ -19,7 +22,29 @@ export function CourseCard({
   onEnroll,
   formatDuration,
   isLoading,
+  userId,
 }: CourseCardProps) {
+  // Use unified progress calculation for accurate course-specific progress
+  const { progressData: courseProgressData } = useCourseProgress(
+    course.id,
+    userId || null
+  );
+
+  // Fetch course assessments to determine if there are end assessments
+  const { data: courseAssessments = [] } = useQuery<Assessment[]>({
+    queryKey: [`/api/courses/${course.id}/assessments`],
+    enabled: !!course.id,
+  });
+
+  // Check if course has end assessments
+  const hasEndAssessment = courseAssessments.some(
+    (assessment: Assessment) => assessment.placement === "end"
+  );
+
+  // Determine if end assessment is available (progress >= 80%)
+  const endAssessmentAvailable =
+    courseProgressData.percentComplete >= 80 && hasEndAssessment;
+
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl border border-neutrals-200 shadow-sm overflow-hidden">
@@ -65,19 +90,18 @@ export function CourseCard({
         </div>
         <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
 
-        {progress ? (
+        {/* Show progress if user has started the course */}
+        {courseProgressData.totalItems > 0 ? (
           <>
             <CourseProgressBar
-              completedUnits={Math.floor(
-                ((progress.percentComplete || 0) / 100) * units.length
-              )}
-              totalUnits={units.length}
-              percent={progress.percentComplete || 0}
-              hasEndAssessment={false}
-              endAssessmentAvailable={false}
+              completedUnits={courseProgressData.completedItems}
+              totalUnits={courseProgressData.totalItems}
+              percent={courseProgressData.percentComplete}
+              hasEndAssessment={hasEndAssessment}
+              endAssessmentAvailable={endAssessmentAvailable}
             />
             <div className="flex items-center justify-between mt-3">
-              {progress.completed ? (
+              {courseProgressData.percentComplete >= 100 ? (
                 <Link href={`/courses/${course.id}`}>
                   <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors ml-auto">
                     <span className="material-icons text-xs mr-1">
@@ -89,7 +113,9 @@ export function CourseCard({
               ) : (
                 <Link href={`/courses/${course.id}`}>
                   <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors ml-auto">
-                    {progress.percentComplete > 0 ? "Continue" : "Start"}
+                    {courseProgressData.percentComplete > 0
+                      ? "Continue"
+                      : "Start"}
                   </a>
                 </Link>
               )}

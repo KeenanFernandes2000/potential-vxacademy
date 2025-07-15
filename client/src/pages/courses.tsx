@@ -73,6 +73,11 @@ export default function Courses() {
     queryKey: ["/api/progress"],
   });
 
+  // Fetch current user for course progress tracking
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
   // Fetch units for all courses to get actual unit counts
   const { data: allUnits } = useQuery({
     queryKey: ["/api/courses/units"],
@@ -217,6 +222,7 @@ export default function Courses() {
                     units={course.units}
                     onEnroll={handleEnroll}
                     formatDuration={formatDuration}
+                    userId={user?.id}
                   />
                 ))
               ) : (

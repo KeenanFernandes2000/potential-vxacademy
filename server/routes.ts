@@ -358,10 +358,10 @@ async function updateCourseProgress(userId: number, courseId: number) {
       const blocks = await storage.getLearningBlocks(unit.id);
       totalItems += blocks.length;
 
-      // Count completed blocks
+      // Count completed blocks using course-specific tracking
       for (const block of blocks) {
-        const blockCompletion = await storage.getBlockCompletion(userId, block.id);
-        if (blockCompletion && blockCompletion.completed) {
+        const blockProgress = await storage.getUserBlockProgress(userId, courseId, unit.id, block.id);
+        if (blockProgress && blockProgress.isCompleted) {
           completedItems++;
         }
       }
@@ -951,6 +951,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's block progress for all units in a course
+  app.get("/api/progress/block/all/:courseId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const userId = req.user!.id;
+      const courseId = parseInt(req.params.courseId);
+      
+      // Get all units for this course
+      const units = await storage.getUnits(courseId);
+      
+      // Get block progress for all units
+      const allProgress = [];
+      for (const unit of units) {
+        try {
+          const unitProgress = await storage.getUserBlockProgressForUnit(userId, courseId, unit.id);
+          allProgress.push(...unitProgress);
+        } catch (error) {
+          console.error(`Error fetching block progress for unit ${unit.id}:`, error);
+        }
+      }
+      
+      res.json(allProgress);
+    } catch (error) {
+      console.error("Error fetching all block progress:", error);
+      res.status(500).json({ message: "Error fetching all block progress" });
+    }
+  });
+
   // Mark block as complete for a specific course and unit
   app.post("/api/progress/block/complete", async (req, res) => {
     if (!req.isAuthenticated()) {
@@ -989,6 +1020,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching assessment progress:", error);
       res.status(500).json({ message: "Error fetching assessment progress" });
+    }
+  });
+
+  // Get user's assessment progress for all units in a course
+  app.get("/api/progress/assessment/all/:courseId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const userId = req.user!.id;
+      const courseId = parseInt(req.params.courseId);
+      
+      // Get all units for this course
+      const units = await storage.getUnits(courseId);
+      
+      // Get assessment progress for all units
+      const allProgress = [];
+      for (const unit of units) {
+        try {
+          const unitProgress = await storage.getUserAssessmentProgressForUnit(userId, courseId, unit.id);
+          allProgress.push(...unitProgress);
+        } catch (error) {
+          console.error(`Error fetching progress for unit ${unit.id}:`, error);
+        }
+      }
+      
+      res.json(allProgress);
+    } catch (error) {
+      console.error("Error fetching all assessment progress:", error);
+      res.status(500).json({ message: "Error fetching all assessment progress" });
     }
   });
 

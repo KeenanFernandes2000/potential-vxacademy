@@ -9,33 +9,72 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User, Badge, Certificate } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Form schemas - limited editing for basic users
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   language: z.string().min(1, "Please select a language"),
+  nationality: z.string().optional(),
+  yearsOfExperience: z.string().optional(),
+  organizationName: z.string().optional(),
+  roleCategory: z.string().optional(),
+  subCategory: z.string().optional(),
+  seniority: z.string().optional(),
+  assets: z.string().optional(),
 });
 
-const passwordSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 type PasswordFormValues = z.infer<typeof passwordSchema>;
@@ -57,7 +96,9 @@ export default function Profile() {
   });
 
   // Fetch user certificates
-  const { data: userCertificates, isLoading: certificatesLoading } = useQuery<Certificate[]>({
+  const { data: userCertificates, isLoading: certificatesLoading } = useQuery<
+    Certificate[]
+  >({
     queryKey: ["/api/user/certificates"],
   });
 
@@ -67,7 +108,14 @@ export default function Profile() {
     defaultValues: {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
-      language: user?.language || "en",
+      language: user?.language || "English",
+      nationality: user?.nationality || "",
+      yearsOfExperience: user?.yearsOfExperience || "",
+      organizationName: user?.organizationName || "",
+      roleCategory: user?.roleCategory || "",
+      subCategory: user?.subCategory || "",
+      seniority: user?.seniority || "",
+      assets: user?.assets || "",
     },
   });
 
@@ -92,11 +140,11 @@ export default function Profile() {
         body: JSON.stringify(data),
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to update profile");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -109,7 +157,8 @@ export default function Profile() {
     onError: (error: Error) => {
       toast({
         title: "Update failed",
-        description: error.message || "Failed to update profile. Please try again.",
+        description:
+          error.message || "Failed to update profile. Please try again.",
         variant: "destructive",
       });
     },
@@ -126,11 +175,11 @@ export default function Profile() {
         body: JSON.stringify(data),
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to change password");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -143,7 +192,8 @@ export default function Profile() {
     onError: (error: Error) => {
       toast({
         title: "Password change failed",
-        description: error.message || "Failed to change password. Please try again.",
+        description:
+          error.message || "Failed to change password. Please try again.",
         variant: "destructive",
       });
     },
@@ -159,23 +209,37 @@ export default function Profile() {
 
   // Calculate achievement level
   const achievementLevel = user?.xpPoints
-    ? user.xpPoints >= 3000 ? "Expert"
-    : user.xpPoints >= 1500 ? "Advanced"
-    : user.xpPoints >= 500 ? "Intermediate" : "Beginner"
+    ? user.xpPoints >= 3000
+      ? "Expert"
+      : user.xpPoints >= 1500
+      ? "Advanced"
+      : user.xpPoints >= 500
+      ? "Intermediate"
+      : "Beginner"
     : "Beginner";
 
   const achievementIcon = user?.xpPoints
-    ? user.xpPoints >= 3000 ? "workspace_premium"
-    : user.xpPoints >= 1500 ? "emoji_events"
-    : user.xpPoints >= 500 ? "military_tech" : "person"
+    ? user.xpPoints >= 3000
+      ? "workspace_premium"
+      : user.xpPoints >= 1500
+      ? "emoji_events"
+      : user.xpPoints >= 500
+      ? "military_tech"
+      : "person"
     : "person";
 
   return (
     <div className="h-screen flex flex-col md:flex-row">
       {/* Mobile sidebar */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={toggleSidebar}>
-          <div className="absolute top-0 left-0 bottom-0 w-64 bg-primary" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={toggleSidebar}
+        >
+          <div
+            className="absolute top-0 left-0 bottom-0 w-64 bg-primary"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Sidebar />
           </div>
         </div>
@@ -195,42 +259,62 @@ export default function Profile() {
               <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
                 <div className="relative">
                   {user?.avatar ? (
-                    <img 
-                      src={user.avatar} 
-                      alt={`${user.firstName} ${user.lastName}`} 
+                    <img
+                      src={user.avatar}
+                      alt={`${user.firstName} ${user.lastName}`}
                       className="w-20 h-20 rounded-full object-cover"
                     />
                   ) : (
                     <div className="w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold">
-                      {user?.firstName?.charAt(0) || user?.username?.charAt(0) || "U"}
+                      {user?.firstName?.charAt(0) ||
+                        user?.username?.charAt(0) ||
+                        "U"}
                     </div>
                   )}
                   <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white border-2 border-white flex items-center justify-center">
-                    <span className={`material-icons text-lg ${
-                      user?.xpPoints && user.xpPoints >= 3000 ? "text-secondary" :
-                      user?.xpPoints && user.xpPoints >= 1500 ? "text-neutrals-500" :
-                      user?.xpPoints && user.xpPoints >= 500 ? "text-amber-700" : "text-neutrals-400"
-                    }`}>
+                    <span
+                      className={`material-icons text-lg ${
+                        user?.xpPoints && user.xpPoints >= 3000
+                          ? "text-secondary"
+                          : user?.xpPoints && user.xpPoints >= 1500
+                          ? "text-neutrals-500"
+                          : user?.xpPoints && user.xpPoints >= 500
+                          ? "text-amber-700"
+                          : "text-neutrals-400"
+                      }`}
+                    >
                       {achievementIcon}
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-neutrals-800 mb-1">{user ? `${user.firstName} ${user.lastName}` : ''}</h1>
+                  <h1 className="text-2xl font-bold text-neutrals-800 mb-1">
+                    {user ? `${user.firstName} ${user.lastName}` : ""}
+                  </h1>
                   <p className="text-neutrals-600 mb-2">{user?.email}</p>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <span className="material-icons text-primary">stars</span>
-                      <span className="font-semibold text-primary">{user?.xpPoints?.toLocaleString() || 0} XP</span>
+                      <span className="font-semibold text-primary">
+                        {user?.xpPoints?.toLocaleString() || 0} XP
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="material-icons text-accent">military_tech</span>
-                      <span className="text-accent font-medium">{achievementLevel}</span>
+                      <span className="material-icons text-accent">
+                        military_tech
+                      </span>
+                      <span className="text-accent font-medium">
+                        {achievementLevel}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="material-icons text-secondary">verified_user</span>
-                      <span className="text-secondary font-medium capitalize">{user?.role}</span>
+                      <span className="material-icons text-secondary">
+                        verified_user
+                      </span>
+                      <span className="text-secondary font-medium capitalize">
+                        {user?.role}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -238,7 +322,11 @@ export default function Profile() {
             </div>
 
             {/* Profile Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
               <TabsList className="mb-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="details">User Details</TabsTrigger>
@@ -252,34 +340,52 @@ export default function Profile() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
-                        <span className="material-icons mr-2 text-primary">emoji_events</span>
+                        <span className="material-icons mr-2 text-primary">
+                          emoji_events
+                        </span>
                         Achievements
                       </CardTitle>
-                      <CardDescription>Your earned badges and accomplishments</CardDescription>
+                      <CardDescription>
+                        Your earned badges and accomplishments
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       {badgesLoading ? (
                         <div className="space-y-3">
-                          {Array(3).fill(0).map((_, i) => (
-                            <div key={i} className="flex items-center space-x-3">
-                              <Skeleton className="h-10 w-10 rounded-full" />
-                              <div className="space-y-1">
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-3 w-32" />
+                          {Array(3)
+                            .fill(0)
+                            .map((_, i) => (
+                              <div
+                                key={i}
+                                className="flex items-center space-x-3"
+                              >
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div className="space-y-1">
+                                  <Skeleton className="h-4 w-24" />
+                                  <Skeleton className="h-3 w-32" />
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                         </div>
                       ) : userBadges && userBadges.length > 0 ? (
                         <div className="space-y-3">
                           {userBadges.slice(0, 5).map((badge) => (
-                            <div key={badge.id} className="flex items-center space-x-3">
+                            <div
+                              key={badge.id}
+                              className="flex items-center space-x-3"
+                            >
                               <div className="w-10 h-10 rounded-full bg-primary-light bg-opacity-20 flex items-center justify-center">
-                                <span className="material-icons text-primary text-lg">emoji_events</span>
+                                <span className="material-icons text-primary text-lg">
+                                  emoji_events
+                                </span>
                               </div>
                               <div>
-                                <p className="font-medium text-sm">{badge.name}</p>
-                                <p className="text-xs text-neutrals-600">{badge.description}</p>
+                                <p className="font-medium text-sm">
+                                  {badge.name}
+                                </p>
+                                <p className="text-xs text-neutrals-600">
+                                  {badge.description}
+                                </p>
                               </div>
                             </div>
                           ))}
@@ -291,8 +397,12 @@ export default function Profile() {
                         </div>
                       ) : (
                         <div className="text-center py-6">
-                          <span className="material-icons text-4xl text-neutrals-400 mb-2">emoji_events</span>
-                          <p className="text-neutrals-600">No badges earned yet</p>
+                          <span className="material-icons text-4xl text-neutrals-400 mb-2">
+                            emoji_events
+                          </span>
+                          <p className="text-neutrals-600">
+                            No badges earned yet
+                          </p>
                         </div>
                       )}
                     </CardContent>
@@ -302,28 +412,42 @@ export default function Profile() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
-                        <span className="material-icons mr-2 text-secondary">verified</span>
+                        <span className="material-icons mr-2 text-secondary">
+                          verified
+                        </span>
                         Certificates
                       </CardTitle>
-                      <CardDescription>Your earned course certificates</CardDescription>
+                      <CardDescription>
+                        Your earned course certificates
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       {certificatesLoading ? (
                         <div className="space-y-3">
-                          {Array(3).fill(0).map((_, i) => (
-                            <div key={i} className="space-y-2">
-                              <Skeleton className="h-4 w-32" />
-                              <Skeleton className="h-3 w-24" />
-                            </div>
-                          ))}
+                          {Array(3)
+                            .fill(0)
+                            .map((_, i) => (
+                              <div key={i} className="space-y-2">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-3 w-24" />
+                              </div>
+                            ))}
                         </div>
                       ) : userCertificates && userCertificates.length > 0 ? (
                         <div className="space-y-3">
                           {userCertificates.slice(0, 5).map((certificate) => (
-                            <div key={certificate.id} className="border-l-4 border-secondary pl-4">
-                              <p className="font-medium text-sm">Certificate #{certificate.certificateNumber}</p>
+                            <div
+                              key={certificate.id}
+                              className="border-l-4 border-secondary pl-4"
+                            >
+                              <p className="font-medium text-sm">
+                                Certificate #{certificate.certificateNumber}
+                              </p>
                               <p className="text-xs text-neutrals-600">
-                                Status: <span className="capitalize font-medium">{certificate.status}</span>
+                                Status:{" "}
+                                <span className="capitalize font-medium">
+                                  {certificate.status}
+                                </span>
                               </p>
                             </div>
                           ))}
@@ -335,8 +459,12 @@ export default function Profile() {
                         </div>
                       ) : (
                         <div className="text-center py-6">
-                          <span className="material-icons text-4xl text-neutrals-400 mb-2">verified</span>
-                          <p className="text-neutrals-600">No certificates earned yet</p>
+                          <span className="material-icons text-4xl text-neutrals-400 mb-2">
+                            verified
+                          </span>
+                          <p className="text-neutrals-600">
+                            No certificates earned yet
+                          </p>
                         </div>
                       )}
                     </CardContent>
@@ -347,10 +475,14 @@ export default function Profile() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <span className="material-icons mr-2 text-accent">trending_up</span>
+                      <span className="material-icons mr-2 text-accent">
+                        trending_up
+                      </span>
                       Learning Progress
                     </CardTitle>
-                    <CardDescription>Your learning journey at a glance</CardDescription>
+                    <CardDescription>
+                      Your learning journey at a glance
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -358,19 +490,25 @@ export default function Profile() {
                         <div className="text-3xl font-bold text-primary mb-1">
                           {user?.xpPoints?.toLocaleString() || 0}
                         </div>
-                        <p className="text-sm text-neutrals-600">Total XP Earned</p>
+                        <p className="text-sm text-neutrals-600">
+                          Total XP Earned
+                        </p>
                       </div>
                       <div className="text-center">
                         <div className="text-3xl font-bold text-accent mb-1">
                           {userBadges?.length || 0}
                         </div>
-                        <p className="text-sm text-neutrals-600">Badges Earned</p>
+                        <p className="text-sm text-neutrals-600">
+                          Badges Earned
+                        </p>
                       </div>
                       <div className="text-center">
                         <div className="text-3xl font-bold text-secondary mb-1">
                           {userCertificates?.length || 0}
                         </div>
-                        <p className="text-sm text-neutrals-600">Certificates</p>
+                        <p className="text-sm text-neutrals-600">
+                          Certificates
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -384,11 +522,16 @@ export default function Profile() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Editable Information</CardTitle>
-                      <CardDescription>Information you can update</CardDescription>
+                      <CardDescription>
+                        Information you can update
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Form {...profileForm}>
-                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+                        <form
+                          onSubmit={profileForm.handleSubmit(onProfileSubmit)}
+                          className="space-y-4"
+                        >
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                               control={profileForm.control}
@@ -397,7 +540,10 @@ export default function Profile() {
                                 <FormItem>
                                   <FormLabel>First Name</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Enter your first name" {...field} />
+                                    <Input
+                                      placeholder="Enter your first name"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -411,7 +557,10 @@ export default function Profile() {
                                 <FormItem>
                                   <FormLabel>Last Name</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Enter your last name" {...field} />
+                                    <Input
+                                      placeholder="Enter your last name"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -425,22 +574,25 @@ export default function Profile() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Preferred Language</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                >
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Select your preferred language" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="en">English</SelectItem>
-                                    <SelectItem value="ar">العربية (Arabic)</SelectItem>
-                                    <SelectItem value="ur">اردو (Urdu)</SelectItem>
-                                    <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
-                                    <SelectItem value="tl">Tagalog</SelectItem>
-                                    <SelectItem value="bn">বাংলা (Bengali)</SelectItem>
-                                    <SelectItem value="ta">தமிழ் (Tamil)</SelectItem>
-                                    <SelectItem value="ml">മലയാളം (Malayalam)</SelectItem>
-                                    <SelectItem value="te">తెలుగు (Telugu)</SelectItem>
+                                    <SelectItem value="English">English</SelectItem>
+                                    <SelectItem value="Arabic">Arabic</SelectItem>
+                                    <SelectItem value="Urdu">Urdu</SelectItem>
+                                    <SelectItem value="Hindi">Hindi</SelectItem>
+                                    <SelectItem value="Tagalog">Tagalog</SelectItem>
+                                    <SelectItem value="Bengali">Bengali</SelectItem>
+                                    <SelectItem value="Tamil">Tamil</SelectItem>
+                                    <SelectItem value="Malayalam">Malayalam</SelectItem>
+                                    <SelectItem value="Farsi">Farsi</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -448,13 +600,140 @@ export default function Profile() {
                             )}
                           />
 
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={profileForm.control}
+                              name="nationality"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nationality</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Enter your nationality"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={profileForm.control}
+                              name="yearsOfExperience"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Years of Experience</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g., 5 years"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={profileForm.control}
+                            name="organizationName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Organization</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Enter your organization name"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={profileForm.control}
+                              name="roleCategory"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Role Category</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g., Transport staff, Welcome staff"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={profileForm.control}
+                              name="seniority"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Seniority Level</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g., Manager, Staff"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={profileForm.control}
+                              name="assets"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Assets</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g., Museum, Culture site, Events"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={profileForm.control}
+                              name="subCategory"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Sub Category</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Enter sub category"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
                           <div className="flex justify-end">
-                            <Button 
-                              type="submit" 
+                            <Button
+                              type="submit"
                               disabled={updateProfileMutation.isPending}
                               className="min-w-[120px]"
                             >
-                              {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+                              {updateProfileMutation.isPending
+                                ? "Updating..."
+                                : "Update Profile"}
                             </Button>
                           </div>
                         </form>
@@ -466,46 +745,80 @@ export default function Profile() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Profile Information</CardTitle>
-                      <CardDescription>Your account and profile details</CardDescription>
+                      <CardDescription>
+                        Your account and profile details
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Email Address</Label>
-                            <p className="text-sm font-medium">{user?.email || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Email Address
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.email || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Username</Label>
-                            <p className="text-sm font-medium">{user?.username || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Username
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.username || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Platform Role</Label>
-                            <p className="text-sm font-medium capitalize">{user?.role || "User"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Platform Role
+                            </Label>
+                            <p className="text-sm font-medium capitalize">
+                              {user?.role || "User"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Account Status</Label>
-                            <p className="text-sm font-medium text-green-600">Active</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Account Status
+                            </Label>
+                            <p className="text-sm font-medium text-green-600">
+                              Active
+                            </p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-4">
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">XP Points</Label>
-                            <p className="text-sm font-medium">{user?.xpPoints?.toLocaleString() || 0}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Badges Collected</Label>
-                            <p className="text-sm font-medium">{userBadges?.length || 0}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Certificates Earned</Label>
-                            <p className="text-sm font-medium">{userCertificates?.length || 0}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Account Created</Label>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              XP Points
+                            </Label>
                             <p className="text-sm font-medium">
-                              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
+                              {user?.xpPoints?.toLocaleString() || 0}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Badges Collected
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {userBadges?.length || 0}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Certificates Earned
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {userCertificates?.length || 0}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Account Created
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.createdAt
+                                ? new Date(user.createdAt).toLocaleDateString()
+                                : "—"}
                             </p>
                           </div>
                         </div>
@@ -517,45 +830,79 @@ export default function Profile() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Work Information</CardTitle>
-                      <CardDescription>Your professional details</CardDescription>
+                      <CardDescription>
+                        Your professional details
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Organization</Label>
-                            <p className="text-sm font-medium">{user?.organizationName || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Organization
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.organizationName || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Role Category</Label>
-                            <p className="text-sm font-medium">{user?.roleCategory || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Role Category
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.roleCategory || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Sub Category</Label>
-                            <p className="text-sm font-medium">{user?.subCategory || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Sub Category
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.subCategory || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Seniority Level</Label>
-                            <p className="text-sm font-medium">{user?.seniority || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Seniority Level
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.seniority || "—"}
+                            </p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-4">
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Assets</Label>
-                            <p className="text-sm font-medium">{user?.assets || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Assets
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.assets || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Years of Experience</Label>
-                            <p className="text-sm font-medium">{user?.yearsOfExperience || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Years of Experience
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.yearsOfExperience || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Nationality</Label>
-                            <p className="text-sm font-medium">{user?.nationality || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Nationality
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.nationality || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Account Status</Label>
-                            <p className="text-sm font-medium">{user?.isActive ? "Active" : "Inactive"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Account Status
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.isActive ? "Active" : "Inactive"}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -572,35 +919,59 @@ export default function Profile() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">User ID</Label>
-                            <p className="text-sm font-medium">{user?.id || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              User ID
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.id || "—"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Avatar</Label>
-                            <p className="text-sm font-medium">{user?.avatar ? "Custom" : "Default"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Avatar
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.avatar ? "Custom" : "Default"}
+                            </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Sub Category</Label>
-                            <p className="text-sm font-medium">{user?.subCategory || "—"}</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Sub Category
+                            </Label>
+                            <p className="text-sm font-medium">
+                              {user?.subCategory || "—"}
+                            </p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-4">
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Join Date</Label>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Join Date
+                            </Label>
                             <p className="text-sm font-medium">
-                              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
+                              {user?.createdAt
+                                ? new Date(user.createdAt).toLocaleDateString()
+                                : "—"}
                             </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Last Updated</Label>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Last Updated
+                            </Label>
                             <p className="text-sm font-medium">
-                              {user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "—"}
+                              {user?.updatedAt
+                                ? new Date(user.updatedAt).toLocaleDateString()
+                                : "—"}
                             </p>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Time Zone</Label>
-                            <p className="text-sm font-medium">UAE Standard Time (GMT+4)</p>
+                            <Label className="text-sm font-medium text-muted-foreground">
+                              Time Zone
+                            </Label>
+                            <p className="text-sm font-medium">
+                              UAE Standard Time (GMT+4)
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -614,11 +985,16 @@ export default function Profile() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Change Password</CardTitle>
-                    <CardDescription>Update your account password for enhanced security</CardDescription>
+                    <CardDescription>
+                      Update your account password for enhanced security
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Form {...passwordForm}>
-                      <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
+                      <form
+                        onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
+                        className="space-y-6"
+                      >
                         <FormField
                           control={passwordForm.control}
                           name="currentPassword"
@@ -626,7 +1002,11 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>Current Password</FormLabel>
                               <FormControl>
-                                <Input type="password" placeholder="Enter your current password" {...field} />
+                                <Input
+                                  type="password"
+                                  placeholder="Enter your current password"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -640,7 +1020,11 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>New Password</FormLabel>
                               <FormControl>
-                                <Input type="password" placeholder="Enter your new password" {...field} />
+                                <Input
+                                  type="password"
+                                  placeholder="Enter your new password"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormDescription>
                                 Password must be at least 6 characters long
@@ -657,7 +1041,11 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>Confirm New Password</FormLabel>
                               <FormControl>
-                                <Input type="password" placeholder="Confirm your new password" {...field} />
+                                <Input
+                                  type="password"
+                                  placeholder="Confirm your new password"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -665,12 +1053,14 @@ export default function Profile() {
                         />
 
                         <div className="flex justify-end">
-                          <Button 
-                            type="submit" 
+                          <Button
+                            type="submit"
                             disabled={changePasswordMutation.isPending}
                             className="min-w-[120px]"
                           >
-                            {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
+                            {changePasswordMutation.isPending
+                              ? "Changing..."
+                              : "Change Password"}
                           </Button>
                         </div>
                       </form>
@@ -682,31 +1072,45 @@ export default function Profile() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Account Security</CardTitle>
-                    <CardDescription>Security information and recommendations</CardDescription>
+                    <CardDescription>
+                      Security information and recommendations
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex items-start space-x-3">
-                        <span className="material-icons text-green-600 mt-0.5">check_circle</span>
+                        <span className="material-icons text-green-600 mt-0.5">
+                          check_circle
+                        </span>
                         <div>
                           <p className="font-medium">Password Protected</p>
-                          <p className="text-sm text-neutrals-600">Your account is secured with a password</p>
+                          <p className="text-sm text-neutrals-600">
+                            Your account is secured with a password
+                          </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-start space-x-3">
-                        <span className="material-icons text-green-600 mt-0.5">verified_user</span>
+                        <span className="material-icons text-green-600 mt-0.5">
+                          verified_user
+                        </span>
                         <div>
                           <p className="font-medium">Account Verified</p>
-                          <p className="text-sm text-neutrals-600">Your account has been verified and is active</p>
+                          <p className="text-sm text-neutrals-600">
+                            Your account has been verified and is active
+                          </p>
                         </div>
                       </div>
 
                       <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                         <div className="flex items-start space-x-3">
-                          <span className="material-icons text-amber-600 mt-0.5">security</span>
+                          <span className="material-icons text-amber-600 mt-0.5">
+                            security
+                          </span>
                           <div>
-                            <p className="font-medium text-amber-800">Security Recommendations</p>
+                            <p className="font-medium text-amber-800">
+                              Security Recommendations
+                            </p>
                             <ul className="text-sm text-amber-700 mt-2 space-y-1">
                               <li>• Use a strong, unique password</li>
                               <li>• Change your password regularly</li>
