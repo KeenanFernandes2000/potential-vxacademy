@@ -31,25 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Define the form schema
-const userFormSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["admin", "sub-admin", "user"]),
-  language: z.string().default("en"),
-  nationality: z.string().optional(),
-  yearsOfExperience: z.string().optional(),
-  assets: z.string().optional(),
-  roleCategory: z.string().optional(),
-  subCategory: z.string().optional(),
-  seniority: z.string().optional(),
-  organizationName: z.string().optional(),
-});
-
-type UserFormData = z.infer<typeof userFormSchema>;
+type UserFormData = z.infer<ReturnType<typeof createUserFormSchema>>;
 
 interface UserFormModalProps {
   open: boolean;
@@ -57,12 +39,40 @@ interface UserFormModalProps {
   editingUser?: any;
 }
 
-export default function UserFormModal({ open, onOpenChange, editingUser }: UserFormModalProps) {
+// Function to create schema based on editing state
+const createUserFormSchema = (isEditing: boolean) =>
+  z.object({
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    password: isEditing
+      ? z.string().optional()
+      : z.string().min(6, "Password must be at least 6 characters"),
+    role: z.enum(["admin", "sub-admin", "user"]),
+    language: z.string().default("en"),
+    nationality: z.string().optional(),
+    yearsOfExperience: z.string().optional(),
+    assets: z.string().optional(),
+    roleCategory: z.string().optional(),
+    subCategory: z.string().optional(),
+    seniority: z.string().optional(),
+    organizationName: z.string().optional(),
+  });
+
+export default function UserFormModal({
+  open,
+  onOpenChange,
+  editingUser,
+}: UserFormModalProps) {
   const { user } = useAuth();
   const { isAdmin, canCreateSubAdmins } = usePermissions();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Create schema based on editing state
+  const userFormSchema = createUserFormSchema(!!editingUser);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
@@ -121,21 +131,23 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
         organizationName: "",
       });
     }
-  }, [editingUser, form]);
+  }, [editingUser, form, open]); // Added 'open' to dependencies to ensure form resets when modal opens
 
   const createUserMutation = useMutation({
-    mutationFn: (userData: UserFormData) => 
+    mutationFn: (userData: UserFormData) =>
       fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to create user");
         return res.json();
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/users/enhanced"],
+      });
       toast({
         title: "Success",
         description: "User created successfully",
@@ -153,18 +165,20 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: (userData: UserFormData) => 
+    mutationFn: (userData: UserFormData) =>
       fetch(`/api/admin/users/${editingUser?.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to update user");
         return res.json();
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/users/enhanced"],
+      });
       toast({
         title: "Success",
         description: "User updated successfully",
@@ -196,9 +210,7 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
 
   // Determine available role options based on current user's permissions
   const getRoleOptions = () => {
-    const options = [
-      { value: "user", label: "User" }
-    ];
+    const options = [{ value: "user", label: "User" }];
 
     if (canCreateSubAdmins) {
       options.push({ value: "sub-admin", label: "Sub-Admin" });
@@ -290,9 +302,17 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Password {!editingUser && "*"}</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <Input
+                        type="password"
+                        placeholder={
+                          editingUser
+                            ? "Leave blank to keep current password"
+                            : "Enter password"
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -336,7 +356,10 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Assets</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select asset" />
@@ -344,14 +367,19 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Museum">Museum</SelectItem>
-                        <SelectItem value="Culture site">Culture site</SelectItem>
+                        <SelectItem value="Culture site">
+                          Culture site
+                        </SelectItem>
                         <SelectItem value="Events">Events</SelectItem>
                         <SelectItem value="Airports">Airports</SelectItem>
                         <SelectItem value="Hospitality">Hospitality</SelectItem>
                         <SelectItem value="Tourism">Tourism</SelectItem>
                         <SelectItem value="Transport">Transport</SelectItem>
-                        <SelectItem value="Entertainment">Entertainment</SelectItem>
+                        <SelectItem value="Entertainment">
+                          Entertainment
+                        </SelectItem>
                         <SelectItem value="Shopping">Shopping</SelectItem>
+                        <SelectItem value="Malls">Malls</SelectItem>
                         <SelectItem value="Healthcare">Healthcare</SelectItem>
                         <SelectItem value="Government">Government</SelectItem>
                       </SelectContent>
@@ -367,25 +395,46 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select role category" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Transport staff">Transport staff</SelectItem>
-                        <SelectItem value="Welcome staff">Welcome staff</SelectItem>
+                        <SelectItem value="Transport staff">
+                          Transport staff
+                        </SelectItem>
+                        <SelectItem value="Welcome staff">
+                          Welcome staff
+                        </SelectItem>
                         <SelectItem value="Guides">Guides</SelectItem>
                         <SelectItem value="Security">Security</SelectItem>
-                        <SelectItem value="Customer Service">Customer Service</SelectItem>
-                        <SelectItem value="Technical Support">Technical Support</SelectItem>
-                        <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
-                        <SelectItem value="Housekeeping">Housekeeping</SelectItem>
-                        <SelectItem value="Sales & Marketing">Sales & Marketing</SelectItem>
-                        <SelectItem value="Finance & Admin">Finance & Admin</SelectItem>
+                        <SelectItem value="Customer Service">
+                          Customer Service
+                        </SelectItem>
+                        <SelectItem value="Technical Support">
+                          Technical Support
+                        </SelectItem>
+                        <SelectItem value="Food & Beverage">
+                          Food & Beverage
+                        </SelectItem>
+                        <SelectItem value="Housekeeping">
+                          Housekeeping
+                        </SelectItem>
+                        <SelectItem value="Sales & Marketing">
+                          Sales & Marketing
+                        </SelectItem>
+                        <SelectItem value="Finance & Admin">
+                          Finance & Admin
+                        </SelectItem>
                         <SelectItem value="Healthcare">Healthcare</SelectItem>
-                        <SelectItem value="Entertainment">Entertainment</SelectItem>
+                        <SelectItem value="Entertainment">
+                          Entertainment
+                        </SelectItem>
                         <SelectItem value="Maintenance">Maintenance</SelectItem>
                         <SelectItem value="Management">Management</SelectItem>
                         <SelectItem value="Operations">Operations</SelectItem>
@@ -404,7 +453,10 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Seniority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select seniority" />
@@ -426,15 +478,22 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nationality</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select nationality" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="UAE">United Arab Emirates</SelectItem>
-                        <SelectItem value="Saudi Arabia">Saudi Arabia</SelectItem>
+                        <SelectItem value="UAE">
+                          United Arab Emirates
+                        </SelectItem>
+                        <SelectItem value="Saudi Arabia">
+                          Saudi Arabia
+                        </SelectItem>
                         <SelectItem value="Egypt">Egypt</SelectItem>
                         <SelectItem value="Jordan">Jordan</SelectItem>
                         <SelectItem value="Lebanon">Lebanon</SelectItem>
@@ -448,8 +507,12 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                         <SelectItem value="Thailand">Thailand</SelectItem>
                         <SelectItem value="Malaysia">Malaysia</SelectItem>
                         <SelectItem value="Singapore">Singapore</SelectItem>
-                        <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                        <SelectItem value="United States">United States</SelectItem>
+                        <SelectItem value="United Kingdom">
+                          United Kingdom
+                        </SelectItem>
+                        <SelectItem value="United States">
+                          United States
+                        </SelectItem>
                         <SelectItem value="Australia">Australia</SelectItem>
                         <SelectItem value="Canada">Canada</SelectItem>
                         <SelectItem value="Germany">Germany</SelectItem>
@@ -487,7 +550,9 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                         <SelectItem value="Uganda">Uganda</SelectItem>
                         <SelectItem value="Ghana">Ghana</SelectItem>
                         <SelectItem value="Nigeria">Nigeria</SelectItem>
-                        <SelectItem value="South Africa">South Africa</SelectItem>
+                        <SelectItem value="South Africa">
+                          South Africa
+                        </SelectItem>
                         <SelectItem value="China">China</SelectItem>
                         <SelectItem value="Japan">Japan</SelectItem>
                         <SelectItem value="South Korea">South Korea</SelectItem>
@@ -499,15 +564,21 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                         <SelectItem value="Russia">Russia</SelectItem>
                         <SelectItem value="Ukraine">Ukraine</SelectItem>
                         <SelectItem value="Poland">Poland</SelectItem>
-                        <SelectItem value="Czech Republic">Czech Republic</SelectItem>
+                        <SelectItem value="Czech Republic">
+                          Czech Republic
+                        </SelectItem>
                         <SelectItem value="Hungary">Hungary</SelectItem>
                         <SelectItem value="Romania">Romania</SelectItem>
                         <SelectItem value="Bulgaria">Bulgaria</SelectItem>
                         <SelectItem value="Croatia">Croatia</SelectItem>
                         <SelectItem value="Serbia">Serbia</SelectItem>
-                        <SelectItem value="Bosnia and Herzegovina">Bosnia and Herzegovina</SelectItem>
+                        <SelectItem value="Bosnia and Herzegovina">
+                          Bosnia and Herzegovina
+                        </SelectItem>
                         <SelectItem value="Montenegro">Montenegro</SelectItem>
-                        <SelectItem value="North Macedonia">North Macedonia</SelectItem>
+                        <SelectItem value="North Macedonia">
+                          North Macedonia
+                        </SelectItem>
                         <SelectItem value="Albania">Albania</SelectItem>
                         <SelectItem value="Slovenia">Slovenia</SelectItem>
                         <SelectItem value="Slovakia">Slovakia</SelectItem>
@@ -521,7 +592,9 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                         <SelectItem value="Azerbaijan">Azerbaijan</SelectItem>
                         <SelectItem value="Kazakhstan">Kazakhstan</SelectItem>
                         <SelectItem value="Uzbekistan">Uzbekistan</SelectItem>
-                        <SelectItem value="Turkmenistan">Turkmenistan</SelectItem>
+                        <SelectItem value="Turkmenistan">
+                          Turkmenistan
+                        </SelectItem>
                         <SelectItem value="Kyrgyzstan">Kyrgyzstan</SelectItem>
                         <SelectItem value="Tajikistan">Tajikistan</SelectItem>
                         <SelectItem value="Afghanistan">Afghanistan</SelectItem>
@@ -532,14 +605,20 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                         <SelectItem value="Macau">Macau</SelectItem>
                         <SelectItem value="New Zealand">New Zealand</SelectItem>
                         <SelectItem value="Fiji">Fiji</SelectItem>
-                        <SelectItem value="Papua New Guinea">Papua New Guinea</SelectItem>
+                        <SelectItem value="Papua New Guinea">
+                          Papua New Guinea
+                        </SelectItem>
                         <SelectItem value="Samoa">Samoa</SelectItem>
                         <SelectItem value="Tonga">Tonga</SelectItem>
                         <SelectItem value="Vanuatu">Vanuatu</SelectItem>
-                        <SelectItem value="Solomon Islands">Solomon Islands</SelectItem>
+                        <SelectItem value="Solomon Islands">
+                          Solomon Islands
+                        </SelectItem>
                         <SelectItem value="Palau">Palau</SelectItem>
                         <SelectItem value="Micronesia">Micronesia</SelectItem>
-                        <SelectItem value="Marshall Islands">Marshall Islands</SelectItem>
+                        <SelectItem value="Marshall Islands">
+                          Marshall Islands
+                        </SelectItem>
                         <SelectItem value="Kiribati">Kiribati</SelectItem>
                         <SelectItem value="Nauru">Nauru</SelectItem>
                         <SelectItem value="Tuvalu">Tuvalu</SelectItem>
@@ -555,7 +634,9 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                         <SelectItem value="Uruguay">Uruguay</SelectItem>
                         <SelectItem value="Guyana">Guyana</SelectItem>
                         <SelectItem value="Suriname">Suriname</SelectItem>
-                        <SelectItem value="French Guiana">French Guiana</SelectItem>
+                        <SelectItem value="French Guiana">
+                          French Guiana
+                        </SelectItem>
                         <SelectItem value="Mexico">Mexico</SelectItem>
                         <SelectItem value="Guatemala">Guatemala</SelectItem>
                         <SelectItem value="Belize">Belize</SelectItem>
@@ -567,9 +648,13 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                         <SelectItem value="Cuba">Cuba</SelectItem>
                         <SelectItem value="Jamaica">Jamaica</SelectItem>
                         <SelectItem value="Haiti">Haiti</SelectItem>
-                        <SelectItem value="Dominican Republic">Dominican Republic</SelectItem>
+                        <SelectItem value="Dominican Republic">
+                          Dominican Republic
+                        </SelectItem>
                         <SelectItem value="Puerto Rico">Puerto Rico</SelectItem>
-                        <SelectItem value="Trinidad and Tobago">Trinidad and Tobago</SelectItem>
+                        <SelectItem value="Trinidad and Tobago">
+                          Trinidad and Tobago
+                        </SelectItem>
                         <SelectItem value="Barbados">Barbados</SelectItem>
                         <SelectItem value="Bahamas">Bahamas</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
@@ -588,7 +673,10 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Years of Experience</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select experience" />
@@ -614,7 +702,10 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Language</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select language" />
@@ -645,7 +736,10 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 <FormItem>
                   <FormLabel>Sub-Category</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter specific sub-category" />
+                    <Input
+                      {...field}
+                      placeholder="Enter specific sub-category"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -695,7 +789,13 @@ export default function UserFormModal({ open, onOpenChange, editingUser }: UserF
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : editingUser ? "Update User" : "Create User"}
+                {isSubmitting
+                  ? editingUser
+                    ? "Updating..."
+                    : "Creating..."
+                  : editingUser
+                  ? "Update User"
+                  : "Create User"}
               </Button>
             </div>
           </form>

@@ -50,6 +50,93 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import React from "react";
+
+// Dropdown options from user-form-dialog.tsx
+const LANGUAGES = [
+  { value: "Arabic", label: "Arabic" },
+  { value: "English", label: "English" },
+  { value: "Urdu", label: "Urdu" },
+  { value: "Hindi", label: "Hindi" },
+  { value: "Tagalog", label: "Tagalog" },
+  { value: "Bengali", label: "Bengali" },
+  { value: "Malayalam", label: "Malayalam" },
+  { value: "Tamil", label: "Tamil" },
+  { value: "Farsi", label: "Farsi" },
+];
+
+const YEARS_OF_EXPERIENCE = [
+  { value: "Less than 1 year", label: "Less than 1 year" },
+  { value: "1-5 years", label: "1-5 years" },
+  { value: "5-10 years", label: "5-10 years" },
+  { value: "10+ years", label: "10+ years" },
+];
+
+const ASSETS = [
+  { value: "Museum", label: "Museum" },
+  { value: "Culture site", label: "Culture site" },
+  { value: "Events", label: "Events" },
+  { value: "Mobility operators", label: "Mobility operators" },
+  { value: "Airports", label: "Airports" },
+  { value: "Cruise terminals", label: "Cruise terminals" },
+  { value: "Hospitality", label: "Hospitality" },
+  { value: "Malls", label: "Malls" },
+  { value: "Tour Guides & operators", label: "Tour Guides & operators" },
+  {
+    value: "Visitor information centers",
+    label: "Visitor information centers",
+  },
+  {
+    value: "Entertainment & Attractions",
+    label: "Entertainment & Attractions",
+  },
+];
+
+const ROLE_CATEGORIES = [
+  {
+    value: "Transport and parking staff",
+    label: "Transport and parking staff",
+  },
+  { value: "Welcome staff", label: "Welcome staff" },
+  { value: "Ticketing staff", label: "Ticketing staff" },
+  { value: "Information desk staff", label: "Information desk staff" },
+  { value: "Guides", label: "Guides" },
+  { value: "Events staff", label: "Events staff" },
+  { value: "Security personnel", label: "Security personnel" },
+  { value: "Retail staff", label: "Retail staff" },
+  { value: "F&B staff", label: "F&B staff" },
+  { value: "Housekeeping & janitorial", label: "Housekeeping & janitorial" },
+  { value: "Customer service", label: "Customer service" },
+  {
+    value: "Emergency & medical services",
+    label: "Emergency & medical services",
+  },
+  { value: "Media and public relations", label: "Media and public relations" },
+  { value: "Logistics", label: "Logistics" },
+  {
+    value: "Recreation and entertainment",
+    label: "Recreation and entertainment",
+  },
+];
+
+const SENIORITY_LEVELS = [
+  { value: "Manager", label: "Manager" },
+  { value: "Staff", label: "Staff" },
+];
+
+const NATIONALITIES = [
+  { value: "United Arab Emirates", label: "United Arab Emirates" },
+  { value: "Saudi Arabia", label: "Saudi Arabia" },
+  { value: "India", label: "India" },
+  { value: "Pakistan", label: "Pakistan" },
+  { value: "Philippines", label: "Philippines" },
+  { value: "Bangladesh", label: "Bangladesh" },
+  { value: "Egypt", label: "Egypt" },
+  { value: "Jordan", label: "Jordan" },
+  { value: "Lebanon", label: "Lebanon" },
+  { value: "Syria", label: "Syria" },
+  // Add more as needed
+];
 
 // Form schemas - limited editing for basic users
 const profileSchema = z.object({
@@ -106,18 +193,44 @@ export default function Profile() {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
-      language: user?.language || "English",
-      nationality: user?.nationality || "",
-      yearsOfExperience: user?.yearsOfExperience || "",
-      organizationName: user?.organizationName || "",
-      roleCategory: user?.roleCategory || "",
-      subCategory: user?.subCategory || "",
-      seniority: user?.seniority || "",
-      assets: user?.assets || "",
+      firstName: "",
+      lastName: "",
+      language: "English",
+      nationality: "",
+      yearsOfExperience: "",
+      organizationName: "",
+      roleCategory: "",
+      subCategory: "",
+      seniority: "",
+      assets: "",
     },
   });
+
+  // Update form when user data changes
+  React.useEffect(() => {
+    if (user) {
+      console.log("Updating form with user data:", user); // Debug log
+      const formData = {
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        language: user.language || "English",
+        nationality: user.nationality || "",
+        yearsOfExperience: user.yearsOfExperience || "",
+        organizationName: user.organizationName || "",
+        roleCategory: user.roleCategory || "",
+        subCategory: user.subCategory || "",
+        seniority: user.seniority || "",
+        assets: user.assets || "",
+      };
+      console.log("Form data to reset:", formData); // Debug log
+      profileForm.reset(formData);
+
+      // Log form values after reset
+      setTimeout(() => {
+        console.log("Form values after reset:", profileForm.getValues());
+      }, 100);
+    }
+  }, [user, profileForm]);
 
   // Password change form
   const passwordForm = useForm<PasswordFormValues>({
@@ -147,11 +260,16 @@ export default function Profile() {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
+      // Update the user data in the auth context
+      queryClient.setQueryData(["/api/user"], updatedUser);
+
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       });
+
+      // Invalidate user queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
     onError: (error: Error) => {
@@ -576,7 +694,7 @@ export default function Profile() {
                                 <FormLabel>Preferred Language</FormLabel>
                                 <Select
                                   onValueChange={field.onChange}
-                                  value={field.value}
+                                  value={field.value || ""}
                                 >
                                   <FormControl>
                                     <SelectTrigger>
@@ -584,15 +702,14 @@ export default function Profile() {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="English">English</SelectItem>
-                                    <SelectItem value="Arabic">Arabic</SelectItem>
-                                    <SelectItem value="Urdu">Urdu</SelectItem>
-                                    <SelectItem value="Hindi">Hindi</SelectItem>
-                                    <SelectItem value="Tagalog">Tagalog</SelectItem>
-                                    <SelectItem value="Bengali">Bengali</SelectItem>
-                                    <SelectItem value="Tamil">Tamil</SelectItem>
-                                    <SelectItem value="Malayalam">Malayalam</SelectItem>
-                                    <SelectItem value="Farsi">Farsi</SelectItem>
+                                    {LANGUAGES.map((lang) => (
+                                      <SelectItem
+                                        key={lang.value}
+                                        value={lang.value}
+                                      >
+                                        {lang.label}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -607,12 +724,26 @@ export default function Profile() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Nationality</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Enter your nationality"
-                                      {...field}
-                                    />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value || ""}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select nationality" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {NATIONALITIES.map((country) => (
+                                        <SelectItem
+                                          key={country.value}
+                                          value={country.value}
+                                        >
+                                          {country.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -624,12 +755,26 @@ export default function Profile() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Years of Experience</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="e.g., 5 years"
-                                      {...field}
-                                    />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value || ""}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select experience" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {YEARS_OF_EXPERIENCE.map((exp) => (
+                                        <SelectItem
+                                          key={exp.value}
+                                          value={exp.value}
+                                        >
+                                          {exp.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -660,12 +805,26 @@ export default function Profile() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Role Category</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="e.g., Transport staff, Welcome staff"
-                                      {...field}
-                                    />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value || ""}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select role category" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {ROLE_CATEGORIES.map((role) => (
+                                        <SelectItem
+                                          key={role.value}
+                                          value={role.value}
+                                        >
+                                          {role.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -677,12 +836,26 @@ export default function Profile() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Seniority Level</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="e.g., Manager, Staff"
-                                      {...field}
-                                    />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value || ""}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select seniority" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {SENIORITY_LEVELS.map((level) => (
+                                        <SelectItem
+                                          key={level.value}
+                                          value={level.value}
+                                        >
+                                          {level.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -696,12 +869,26 @@ export default function Profile() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Assets</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="e.g., Museum, Culture site, Events"
-                                      {...field}
-                                    />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value || ""}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select assets" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {ASSETS.map((asset) => (
+                                        <SelectItem
+                                          key={asset.value}
+                                          value={asset.value}
+                                        >
+                                          {asset.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}

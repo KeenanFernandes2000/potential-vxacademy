@@ -62,7 +62,7 @@ const editUserSchema = baseUserSchema.extend({
 });
 
 // Dynamic schema based on edit mode
-const getUserFormSchema = (isEditing: boolean) => 
+const getUserFormSchema = (isEditing: boolean) =>
   isEditing ? editUserSchema : createUserSchema;
 
 type UserFormData = z.infer<typeof baseUserSchema> & { password?: string };
@@ -246,7 +246,7 @@ export function UserFormDialog({
       });
     }
     form.clearErrors();
-  }, [user, form, isCurrentUserSubAdmin]);
+  }, [user, form, isCurrentUserSubAdmin, open]); // Added 'open' to dependencies
 
   // Update role when toggle changes (only if current user is admin)
   useEffect(() => {
@@ -277,7 +277,10 @@ export function UserFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit User" : "Add New User"}</DialogTitle>
         </DialogHeader>
@@ -610,16 +613,16 @@ export function UserFormDialog({
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isLoading}
                 onClick={() => console.log("Submit button clicked")}
               >
                 {isLoading
                   ? "Saving..."
                   : isEditing
-                    ? "Update User"
-                    : "Create User"}
+                  ? "Update User"
+                  : "Create User"}
               </Button>
             </div>
           </form>

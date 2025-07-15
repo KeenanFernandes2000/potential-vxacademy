@@ -1475,7 +1475,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const userId = req.user!.id;
-      const { firstName, lastName, email, language } = req.body;
+      const { 
+        firstName, 
+        lastName, 
+        email, 
+        language, 
+        nationality, 
+        yearsOfExperience, 
+        organizationName, 
+        roleCategory, 
+        subCategory, 
+        seniority, 
+        assets 
+      } = req.body;
 
       // Validate required fields for basic profile update
       if (!firstName || !lastName) {
@@ -1484,15 +1496,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ message: "First name and last name are required" });
       }
 
-      // Prepare update data - only allow basic users to update limited fields
+      // Prepare update data - allow users to update their profile fields
       const updateData: any = { firstName, lastName };
-      if (language) {
-        updateData.language = language;
-      }
-      // Only include email if provided (admin might update it)
-      if (email) {
-        updateData.email = email;
-      }
+      
+      // Optional fields that users can update
+      if (language) updateData.language = language;
+      if (email) updateData.email = email;
+      if (nationality) updateData.nationality = nationality;
+      if (yearsOfExperience) updateData.yearsOfExperience = yearsOfExperience;
+      if (organizationName) updateData.organizationName = organizationName;
+      if (roleCategory) updateData.roleCategory = roleCategory;
+      if (subCategory) updateData.subCategory = subCategory;
+      if (seniority) updateData.seniority = seniority;
+      if (assets) updateData.assets = assets;
 
       // Update user profile
       const updatedUser = await storage.updateUser(userId, updateData);
