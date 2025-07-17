@@ -73,6 +73,13 @@ import {
 } from "@/components/ui/tooltip";
 import AdminLayout from "@/components/layout/admin-layout";
 
+// Extended form type with helper fields for UI
+type LearningBlockFormData = InsertLearningBlock & {
+  trainingAreaId: string;
+  moduleId: string;
+  courseId: string;
+};
+
 // Form validation schema
 const blockFormSchema = z.object({
   title: z.string().min(2, {
@@ -299,14 +306,14 @@ export default function LearningBlocksManagement() {
   });
 
   // Form setup
-  const form = useForm<InsertLearningBlock>({
+  const form = useForm<LearningBlockFormData>({
     resolver: zodResolver(blockFormSchema),
     defaultValues: {
       title: "",
       trainingAreaId: "",
       moduleId: "",
       courseId: "",
-      unitId: undefined,
+      unitId: 0,
       type: "text",
       order: 1,
       xpPoints: 10,
@@ -317,6 +324,24 @@ export default function LearningBlocksManagement() {
       scormPackageId: null,
     },
   });
+
+  const resetFormToDefaults = () => {
+    form.reset({
+      title: "",
+      trainingAreaId: "",
+      moduleId: "",
+      courseId: "",
+      unitId: 0,
+      type: "text",
+      order: 1,
+      xpPoints: 10,
+      content: "",
+      videoUrl: "",
+      imageUrl: "",
+      interactiveData: null,
+      scormPackageId: null,
+    });
+  };
 
   // Reset form when editing a block - fill fields sequentially
   useEffect(() => {
@@ -329,21 +354,7 @@ export default function LearningBlocksManagement() {
       const module = modules?.find((m) => m.id === course?.moduleId);
 
       // First reset form to clear previous values
-      form.reset({
-        title: "",
-        trainingAreaId: "",
-        moduleId: "",
-        courseId: "",
-        unitId: undefined,
-        type: "text",
-        order: 1,
-        xpPoints: 10,
-        content: "",
-        videoUrl: "",
-        imageUrl: "",
-        interactiveData: null,
-        scormPackageId: null,
-      });
+      resetFormToDefaults();
 
       // Fill fields sequentially with small delays
       const fillSequentially = async () => {
@@ -400,21 +411,7 @@ export default function LearningBlocksManagement() {
         title: "Success",
         description: "Learning block created successfully.",
       });
-      form.reset({
-        title: "",
-        trainingAreaId: "",
-        moduleId: "",
-        courseId: "",
-        unitId: undefined,
-        type: "text",
-        order: 1,
-        xpPoints: 10,
-        content: "",
-        videoUrl: "",
-        imageUrl: "",
-        interactiveData: null,
-        scormPackageId: null,
-      });
+      resetFormToDefaults();
       setEditingBlock(null);
       queryClient.invalidateQueries({ queryKey: ["/api/learning-blocks"] });
     },
@@ -443,21 +440,7 @@ export default function LearningBlocksManagement() {
         description: "Learning block updated successfully.",
       });
       setEditingBlock(null);
-      form.reset({
-        title: "",
-        trainingAreaId: "",
-        moduleId: "",
-        courseId: "",
-        unitId: undefined,
-        type: "text",
-        order: 1,
-        xpPoints: 10,
-        content: "",
-        videoUrl: "",
-        imageUrl: "",
-        interactiveData: null,
-        scormPackageId: null,
-      });
+      resetFormToDefaults();
       queryClient.invalidateQueries({ queryKey: ["/api/learning-blocks"] });
     },
     onError: (error) => {
@@ -494,9 +477,20 @@ export default function LearningBlocksManagement() {
   // Removed custom image upload handler - now using standardized ImageUpload component
 
   // Form submission handler
-  const onSubmit = (data: InsertLearningBlock) => {
-    // Create a copy of the data to manipulate
-    const submissionData = { ...data };
+  const onSubmit = (data: LearningBlockFormData) => {
+    // Create a copy of the data to manipulate, excluding the helper fields
+    const submissionData: InsertLearningBlock = {
+      title: data.title,
+      unitId: data.unitId,
+      type: data.type,
+      order: data.order,
+      xpPoints: data.xpPoints,
+      content: data.content,
+      videoUrl: data.videoUrl,
+      imageUrl: data.imageUrl,
+      interactiveData: data.interactiveData,
+      scormPackageId: data.scormPackageId,
+    };
 
     // Process interactive data if present
     if (data.type === "interactive" && data.interactiveData) {
@@ -540,21 +534,7 @@ export default function LearningBlocksManagement() {
   // Function to handle canceling edit - properly reset form to initial empty state
   const handleCancelEdit = () => {
     setEditingBlock(null);
-    form.reset({
-      title: "",
-      trainingAreaId: "",
-      moduleId: "",
-      courseId: "",
-      unitId: undefined,
-      type: "text",
-      order: 1,
-      xpPoints: 10,
-      content: "",
-      videoUrl: "",
-      imageUrl: "",
-      interactiveData: null,
-      scormPackageId: null,
-    });
+    resetFormToDefaults();
   };
 
   // Function to find unit name by ID
@@ -623,7 +603,7 @@ export default function LearningBlocksManagement() {
                             field.onChange(value);
                             form.setValue("moduleId", "");
                             form.setValue("courseId", "");
-                            form.setValue("unitId", "");
+                            form.setValue("unitId", 0);
                           }}
                           value={field.value}
                         >
@@ -660,7 +640,7 @@ export default function LearningBlocksManagement() {
                           onValueChange={(value) => {
                             field.onChange(value);
                             form.setValue("courseId", "");
-                            form.setValue("unitId", "");
+                            form.setValue("unitId", 0);
                           }}
                           value={field.value}
                           disabled={!form.watch("trainingAreaId")}
@@ -703,7 +683,7 @@ export default function LearningBlocksManagement() {
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
-                            form.setValue("unitId", "");
+                            form.setValue("unitId", 0);
                           }}
                           value={field.value}
                           disabled={!form.watch("moduleId")}

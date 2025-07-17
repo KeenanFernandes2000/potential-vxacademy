@@ -1,4 +1,15 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, unique, index, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  json,
+  unique,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -21,23 +32,37 @@ export const insertRoleSchema = createInsertSchema(roles).omit({
 });
 
 // Role Mandatory Courses - courses that are automatically assigned to users with specific roles
-export const roleMandatoryCourses = pgTable("role_mandatory_courses", {
-  id: serial("id").primaryKey(),
-  roleId: integer("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
-  courseId: integer("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => {
-  return {
-    roleIdCourseIdUnique: unique("role_mandatory_courses_role_id_course_id").on(table.roleId, table.courseId),
-  };
-});
+export const roleMandatoryCourses = pgTable(
+  "role_mandatory_courses",
+  {
+    id: serial("id").primaryKey(),
+    roleId: integer("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    courseId: integer("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => {
+    return {
+      roleIdCourseIdUnique: unique(
+        "role_mandatory_courses_role_id_course_id"
+      ).on(table.roleId, table.courseId),
+    };
+  }
+);
 
-export const insertRoleMandatoryCourseSchema = createInsertSchema(roleMandatoryCourses).omit({
+export const insertRoleMandatoryCourseSchema = createInsertSchema(
+  roleMandatoryCourses
+).omit({
   id: true,
   createdAt: true,
 });
 
-export type InsertRoleMandatoryCourse = z.infer<typeof insertRoleMandatoryCourseSchema>;
+export type InsertRoleMandatoryCourse = z.infer<
+  typeof insertRoleMandatoryCourseSchema
+>;
 export type RoleMandatoryCourse = typeof roleMandatoryCourses.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type Role = typeof roles.$inferSelect;
@@ -45,30 +70,30 @@ export type Role = typeof roles.$inferSelect;
 // User model with comprehensive profile fields
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  
+
   // Basic Information
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  
+
   // Role and Admin System
   role: text("role").notNull().default("user"), // admin, sub-admin, user
   createdBy: integer("created_by"), // Who created this user - will add reference after table definition
-  
+
   // Preferences
   language: text("language").notNull().default("en"),
   nationality: text("nationality"),
   yearsOfExperience: text("years_of_experience"),
-  
+
   // Sector/Asset Classification
   assets: text("assets"), // Museum, Culture site, Events, etc.
   roleCategory: text("role_category"), // Transport staff, Welcome staff, etc.
   subCategory: text("sub_category"), // Free text field
   seniority: text("seniority"), // Manager, Staff
   organizationName: text("organization_name"),
-  
+
   // System fields
   xpPoints: integer("xp_points").notNull().default(0),
   avatar: text("avatar"),
@@ -135,8 +160,12 @@ export const courses = pgTable("courses", {
 // Course Prerequisites (for sequential courses)
 export const coursePrerequisites = pgTable("course_prerequisites", {
   id: serial("id").primaryKey(),
-  courseId: integer("course_id").notNull().references(() => courses.id),
-  prerequisiteCourseId: integer("prerequisite_course_id").notNull().references(() => courses.id),
+  courseId: integer("course_id")
+    .notNull()
+    .references(() => courses.id),
+  prerequisiteCourseId: integer("prerequisite_course_id")
+    .notNull()
+    .references(() => courses.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -145,7 +174,9 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
   createdAt: true,
 });
 
-export const insertCoursePrerequisiteSchema = createInsertSchema(coursePrerequisites).omit({
+export const insertCoursePrerequisiteSchema = createInsertSchema(
+  coursePrerequisites
+).omit({
   id: true,
   createdAt: true,
 });
@@ -198,7 +229,9 @@ export const learningBlocks = pgTable("learning_blocks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertLearningBlockSchema = createInsertSchema(learningBlocks).omit({
+export const insertLearningBlockSchema = createInsertSchema(
+  learningBlocks
+).omit({
   id: true,
   createdAt: true,
 });
@@ -207,7 +240,7 @@ export const insertLearningBlockSchema = createInsertSchema(learningBlocks).omit
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
   trainingAreaId: integer("training_area_id"), // for course-level assessments
-  moduleId: integer("module_id"), // for course-level assessments  
+  moduleId: integer("module_id"), // for course-level assessments
   unitId: integer("unit_id").references(() => units.id), // nullable for course-level assessments
   courseId: integer("course_id"), // nullable for unit-level assessments
   title: text("title").notNull(),
@@ -260,18 +293,24 @@ export const userProgress = pgTable("user_progress", {
 });
 
 // User Unit Progress - tracks unit completion per course per user
-export const userUnitProgress = pgTable("user_unit_progress", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  courseId: integer("course_id").notNull(),
-  unitId: integer("unit_id").notNull(),
-  isCompleted: boolean("is_completed").notNull().default(false),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  uniqueUserCourseUnit: uniqueIndex("user_unit_progress_user_course_unit_idx").on(table.userId, table.courseId, table.unitId),
-}));
+export const userUnitProgress = pgTable(
+  "user_unit_progress",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    courseId: integer("course_id").notNull(),
+    unitId: integer("unit_id").notNull(),
+    isCompleted: boolean("is_completed").notNull().default(false),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    uniqueUserCourseUnit: uniqueIndex(
+      "user_unit_progress_user_course_unit_idx"
+    ).on(table.userId, table.courseId, table.unitId),
+  })
+);
 
 export const insertUserProgressSchema = createInsertSchema(userProgress).omit({
   id: true,
@@ -279,7 +318,9 @@ export const insertUserProgressSchema = createInsertSchema(userProgress).omit({
   updatedAt: true,
 });
 
-export const insertUserUnitProgressSchema = createInsertSchema(userUnitProgress).omit({
+export const insertUserUnitProgressSchema = createInsertSchema(
+  userUnitProgress
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -294,7 +335,9 @@ export const blockCompletions = pgTable("block_completions", {
   completedAt: timestamp("completed_at").defaultNow(),
 });
 
-export const insertBlockCompletionSchema = createInsertSchema(blockCompletions).omit({
+export const insertBlockCompletionSchema = createInsertSchema(
+  blockCompletions
+).omit({
   id: true,
   completedAt: true,
 });
@@ -311,7 +354,9 @@ export const assessmentAttempts = pgTable("assessment_attempts", {
   completedAt: timestamp("completed_at"),
 });
 
-export const insertAssessmentAttemptSchema = createInsertSchema(assessmentAttempts).omit({
+export const insertAssessmentAttemptSchema = createInsertSchema(
+  assessmentAttempts
+).omit({
   id: true,
   startedAt: true,
 });
@@ -354,7 +399,9 @@ export const aiTutorConversations = pgTable("ai_tutor_conversations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertAiTutorConversationSchema = createInsertSchema(aiTutorConversations).omit({
+export const insertAiTutorConversationSchema = createInsertSchema(
+  aiTutorConversations
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -373,7 +420,9 @@ export type Module = typeof modules.$inferSelect;
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 export type Course = typeof courses.$inferSelect;
 export type CoursePrerequisite = typeof coursePrerequisites.$inferSelect;
-export type InsertCoursePrerequisite = z.infer<typeof insertCoursePrerequisiteSchema>;
+export type InsertCoursePrerequisite = z.infer<
+  typeof insertCoursePrerequisiteSchema
+>;
 
 export type InsertUnit = z.infer<typeof insertUnitSchema>;
 export type Unit = typeof units.$inferSelect;
@@ -393,13 +442,17 @@ export type Question = typeof questions.$inferSelect;
 export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
 export type UserProgress = typeof userProgress.$inferSelect;
 
-export type InsertUserUnitProgress = z.infer<typeof insertUserUnitProgressSchema>;
+export type InsertUserUnitProgress = z.infer<
+  typeof insertUserUnitProgressSchema
+>;
 export type UserUnitProgress = typeof userUnitProgress.$inferSelect;
 
 export type InsertBlockCompletion = z.infer<typeof insertBlockCompletionSchema>;
 export type BlockCompletion = typeof blockCompletions.$inferSelect;
 
-export type InsertAssessmentAttempt = z.infer<typeof insertAssessmentAttemptSchema>;
+export type InsertAssessmentAttempt = z.infer<
+  typeof insertAssessmentAttemptSchema
+>;
 export type AssessmentAttempt = typeof assessmentAttempts.$inferSelect;
 
 export type InsertBadge = z.infer<typeof insertBadgeSchema>;
@@ -408,7 +461,9 @@ export type Badge = typeof badges.$inferSelect;
 export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;
 export type UserBadge = typeof userBadges.$inferSelect;
 
-export type InsertAiTutorConversation = z.infer<typeof insertAiTutorConversationSchema>;
+export type InsertAiTutorConversation = z.infer<
+  typeof insertAiTutorConversationSchema
+>;
 export type AiTutorConversation = typeof aiTutorConversations.$inferSelect;
 
 // SCORM Packages
@@ -448,13 +503,17 @@ export const scormTrackingData = pgTable("scorm_tracking_data", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertScormTrackingDataSchema = createInsertSchema(scormTrackingData).omit({
+export const insertScormTrackingDataSchema = createInsertSchema(
+  scormTrackingData
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export type InsertScormTrackingData = z.infer<typeof insertScormTrackingDataSchema>;
+export type InsertScormTrackingData = z.infer<
+  typeof insertScormTrackingDataSchema
+>;
 export type ScormTrackingData = typeof scormTrackingData.$inferSelect;
 
 // Certificates
@@ -503,16 +562,19 @@ export const rolesRelations = relations(roles, ({ many }) => ({
   mandatoryCourses: many(roleMandatoryCourses),
 }));
 
-export const roleMandatoryCoursesRelations = relations(roleMandatoryCourses, ({ one }) => ({
-  role: one(roles, {
-    fields: [roleMandatoryCourses.roleId],
-    references: [roles.id],
-  }),
-  course: one(courses, {
-    fields: [roleMandatoryCourses.courseId],
-    references: [courses.id],
-  }),
-}));
+export const roleMandatoryCoursesRelations = relations(
+  roleMandatoryCourses,
+  ({ one }) => ({
+    role: one(roles, {
+      fields: [roleMandatoryCourses.roleId],
+      references: [roles.id],
+    }),
+    course: one(courses, {
+      fields: [roleMandatoryCourses.courseId],
+      references: [courses.id],
+    }),
+  })
+);
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   progress: many(userProgress),
@@ -584,13 +646,16 @@ export const courseUnitsRelations = relations(courseUnits, ({ one }) => ({
   }),
 }));
 
-export const learningBlocksRelations = relations(learningBlocks, ({ one, many }) => ({
-  unit: one(units, {
-    fields: [learningBlocks.unitId],
-    references: [units.id],
-  }),
-  completions: many(blockCompletions),
-}));
+export const learningBlocksRelations = relations(
+  learningBlocks,
+  ({ one, many }) => ({
+    unit: one(units, {
+      fields: [learningBlocks.unitId],
+      references: [units.id],
+    }),
+    completions: many(blockCompletions),
+  })
+);
 
 export const assessmentsRelations = relations(assessments, ({ one, many }) => ({
   unit: one(units, {
@@ -623,42 +688,51 @@ export const userProgressRelations = relations(userProgress, ({ one }) => ({
   }),
 }));
 
-export const userUnitProgressRelations = relations(userUnitProgress, ({ one }) => ({
-  user: one(users, {
-    fields: [userUnitProgress.userId],
-    references: [users.id],
-  }),
-  course: one(courses, {
-    fields: [userUnitProgress.courseId],
-    references: [courses.id],
-  }),
-  unit: one(units, {
-    fields: [userUnitProgress.unitId],
-    references: [units.id],
-  }),
-}));
+export const userUnitProgressRelations = relations(
+  userUnitProgress,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userUnitProgress.userId],
+      references: [users.id],
+    }),
+    course: one(courses, {
+      fields: [userUnitProgress.courseId],
+      references: [courses.id],
+    }),
+    unit: one(units, {
+      fields: [userUnitProgress.unitId],
+      references: [units.id],
+    }),
+  })
+);
 
-export const blockCompletionsRelations = relations(blockCompletions, ({ one }) => ({
-  user: one(users, {
-    fields: [blockCompletions.userId],
-    references: [users.id],
-  }),
-  learningBlock: one(learningBlocks, {
-    fields: [blockCompletions.blockId],
-    references: [learningBlocks.id],
-  }),
-}));
+export const blockCompletionsRelations = relations(
+  blockCompletions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [blockCompletions.userId],
+      references: [users.id],
+    }),
+    learningBlock: one(learningBlocks, {
+      fields: [blockCompletions.blockId],
+      references: [learningBlocks.id],
+    }),
+  })
+);
 
-export const assessmentAttemptsRelations = relations(assessmentAttempts, ({ one }) => ({
-  user: one(users, {
-    fields: [assessmentAttempts.userId],
-    references: [users.id],
-  }),
-  assessment: one(assessments, {
-    fields: [assessmentAttempts.assessmentId],
-    references: [assessments.id],
-  }),
-}));
+export const assessmentAttemptsRelations = relations(
+  assessmentAttempts,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [assessmentAttempts.userId],
+      references: [users.id],
+    }),
+    assessment: one(assessments, {
+      fields: [assessmentAttempts.assessmentId],
+      references: [assessments.id],
+    }),
+  })
+);
 
 export const badgesRelations = relations(badges, ({ many }) => ({
   userBadges: many(userBadges),
@@ -675,27 +749,33 @@ export const userBadgesRelations = relations(userBadges, ({ one }) => ({
   }),
 }));
 
-export const aiTutorConversationsRelations = relations(aiTutorConversations, ({ one }) => ({
-  user: one(users, {
-    fields: [aiTutorConversations.userId],
-    references: [users.id],
-  }),
-}));
+export const aiTutorConversationsRelations = relations(
+  aiTutorConversations,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [aiTutorConversations.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const scormPackagesRelations = relations(scormPackages, ({ many }) => ({
   trackingData: many(scormTrackingData),
 }));
 
-export const scormTrackingDataRelations = relations(scormTrackingData, ({ one }) => ({
-  user: one(users, {
-    fields: [scormTrackingData.userId],
-    references: [users.id],
-  }),
-  scormPackage: one(scormPackages, {
-    fields: [scormTrackingData.scormPackageId],
-    references: [scormPackages.id],
-  }),
-}));
+export const scormTrackingDataRelations = relations(
+  scormTrackingData,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [scormTrackingData.userId],
+      references: [users.id],
+    }),
+    scormPackage: one(scormPackages, {
+      fields: [scormTrackingData.scormPackageId],
+      references: [scormPackages.id],
+    }),
+  })
+);
 
 export const certificatesRelations = relations(certificates, ({ one }) => ({
   user: one(users, {
@@ -724,7 +804,9 @@ export const mediaFiles = pgTable("media_files", {
   fileSize: integer("file_size").notNull(),
   filePath: text("file_path").notNull(),
   url: text("url").notNull(),
-  uploadedBy: integer("uploaded_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  uploadedBy: integer("uploaded_by")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -746,7 +828,9 @@ export const mediaFilesRelations = relations(mediaFiles, ({ one }) => ({
 // User Activity Logs - for analytics tracking
 export const userActivityLogs = pgTable("user_activity_logs", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   activity: text("activity").notNull(), // login, logout, course_started, course_completed, assessment_started, assessment_completed, etc.
   metadata: json("metadata"), // Additional data like courseId, assessmentId, score, etc.
   ipAddress: text("ip_address"),
@@ -754,7 +838,9 @@ export const userActivityLogs = pgTable("user_activity_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserActivityLogSchema = createInsertSchema(userActivityLogs).omit({
+export const insertUserActivityLogSchema = createInsertSchema(
+  userActivityLogs
+).omit({
   id: true,
   createdAt: true,
 });
@@ -763,92 +849,133 @@ export type InsertUserActivityLog = z.infer<typeof insertUserActivityLogSchema>;
 export type UserActivityLog = typeof userActivityLogs.$inferSelect;
 
 // Course Enrollment Tracking
-export const courseEnrollments = pgTable("course_enrollments", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  courseId: integer("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
-  enrolledAt: timestamp("enrolled_at").defaultNow(),
-  enrollmentSource: text("enrollment_source").default("manual"), // manual, role_based, admin_assigned
-}, (table) => {
-  return {
-    userIdCourseIdUnique: unique("course_enrollments_user_id_course_id").on(table.userId, table.courseId),
-  };
-});
+export const courseEnrollments = pgTable(
+  "course_enrollments",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    courseId: integer("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    enrolledAt: timestamp("enrolled_at").defaultNow(),
+    enrollmentSource: text("enrollment_source").default("manual"), // manual, role_based, admin_assigned
+  },
+  (table) => {
+    return {
+      userIdCourseIdUnique: unique("course_enrollments_user_id_course_id").on(
+        table.userId,
+        table.courseId
+      ),
+    };
+  }
+);
 
-export const insertCourseEnrollmentSchema = createInsertSchema(courseEnrollments).omit({
+export const insertCourseEnrollmentSchema = createInsertSchema(
+  courseEnrollments
+).omit({
   id: true,
   enrolledAt: true,
 });
 
-export type InsertCourseEnrollment = z.infer<typeof insertCourseEnrollmentSchema>;
+export type InsertCourseEnrollment = z.infer<
+  typeof insertCourseEnrollmentSchema
+>;
 export type CourseEnrollment = typeof courseEnrollments.$inferSelect;
 
 // Note: We'll use existing userActivityLogs table to track login activity
 // No need for a separate sessions table - simpler approach using existing data
 
 // Relations for new tables
-export const userActivityLogsRelations = relations(userActivityLogs, ({ one }) => ({
-  user: one(users, {
-    fields: [userActivityLogs.userId],
-    references: [users.id],
-  }),
-}));
+export const userActivityLogsRelations = relations(
+  userActivityLogs,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userActivityLogs.userId],
+      references: [users.id],
+    }),
+  })
+);
 
-export const courseEnrollmentsRelations = relations(courseEnrollments, ({ one }) => ({
-  user: one(users, {
-    fields: [courseEnrollments.userId],
-    references: [users.id],
-  }),
-  course: one(courses, {
-    fields: [courseEnrollments.courseId],
-    references: [courses.id],
-  }),
-}));
+export const courseEnrollmentsRelations = relations(
+  courseEnrollments,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [courseEnrollments.userId],
+      references: [users.id],
+    }),
+    course: one(courses, {
+      fields: [courseEnrollments.courseId],
+      references: [courses.id],
+    }),
+  })
+);
 
 // No additional relations needed - using existing userActivityLogs
 
 // User Block Progress - tracks block completion per course per user per unit
-export const userBlockProgress = pgTable("user_block_progress", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  courseId: integer("course_id").notNull(),
-  unitId: integer("unit_id").notNull(),
-  blockId: integer("block_id").notNull(),
-  isCompleted: boolean("is_completed").notNull().default(false),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userCourseUnitBlockUnique: uniqueIndex("user_block_progress_user_course_unit_block_idx").on(table.userId, table.courseId, table.unitId, table.blockId),
-}));
+export const userBlockProgress = pgTable(
+  "user_block_progress",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    courseId: integer("course_id").notNull(),
+    unitId: integer("unit_id").notNull(),
+    blockId: integer("block_id").notNull(),
+    isCompleted: boolean("is_completed").notNull().default(false),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userCourseUnitBlockUnique: uniqueIndex(
+      "user_block_progress_user_course_unit_block_idx"
+    ).on(table.userId, table.courseId, table.unitId, table.blockId),
+  })
+);
 
 // User Assessment Progress - tracks assessment completion per course per user per unit
-export const userAssessmentProgress = pgTable("user_assessment_progress", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  courseId: integer("course_id").notNull(),
-  unitId: integer("unit_id").notNull(),
-  assessmentId: integer("assessment_id").notNull(),
-  isCompleted: boolean("is_completed").notNull().default(false),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userCourseUnitAssessmentUnique: uniqueIndex("user_assessment_progress_user_course_unit_assessment_idx").on(table.userId, table.courseId, table.unitId, table.assessmentId),
-}));
+export const userAssessmentProgress = pgTable(
+  "user_assessment_progress",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    courseId: integer("course_id").notNull(),
+    unitId: integer("unit_id").notNull(),
+    assessmentId: integer("assessment_id").notNull(),
+    isCompleted: boolean("is_completed").notNull().default(false),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userCourseUnitAssessmentUnique: uniqueIndex(
+      "user_assessment_progress_user_course_unit_assessment_idx"
+    ).on(table.userId, table.courseId, table.unitId, table.assessmentId),
+  })
+);
 
-export const insertUserBlockProgressSchema = createInsertSchema(userBlockProgress).omit({
+export const insertUserBlockProgressSchema = createInsertSchema(
+  userBlockProgress
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
-export const insertUserAssessmentProgressSchema = createInsertSchema(userAssessmentProgress).omit({
+export const insertUserAssessmentProgressSchema = createInsertSchema(
+  userAssessmentProgress
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export type InsertUserBlockProgress = z.infer<typeof insertUserBlockProgressSchema>;
+export type InsertUserBlockProgress = z.infer<
+  typeof insertUserBlockProgressSchema
+>;
 export type UserBlockProgress = typeof userBlockProgress.$inferSelect;
-export type InsertUserAssessmentProgress = z.infer<typeof insertUserAssessmentProgressSchema>;
+export type InsertUserAssessmentProgress = z.infer<
+  typeof insertUserAssessmentProgressSchema
+>;
 export type UserAssessmentProgress = typeof userAssessmentProgress.$inferSelect;

@@ -26,23 +26,22 @@ const upload = multer({
       const uniqueId = uuidv4();
       const ext = path.extname(file.originalname).toLowerCase();
       cb(null, `${uniqueId}${ext}`);
-    }
+    },
   }),
   fileFilter: (req, file, cb) => {
     // Accept only image files
-    const allowedTypes = ['.jpg', '.jpeg', '.png', '.gif', '.svg'];
+    const allowedTypes = [".jpg", ".jpeg", ".png", ".gif", ".svg"];
     const ext = path.extname(file.originalname).toLowerCase();
-    
-    if (allowedTypes.includes(ext) || 
-        file.mimetype.startsWith('image/')) {
+
+    if (allowedTypes.includes(ext) || file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
       cb(new Error("Only image files are allowed"));
     }
   },
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
 // Handler for image uploads
@@ -55,30 +54,29 @@ export async function handleImageUpload(req: Request, res: Response) {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-    
+
     // Create response with file details
     const imageUrl = `/uploads/images/${req.file.filename}`;
-    
+
     console.log("Image uploaded successfully:", {
       path: req.file.path,
       filename: req.file.filename,
       destination: req.file.destination,
-      url: imageUrl
+      url: imageUrl,
     });
-    
+
     res.json({
       success: true,
       imageUrl,
       filename: req.file.filename,
       originalName: req.file.originalname,
-      size: req.file.size
+      size: req.file.size,
     });
-    
   } catch (error) {
     console.error("Error handling image upload:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to process image upload",
-      details: error instanceof Error ? error.message : String(error)
+      details: error instanceof Error ? error.message : String(error),
     });
   }
 }
@@ -87,12 +85,12 @@ export async function handleImageUpload(req: Request, res: Response) {
 export function serveImageFile(req: Request, res: Response) {
   const filename = req.params.filename;
   const imagePath = path.join(imagesDir, filename);
-  
+
   // Check if file exists
   if (!fs.existsSync(imagePath)) {
     return res.status(404).json({ error: "Image not found" });
   }
-  
+
   // Send the file
   res.sendFile(imagePath);
 }

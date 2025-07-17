@@ -1,17 +1,54 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Users, FileSpreadsheet, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Search,
+  FileSpreadsheet,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { type User, type Course } from "@shared/schema";
 import AdminLayout from "@/components/layout/admin-layout";
@@ -54,13 +91,13 @@ export default function UserManagementPage() {
 
   // Mutations
   const createUserMutation = useMutation({
-    mutationFn: (userData: any) => 
+    mutationFn: (userData: any) =>
       fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to create user");
         return res.json();
       }),
@@ -70,7 +107,9 @@ export default function UserManagementPage() {
         description: "New user has been created successfully",
       });
       setIsUserFormOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/users/enhanced"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -82,17 +121,19 @@ export default function UserManagementPage() {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, userData }: { id: number; userData: any }) => 
+    mutationFn: ({ id, userData }: { id: number; userData: any }) =>
       fetch(`/api/admin/users/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
         credentials: "include",
-      }).then(async res => {
+      }).then(async (res) => {
         if (!res.ok) {
           const errorText = await res.text();
           console.error("Update user error response:", errorText);
-          throw new Error(`Failed to update user: ${res.status} ${res.statusText}`);
+          throw new Error(
+            `Failed to update user: ${res.status} ${res.statusText}`
+          );
         }
         return res.json();
       }),
@@ -103,7 +144,9 @@ export default function UserManagementPage() {
       });
       setIsUserFormOpen(false);
       setEditingUser(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/users/enhanced"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -115,13 +158,13 @@ export default function UserManagementPage() {
   });
 
   const bulkCreateUsersMutation = useMutation({
-    mutationFn: (data: any) => 
+    mutationFn: (data: any) =>
       fetch("/api/admin/users/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to create users");
         return res.json();
       }),
@@ -131,7 +174,9 @@ export default function UserManagementPage() {
         description: `Successfully created ${result.count} users`,
       });
       setIsBulkAddOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/users/enhanced"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -145,12 +190,12 @@ export default function UserManagementPage() {
   const bulkUploadMutation = useMutation({
     mutationFn: ({ file }: { file: File }) => {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
       return fetch("/api/admin/users/bulk-upload", {
         method: "POST",
         body: formData,
         credentials: "include",
-      }).then(async res => {
+      }).then(async (res) => {
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.message || "Failed to upload file");
@@ -161,11 +206,15 @@ export default function UserManagementPage() {
     onSuccess: (data) => {
       toast({
         title: "Bulk upload completed",
-        description: data.message || `Created ${data.created} users. Failed: ${data.failed}`,
+        description:
+          data.message ||
+          `Created ${data.created} users. Failed: ${data.failed}`,
       });
       setIsBulkUploadOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/users/enhanced"],
+      });
+
       if (data.failedUsers && data.failedUsers.length > 0) {
         console.log("Failed users:", data.failedUsers);
         setTimeout(() => {
@@ -187,11 +236,11 @@ export default function UserManagementPage() {
   });
 
   const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => 
+    mutationFn: (userId: number) =>
       fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to delete user");
         return res.json();
       }),
@@ -200,7 +249,9 @@ export default function UserManagementPage() {
         title: "User deleted",
         description: "User has been deleted successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users/enhanced"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/users/enhanced"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -213,18 +264,28 @@ export default function UserManagementPage() {
 
   // Filter users based on search and filters
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = 
+    const matchesSearch =
       user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.username?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesPlatformRole = platformRoleFilter === "all" || user.role === platformRoleFilter;
-    const matchesAssets = assetsFilter === "all" || user.assets === assetsFilter;
-    const matchesRoleCategory = roleCategoryFilter === "all" || user.roleCategory === roleCategoryFilter;
-    const matchesSeniority = seniorityFilter === "all" || user.seniority === seniorityFilter;
 
-    return matchesSearch && matchesPlatformRole && matchesAssets && matchesRoleCategory && matchesSeniority;
+    const matchesPlatformRole =
+      platformRoleFilter === "all" || user.role === platformRoleFilter;
+    const matchesAssets =
+      assetsFilter === "all" || user.assets === assetsFilter;
+    const matchesRoleCategory =
+      roleCategoryFilter === "all" || user.roleCategory === roleCategoryFilter;
+    const matchesSeniority =
+      seniorityFilter === "all" || user.seniority === seniorityFilter;
+
+    return (
+      matchesSearch &&
+      matchesPlatformRole &&
+      matchesAssets &&
+      matchesRoleCategory &&
+      matchesSeniority
+    );
   });
 
   // Event handlers
@@ -265,15 +326,18 @@ export default function UserManagementPage() {
   };
 
   const handleBulkUploadSubmit = (formData: FormData) => {
-    // FormData is already properly constructed in the dialog
-    bulkUploadMutation.mutate(formData);
+    const file = formData.get("file") as File;
+    bulkUploadMutation.mutate({ file });
   };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case "admin": return "default";
-      case "sub-admin": return "secondary";
-      default: return "outline";
+      case "admin":
+        return "default";
+      case "sub-admin":
+        return "secondary";
+      default:
+        return "outline";
     }
   };
 
@@ -282,7 +346,9 @@ export default function UserManagementPage() {
       <div className="space-y-6 m-6 p-2">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              User Management
+            </h1>
             <p className="text-muted-foreground">
               Manage users, roles, and permissions across the platform
             </p>
@@ -336,7 +402,10 @@ export default function UserManagementPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Platform Role</label>
-                <Select value={platformRoleFilter} onValueChange={setPlatformRoleFilter}>
+                <Select
+                  value={platformRoleFilter}
+                  onValueChange={setPlatformRoleFilter}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -368,15 +437,22 @@ export default function UserManagementPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Role Category</label>
-                <Select value={roleCategoryFilter} onValueChange={setRoleCategoryFilter}>
+                <Select
+                  value={roleCategoryFilter}
+                  onValueChange={setRoleCategoryFilter}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
                     <SelectItem value="Welcome staff">Welcome staff</SelectItem>
-                    <SelectItem value="Security personnel">Security personnel</SelectItem>
-                    <SelectItem value="Customer service">Customer service</SelectItem>
+                    <SelectItem value="Security personnel">
+                      Security personnel
+                    </SelectItem>
+                    <SelectItem value="Customer service">
+                      Customer service
+                    </SelectItem>
                     <SelectItem value="Guides">Guides</SelectItem>
                   </SelectContent>
                 </Select>
@@ -384,7 +460,10 @@ export default function UserManagementPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Seniority</label>
-                <Select value={seniorityFilter} onValueChange={setSeniorityFilter}>
+                <Select
+                  value={seniorityFilter}
+                  onValueChange={setSeniorityFilter}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -410,7 +489,9 @@ export default function UserManagementPage() {
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center py-8">
-                <div className="text-sm text-muted-foreground">Loading users...</div>
+                <div className="text-sm text-muted-foreground">
+                  Loading users...
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -435,7 +516,9 @@ export default function UserManagementPage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                              {user.firstName?.charAt(0) || user.username?.charAt(0) || '?'}
+                              {user.firstName?.charAt(0) ||
+                                user.username?.charAt(0) ||
+                                "?"}
                             </div>
                             <div>
                               <div className="font-medium">
@@ -450,7 +533,9 @@ export default function UserManagementPage() {
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
                           <Badge variant={getRoleBadgeVariant(user.role)}>
-                            {user.role === "sub-admin" ? "Sub-Admin" : user.role}
+                            {user.role === "sub-admin"
+                              ? "Sub-Admin"
+                              : user.role}
                           </Badge>
                         </TableCell>
                         <TableCell>{user.assets || "—"}</TableCell>
@@ -459,7 +544,9 @@ export default function UserManagementPage() {
                         <TableCell>{user.xpPoints || 0}</TableCell>
                         <TableCell>{user.badgesCollected || 0}</TableCell>
                         <TableCell>
-                          <Badge variant={user.isActive ? "default" : "secondary"}>
+                          <Badge
+                            variant={user.isActive ? "default" : "secondary"}
+                          >
                             {user.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
@@ -472,15 +559,19 @@ export default function UserManagementPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleViewDetails(user)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleViewDetails(user)}
+                                >
                                   <Eye className="h-4 w-4 mr-2" />
                                   View Details
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleEditUser(user)}
+                                >
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit User
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => handleDeleteUser(user.id)}
                                   className="text-red-600"
                                 >
@@ -507,7 +598,9 @@ export default function UserManagementPage() {
           user={editingUser}
           courses={courses}
           onSubmit={handleUserFormSubmit}
-          isLoading={createUserMutation.isPending || updateUserMutation.isPending}
+          isLoading={
+            createUserMutation.isPending || updateUserMutation.isPending
+          }
         />
 
         {/* Bulk Upload Dialog */}
@@ -530,104 +623,168 @@ export default function UserManagementPage() {
         {/* User Details Dialog */}
         {selectedUser && (
           <Dialog open={isViewDetailsOpen} onOpenChange={setIsViewDetailsOpen}>
-            <DialogContent className="max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
+            <DialogContent
+              className="max-w-2xl"
+              onInteractOutside={(e) => e.preventDefault()}
+            >
               <DialogHeader>
                 <DialogTitle>User Details</DialogTitle>
               </DialogHeader>
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Name</label>
-                    <p className="text-sm">{selectedUser.firstName} {selectedUser.lastName}</p>
+                    <label className="text-sm font-medium text-gray-600">
+                      Name
+                    </label>
+                    <p className="text-sm">
+                      {selectedUser.firstName} {selectedUser.lastName}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Email</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Email
+                    </label>
                     <p className="text-sm">{selectedUser.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Username</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Username
+                    </label>
                     <p className="text-sm">{selectedUser.username}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Role</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Role
+                    </label>
                     <p className="text-sm">
                       <Badge variant={getRoleBadgeVariant(selectedUser.role)}>
-                        {selectedUser.role === "sub-admin" ? "Sub-Admin" : selectedUser.role}
+                        {selectedUser.role === "sub-admin"
+                          ? "Sub-Admin"
+                          : selectedUser.role}
                       </Badge>
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Language</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Language
+                    </label>
                     <p className="text-sm">{selectedUser.language || "—"}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Nationality</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Nationality
+                    </label>
                     <p className="text-sm">{selectedUser.nationality || "—"}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Experience</label>
-                    <p className="text-sm">{selectedUser.yearsOfExperience || "—"}</p>
+                    <label className="text-sm font-medium text-gray-600">
+                      Experience
+                    </label>
+                    <p className="text-sm">
+                      {selectedUser.yearsOfExperience || "—"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Assets</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Assets
+                    </label>
                     <p className="text-sm">
                       {selectedUser.assets ? (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-50 text-blue-700 border-blue-200"
+                        >
                           {selectedUser.assets}
                         </Badge>
-                      ) : "—"}
+                      ) : (
+                        "—"
+                      )}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Role Category</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Role Category
+                    </label>
                     <p className="text-sm">
                       {selectedUser.roleCategory ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-700 border-green-200"
+                        >
                           {selectedUser.roleCategory}
                         </Badge>
-                      ) : "—"}
+                      ) : (
+                        "—"
+                      )}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Sub Category</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Sub Category
+                    </label>
                     <p className="text-sm">{selectedUser.subCategory || "—"}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Seniority</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Seniority
+                    </label>
                     <p className="text-sm">
                       {selectedUser.seniority ? (
-                        <Badge variant="outline" className={
-                          selectedUser.seniority === "Manager" 
-                            ? "bg-purple-50 text-purple-700 border-purple-200"
-                            : "bg-gray-50 text-gray-700 border-gray-200"
-                        }>
+                        <Badge
+                          variant="outline"
+                          className={
+                            selectedUser.seniority === "Manager"
+                              ? "bg-purple-50 text-purple-700 border-purple-200"
+                              : "bg-gray-50 text-gray-700 border-gray-200"
+                          }
+                        >
                           {selectedUser.seniority}
                         </Badge>
-                      ) : "—"}
+                      ) : (
+                        "—"
+                      )}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Organization</label>
-                    <p className="text-sm">{selectedUser.organizationName || "—"}</p>
+                    <label className="text-sm font-medium text-gray-600">
+                      Organization
+                    </label>
+                    <p className="text-sm">
+                      {selectedUser.organizationName || "—"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">XP Points</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      XP Points
+                    </label>
                     <p className="text-sm">{selectedUser.xpPoints || 0}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Badges Collected</label>
-                    <p className="text-sm">{selectedUser.badgesCollected || 0}</p>
+                    <label className="text-sm font-medium text-gray-600">
+                      Badges Collected
+                    </label>
+                    <p className="text-sm">
+                      {selectedUser.badgesCollected || 0}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Status</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Status
+                    </label>
                     <p className="text-sm">
-                      <Badge variant={selectedUser.isActive ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          selectedUser.isActive ? "default" : "secondary"
+                        }
+                      >
                         {selectedUser.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Created By</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Created By
+                    </label>
                     <p className="text-sm">{selectedUser.creatorName || "—"}</p>
                   </div>
                 </div>

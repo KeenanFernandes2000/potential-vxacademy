@@ -1,4 +1,89 @@
-import { users, type User, type InsertUser, courses, type Course, badges, type Badge, userProgress, type UserProgress, userUnitProgress, type UserUnitProgress, type InsertUserUnitProgress, userBlockProgress, type UserBlockProgress, type InsertUserBlockProgress, userAssessmentProgress, type UserAssessmentProgress, type InsertUserAssessmentProgress, blockCompletions, type BlockCompletion, userBadges, type UserBadge, aiTutorConversations, type AiTutorConversation, assessmentAttempts, type AssessmentAttempt, trainingAreas, type TrainingArea, modules, type Module, units, type Unit, courseUnits, type CourseUnit, type InsertCourseUnit, learningBlocks, type LearningBlock, assessments, type Assessment, questions, type Question, scormPackages, type ScormPackage, scormTrackingData, type ScormTrackingData, type InsertCourse, type InsertBadge, type InsertUserProgress, type InsertBlockCompletion, type InsertUserBadge, type InsertAiTutorConversation, type InsertAssessmentAttempt, type InsertTrainingArea, type InsertModule, type InsertUnit, type InsertLearningBlock, type InsertAssessment, type InsertQuestion, type InsertScormPackage, type InsertScormTrackingData, roles, type Role, type InsertRole, roleMandatoryCourses, type RoleMandatoryCourse, type InsertRoleMandatoryCourse, certificates, type Certificate, type InsertCertificate, notifications, type Notification, type InsertNotification, mediaFiles, type MediaFile, type InsertMediaFile, coursePrerequisites, type CoursePrerequisite, type InsertCoursePrerequisite, userActivityLogs, type UserActivityLog, type InsertUserActivityLog, courseEnrollments, type CourseEnrollment, type InsertCourseEnrollment } from "@shared/schema";
+import {
+  users,
+  type User,
+  type InsertUser,
+  courses,
+  type Course,
+  badges,
+  type Badge,
+  userProgress,
+  type UserProgress,
+  userUnitProgress,
+  type UserUnitProgress,
+  type InsertUserUnitProgress,
+  userBlockProgress,
+  type UserBlockProgress,
+  type InsertUserBlockProgress,
+  userAssessmentProgress,
+  type UserAssessmentProgress,
+  type InsertUserAssessmentProgress,
+  blockCompletions,
+  type BlockCompletion,
+  userBadges,
+  type UserBadge,
+  aiTutorConversations,
+  type AiTutorConversation,
+  assessmentAttempts,
+  type AssessmentAttempt,
+  trainingAreas,
+  type TrainingArea,
+  modules,
+  type Module,
+  units,
+  type Unit,
+  courseUnits,
+  type CourseUnit,
+  type InsertCourseUnit,
+  learningBlocks,
+  type LearningBlock,
+  assessments,
+  type Assessment,
+  questions,
+  type Question,
+  scormPackages,
+  type ScormPackage,
+  scormTrackingData,
+  type ScormTrackingData,
+  type InsertCourse,
+  type InsertBadge,
+  type InsertUserProgress,
+  type InsertBlockCompletion,
+  type InsertUserBadge,
+  type InsertAiTutorConversation,
+  type InsertAssessmentAttempt,
+  type InsertTrainingArea,
+  type InsertModule,
+  type InsertUnit,
+  type InsertLearningBlock,
+  type InsertAssessment,
+  type InsertQuestion,
+  type InsertScormPackage,
+  type InsertScormTrackingData,
+  roles,
+  type Role,
+  type InsertRole,
+  roleMandatoryCourses,
+  type RoleMandatoryCourse,
+  type InsertRoleMandatoryCourse,
+  certificates,
+  type Certificate,
+  type InsertCertificate,
+  notifications,
+  type Notification,
+  type InsertNotification,
+  mediaFiles,
+  type MediaFile,
+  type InsertMediaFile,
+  coursePrerequisites,
+  type CoursePrerequisite,
+  type InsertCoursePrerequisite,
+  userActivityLogs,
+  type UserActivityLog,
+  type InsertUserActivityLog,
+  courseEnrollments,
+  type CourseEnrollment,
+  type InsertCourseEnrollment,
+} from "@shared/schema";
 import session from "express-session";
 
 export interface IStorage {
@@ -15,13 +100,19 @@ export interface IStorage {
 
   // Role Mandatory Courses
   getRoleMandatoryCourses(roleId: number): Promise<Course[]>;
-  addMandatoryCourseToRole(data: InsertRoleMandatoryCourse): Promise<RoleMandatoryCourse>;
-  removeMandatoryCourseFromRole(roleId: number, courseId: number): Promise<boolean>;
+  addMandatoryCourseToRole(
+    data: InsertRoleMandatoryCourse
+  ): Promise<RoleMandatoryCourse>;
+  removeMandatoryCourseFromRole(
+    roleId: number,
+    courseId: number
+  ): Promise<boolean>;
   getMandatoryCoursesForUser(userId: number): Promise<Course[]>;
 
   // User Management
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
@@ -31,13 +122,21 @@ export interface IStorage {
   getCourse(id: number): Promise<Course | undefined>;
   getCourses(): Promise<Course[]>;
   createCourse(course: InsertCourse): Promise<Course>;
-  updateCourse(id: number, courseData: Partial<Course>): Promise<Course | undefined>;
+  updateCourse(
+    id: number,
+    courseData: Partial<Course>
+  ): Promise<Course | undefined>;
   deleteCourse(id: number): Promise<boolean>;
 
   // Course Prerequisites
   getCoursePrerequisites(courseId: number): Promise<Course[]>;
-  addCoursePrerequisite(data: InsertCoursePrerequisite): Promise<CoursePrerequisite>;
-  removeCoursePrerequisite(courseId: number, prerequisiteCourseId: number): Promise<boolean>;
+  addCoursePrerequisite(
+    data: InsertCoursePrerequisite
+  ): Promise<CoursePrerequisite>;
+  removeCoursePrerequisite(
+    courseId: number,
+    prerequisiteCourseId: number
+  ): Promise<boolean>;
   getUserAccessibleCourses(userId: number): Promise<Course[]>;
 
   // Badge Management
@@ -47,52 +146,135 @@ export interface IStorage {
   updateBadge(id: number, data: Partial<Badge>): Promise<Badge | undefined>;
 
   // User Progress
-  getUserProgress(userId: number, courseId: number): Promise<UserProgress | undefined>;
+  getUserProgress(
+    userId: number,
+    courseId: number
+  ): Promise<UserProgress | undefined>;
   getUserProgressForAllCourses(userId: number): Promise<UserProgress[]>;
   createUserProgress(progress: InsertUserProgress): Promise<UserProgress>;
-  updateUserProgress(userId: number, courseId: number, data: Partial<UserProgress>): Promise<UserProgress | undefined>;
+  updateUserProgress(
+    userId: number,
+    courseId: number,
+    data: Partial<UserProgress>
+  ): Promise<UserProgress | undefined>;
 
   // User Unit Progress
-  getUserUnitProgress(userId: number, courseId: number, unitId: number): Promise<UserUnitProgress | undefined>;
-  getUserUnitProgressForCourse(userId: number, courseId: number): Promise<UserUnitProgress[]>;
-  createUserUnitProgress(progress: InsertUserUnitProgress): Promise<UserUnitProgress>;
-  updateUserUnitProgress(userId: number, courseId: number, unitId: number, data: Partial<UserUnitProgress>): Promise<UserUnitProgress | undefined>;
-  markUnitAsComplete(userId: number, courseId: number, unitId: number): Promise<UserUnitProgress>;
+  getUserUnitProgress(
+    userId: number,
+    courseId: number,
+    unitId: number
+  ): Promise<UserUnitProgress | undefined>;
+  getUserUnitProgressForCourse(
+    userId: number,
+    courseId: number
+  ): Promise<UserUnitProgress[]>;
+  createUserUnitProgress(
+    progress: InsertUserUnitProgress
+  ): Promise<UserUnitProgress>;
+  updateUserUnitProgress(
+    userId: number,
+    courseId: number,
+    unitId: number,
+    data: Partial<UserUnitProgress>
+  ): Promise<UserUnitProgress | undefined>;
+  markUnitAsComplete(
+    userId: number,
+    courseId: number,
+    unitId: number
+  ): Promise<UserUnitProgress>;
 
   // User Block Progress
-  getUserBlockProgress(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress | undefined>;
-  getUserBlockProgressForUnit(userId: number, courseId: number, unitId: number): Promise<UserBlockProgress[]>;
-  markBlockComplete(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress>;
-  markBlockIncomplete(userId: number, courseId: number, unitId: number, blockId: number): Promise<UserBlockProgress | undefined>;
+  getUserBlockProgress(
+    userId: number,
+    courseId: number,
+    unitId: number,
+    blockId: number
+  ): Promise<UserBlockProgress | undefined>;
+  getUserBlockProgressForUnit(
+    userId: number,
+    courseId: number,
+    unitId: number
+  ): Promise<UserBlockProgress[]>;
+  markBlockComplete(
+    userId: number,
+    courseId: number,
+    unitId: number,
+    blockId: number
+  ): Promise<UserBlockProgress>;
+  markBlockIncomplete(
+    userId: number,
+    courseId: number,
+    unitId: number,
+    blockId: number
+  ): Promise<UserBlockProgress | undefined>;
 
   // User Assessment Progress
-  getUserAssessmentProgress(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress | undefined>;
-  getUserAssessmentProgressForUnit(userId: number, courseId: number, unitId: number): Promise<UserAssessmentProgress[]>;
-  markAssessmentComplete(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress>;
-  markAssessmentIncomplete(userId: number, courseId: number, unitId: number, assessmentId: number): Promise<UserAssessmentProgress | undefined>;
+  getUserAssessmentProgress(
+    userId: number,
+    courseId: number,
+    unitId: number,
+    assessmentId: number
+  ): Promise<UserAssessmentProgress | undefined>;
+  getUserAssessmentProgressForUnit(
+    userId: number,
+    courseId: number,
+    unitId: number
+  ): Promise<UserAssessmentProgress[]>;
+  markAssessmentComplete(
+    userId: number,
+    courseId: number,
+    unitId: number,
+    assessmentId: number
+  ): Promise<UserAssessmentProgress>;
+  markAssessmentIncomplete(
+    userId: number,
+    courseId: number,
+    unitId: number,
+    assessmentId: number
+  ): Promise<UserAssessmentProgress | undefined>;
 
   // Block Completions
-  getBlockCompletion(userId: number, blockId: number): Promise<BlockCompletion | undefined>;
-  createBlockCompletion(completion: InsertBlockCompletion): Promise<BlockCompletion>;
+  getBlockCompletion(
+    userId: number,
+    blockId: number
+  ): Promise<BlockCompletion | undefined>;
+  createBlockCompletion(
+    completion: InsertBlockCompletion
+  ): Promise<BlockCompletion>;
 
   // User Badges
   getUserBadges(userId: number): Promise<UserBadge[]>;
   createUserBadge(userBadge: InsertUserBadge): Promise<UserBadge>;
 
   // AI Tutor Conversations
-  getAiTutorConversation(userId: number): Promise<AiTutorConversation | undefined>;
-  createAiTutorConversation(conversation: InsertAiTutorConversation): Promise<AiTutorConversation>;
-  updateAiTutorConversation(id: number, messages: any[]): Promise<AiTutorConversation | undefined>;
+  getAiTutorConversation(
+    userId: number
+  ): Promise<AiTutorConversation | undefined>;
+  createAiTutorConversation(
+    conversation: InsertAiTutorConversation
+  ): Promise<AiTutorConversation>;
+  updateAiTutorConversation(
+    id: number,
+    messages: any[]
+  ): Promise<AiTutorConversation | undefined>;
 
   // Assessment Attempts
-  getAssessmentAttempts(userId: number, assessmentId: number): Promise<AssessmentAttempt[]>;
-  createAssessmentAttempt(attempt: InsertAssessmentAttempt): Promise<AssessmentAttempt>;
+  getAssessmentAttempts(
+    userId: number,
+    assessmentId: number
+  ): Promise<AssessmentAttempt[]>;
+  createAssessmentAttempt(
+    attempt: InsertAssessmentAttempt
+  ): Promise<AssessmentAttempt>;
 
   // Training Areas
   getTrainingAreas(): Promise<TrainingArea[]>;
   getTrainingArea(id: number): Promise<TrainingArea | undefined>;
   createTrainingArea(area: InsertTrainingArea): Promise<TrainingArea>;
-  updateTrainingArea(id: number, data: Partial<TrainingArea>): Promise<TrainingArea | undefined>;
+  updateTrainingArea(
+    id: number,
+    data: Partial<TrainingArea>
+  ): Promise<TrainingArea | undefined>;
   deleteTrainingArea(id: number): Promise<boolean>;
 
   // Modules
@@ -111,20 +293,31 @@ export interface IStorage {
   deleteUnit(id: number): Promise<boolean>;
 
   // Course-Unit associations
-  addUnitToCourse(courseId: number, unitId: number, order: number): Promise<CourseUnit>;
+  addUnitToCourse(
+    courseId: number,
+    unitId: number,
+    order: number
+  ): Promise<CourseUnit>;
   removeUnitFromCourse(courseId: number, unitId: number): Promise<boolean>;
   getUnitsForCourse(courseId: number): Promise<Unit[]>;
   getCoursesForUnit(unitId: number): Promise<Course[]>;
 
   // Order validation
   checkUniqueUnitOrder(order: number, excludeId?: number): Promise<boolean>;
-  checkUniqueLearningBlockOrder(unitId: number, order: number, excludeId?: number): Promise<boolean>;
+  checkUniqueLearningBlockOrder(
+    unitId: number,
+    order: number,
+    excludeId?: number
+  ): Promise<boolean>;
 
   // Learning Blocks
   getLearningBlocks(unitId: number): Promise<LearningBlock[]>;
   getLearningBlock(id: number): Promise<LearningBlock | undefined>;
   createLearningBlock(block: InsertLearningBlock): Promise<LearningBlock>;
-  updateLearningBlock(id: number, data: Partial<LearningBlock>): Promise<LearningBlock | undefined>;
+  updateLearningBlock(
+    id: number,
+    data: Partial<LearningBlock>
+  ): Promise<LearningBlock | undefined>;
   deleteLearningBlock(id: number): Promise<boolean>;
 
   // Assessments
@@ -133,14 +326,20 @@ export interface IStorage {
   getAssessmentsByCourse(courseId: number): Promise<Assessment[]>;
   getAssessment(id: number): Promise<Assessment | undefined>;
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
-  updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment | undefined>;
+  updateAssessment(
+    id: number,
+    data: Partial<Assessment>
+  ): Promise<Assessment | undefined>;
   deleteAssessment(id: number): Promise<boolean>;
 
   // Questions
   getQuestions(assessmentId: number): Promise<Question[]>;
   getQuestion(id: number): Promise<Question | undefined>;
   createQuestion(question: InsertQuestion): Promise<Question>;
-  updateQuestion(id: number, data: Partial<Question>): Promise<Question | undefined>;
+  updateQuestion(
+    id: number,
+    data: Partial<Question>
+  ): Promise<Question | undefined>;
   deleteQuestion(id: number): Promise<boolean>;
 
   // Leaderboard
@@ -149,21 +348,38 @@ export interface IStorage {
   // Certificates
   getUserCertificates(userId: number): Promise<Certificate[]>;
   getCertificate(id: number): Promise<Certificate | undefined>;
-  getCertificateByCourseAndUser(userId: number, courseId: number): Promise<Certificate | undefined>;
+  getCertificateByCourseAndUser(
+    userId: number,
+    courseId: number
+  ): Promise<Certificate | undefined>;
   createCertificate(certificate: InsertCertificate): Promise<Certificate>;
-  updateCertificate(id: number, data: Partial<Certificate>): Promise<Certificate | undefined>;
+  updateCertificate(
+    id: number,
+    data: Partial<Certificate>
+  ): Promise<Certificate | undefined>;
 
   // SCORM Packages
   getScormPackages(): Promise<ScormPackage[]>;
   getScormPackage(id: number): Promise<ScormPackage | undefined>;
   createScormPackage(packageData: InsertScormPackage): Promise<ScormPackage>;
-  updateScormPackage(id: number, data: Partial<ScormPackage>): Promise<ScormPackage | undefined>;
+  updateScormPackage(
+    id: number,
+    data: Partial<ScormPackage>
+  ): Promise<ScormPackage | undefined>;
   deleteScormPackage(id: number): Promise<boolean>;
 
   // SCORM Tracking Data
-  getScormTrackingData(userId: number, scormPackageId: number): Promise<ScormTrackingData | undefined>;
-  createScormTrackingData(trackingData: InsertScormTrackingData): Promise<ScormTrackingData>;
-  updateScormTrackingData(id: number, data: Partial<ScormTrackingData>): Promise<ScormTrackingData | undefined>;
+  getScormTrackingData(
+    userId: number,
+    scormPackageId: number
+  ): Promise<ScormTrackingData | undefined>;
+  createScormTrackingData(
+    trackingData: InsertScormTrackingData
+  ): Promise<ScormTrackingData>;
+  updateScormTrackingData(
+    id: number,
+    data: Partial<ScormTrackingData>
+  ): Promise<ScormTrackingData | undefined>;
 
   // Notifications
   getUserNotifications(userId: number, limit?: number): Promise<Notification[]>;
@@ -182,14 +398,30 @@ export interface IStorage {
   deleteMultipleMediaFiles(ids: number[]): Promise<number>;
 
   // Analytics Methods
-  createUserActivityLog(activity: InsertUserActivityLog): Promise<UserActivityLog>;
-  getUserActivityLogs(userId: number, limit?: number): Promise<UserActivityLog[]>;
-  getActivityLogsByDateRange(startDate: Date, endDate: Date): Promise<UserActivityLog[]>;
+  createUserActivityLog(
+    activity: InsertUserActivityLog
+  ): Promise<UserActivityLog>;
+  getUserActivityLogs(
+    userId: number,
+    limit?: number
+  ): Promise<UserActivityLog[]>;
+  getActivityLogsByDateRange(
+    startDate: Date,
+    endDate: Date
+  ): Promise<UserActivityLog[]>;
 
-  createCourseEnrollment(enrollment: InsertCourseEnrollment): Promise<CourseEnrollment>;
-  getCourseEnrollment(userId: number, courseId: number): Promise<CourseEnrollment | undefined>;
+  createCourseEnrollment(
+    enrollment: InsertCourseEnrollment
+  ): Promise<CourseEnrollment>;
+  getCourseEnrollment(
+    userId: number,
+    courseId: number
+  ): Promise<CourseEnrollment | undefined>;
   getUserEnrollments(userId: number): Promise<CourseEnrollment[]>;
-  getEnrollmentsByDateRange(startDate: Date, endDate: Date): Promise<CourseEnrollment[]>;
+  getEnrollmentsByDateRange(
+    startDate: Date,
+    endDate: Date
+  ): Promise<CourseEnrollment[]>;
 
   getActiveUsersCount(startDate: Date, endDate: Date): Promise<number>;
   getNewUsersCount(startDate: Date, endDate: Date): Promise<number>;
@@ -204,5 +436,5 @@ export interface IStorage {
 }
 
 // Import DatabaseStorage and create instance
-import { DatabaseStorage } from './database-storage';
+import { DatabaseStorage } from "./database-storage";
 export const storage = new DatabaseStorage();

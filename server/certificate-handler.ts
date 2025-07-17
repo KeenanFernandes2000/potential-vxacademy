@@ -22,16 +22,16 @@ const upload = multer({
     },
     filename: (req, file, cb) => {
       // Generate a unique filename with timestamp
-      const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const uniqueId = Date.now() + "-" + Math.round(Math.random() * 1e9);
       const ext = path.extname(file.originalname).toLowerCase();
       cb(null, `cert-template-${uniqueId}${ext}`);
-    }
+    },
   }),
   fileFilter: (req, file, cb) => {
     // Accept image files and PDFs
-    const allowedTypes = ['.jpg', '.jpeg', '.png', '.pdf'];
+    const allowedTypes = [".jpg", ".jpeg", ".png", ".pdf"];
     const ext = path.extname(file.originalname).toLowerCase();
-    
+
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
@@ -39,14 +39,17 @@ const upload = multer({
     }
   },
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit for certificate templates
-  }
+    fileSize: 10 * 1024 * 1024, // 10MB limit for certificate templates
+  },
 });
 
 // Handler for certificate template uploads
 export const uploadCertificateTemplate = upload.single("certificateTemplate");
 
-export async function handleCertificateTemplateUpload(req: Request, res: Response) {
+export async function handleCertificateTemplateUpload(
+  req: Request,
+  res: Response
+) {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -54,11 +57,11 @@ export async function handleCertificateTemplateUpload(req: Request, res: Respons
 
     // Return the URL of the uploaded file
     const fileUrl = `/uploads/images/${req.file.filename}`;
-    res.json({ 
+    res.json({
       url: fileUrl,
       filename: req.file.filename,
       originalName: req.file.originalname,
-      size: req.file.size
+      size: req.file.size,
     });
   } catch (error) {
     console.error("Certificate template upload error:", error);

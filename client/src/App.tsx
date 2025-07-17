@@ -55,7 +55,8 @@ function Router() {
       <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} />
       <ProtectedRoute path="/admin/users" component={UserManagement} />
       <ProtectedRoute path="/admin/roles" component={RolesManagement} />
-      <ProtectedRoute path="/admin/content" component={ContentManagement} />
+      {/* Content Management is not used in the project (will check to switch to this later) */}
+      {/* <ProtectedRoute path="/admin/content" component={ContentManagement} /> */}
       <ProtectedRoute path="/admin/analytics" component={Analytics} />
       <ProtectedRoute
         path="/admin/course-management"

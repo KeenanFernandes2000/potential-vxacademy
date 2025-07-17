@@ -1,13 +1,13 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { handleTutorMessage } from "./ai-tutor";
 import { NotificationTriggers } from "./notification-triggers";
 import { hashPassword } from "@shared/auth-utils";
+import type { Assessment, LearningBlock } from "@shared/schema";
 import {
   uploadScormPackage,
   handleScormUpload,
@@ -26,7 +26,10 @@ import {
   uploadCertificateTemplate,
   handleCertificateTemplateUpload,
 } from "./certificate-handler";
-import { CertificatePDFService, type CertificateData } from "./certificate-pdf-service";
+import {
+  CertificatePDFService,
+  type CertificateData,
+} from "./certificate-pdf-service";
 import { uploadExcel, processExcelUpload } from "./excel-upload-handler";
 import {
   uploadMedia,
@@ -46,16 +49,20 @@ import {
 } from "./permissions";
 
 // Helper function to generate certificate HTML
-function generateCertificateHTML({ certificate, course, user }: { 
-  certificate: any, 
-  course: any, 
-  user: any 
+function generateCertificateHTML({
+  certificate,
+  course,
+  user,
+}: {
+  certificate: any;
+  course: any;
+  user: any;
 }) {
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -75,7 +82,7 @@ function generateCertificateHTML({ certificate, course, user }: {
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
             }
-            
+
             .certificate {
                 max-width: 800px;
                 margin: 0 auto;
@@ -85,47 +92,47 @@ function generateCertificateHTML({ certificate, course, user }: {
                 position: relative;
                 box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             }
-            
+
             .corner {
                 position: absolute;
                 width: 40px;
                 height: 40px;
                 border: 3px solid #0d9488;
             }
-            
+
             .corner.top-left {
                 top: 20px;
                 left: 20px;
                 border-right: none;
                 border-bottom: none;
             }
-            
+
             .corner.top-right {
                 top: 20px;
                 right: 20px;
                 border-left: none;
                 border-bottom: none;
             }
-            
+
             .corner.bottom-left {
                 bottom: 20px;
                 left: 20px;
                 border-right: none;
                 border-top: none;
             }
-            
+
             .corner.bottom-right {
                 bottom: 20px;
                 right: 20px;
                 border-left: none;
                 border-top: none;
             }
-            
+
             .logo {
                 text-align: center;
                 margin-bottom: 30px;
             }
-            
+
             .logo-circle {
                 width: 80px;
                 height: 80px;
@@ -139,21 +146,21 @@ function generateCertificateHTML({ certificate, course, user }: {
                 font-weight: bold;
                 margin-bottom: 15px;
             }
-            
+
             .academy-name {
                 font-size: 32px;
                 font-weight: bold;
                 color: #0f766e;
                 margin: 0;
             }
-            
+
             .divider {
                 width: 120px;
                 height: 3px;
                 background: linear-gradient(to right, #0d9488, #06b6d4);
                 margin: 10px auto 40px;
             }
-            
+
             .certificate-title {
                 text-align: center;
                 font-size: 36px;
@@ -161,14 +168,14 @@ function generateCertificateHTML({ certificate, course, user }: {
                 color: #374151;
                 margin-bottom: 30px;
             }
-            
+
             .certifies-text {
                 text-align: center;
                 font-size: 18px;
                 color: #6b7280;
                 margin-bottom: 20px;
             }
-            
+
             .recipient-name {
                 text-align: center;
                 font-size: 42px;
@@ -178,14 +185,14 @@ function generateCertificateHTML({ certificate, course, user }: {
                 border-bottom: 2px solid #a7f3d0;
                 padding-bottom: 10px;
             }
-            
+
             .completion-text {
                 text-align: center;
                 font-size: 18px;
                 color: #4b5563;
                 margin-bottom: 15px;
             }
-            
+
             .course-name {
                 text-align: center;
                 font-size: 28px;
@@ -197,62 +204,62 @@ function generateCertificateHTML({ certificate, course, user }: {
                 border-radius: 10px;
                 margin: 20px 0 40px;
             }
-            
+
             .certificate-details {
                 display: flex;
                 justify-content: center;
                 gap: 60px;
                 margin-bottom: 50px;
             }
-            
+
             .detail-item {
                 text-align: center;
             }
-            
+
             .detail-label {
                 font-size: 14px;
                 color: #6b7280;
                 font-weight: 600;
                 margin-bottom: 5px;
             }
-            
+
             .detail-value {
                 font-size: 16px;
                 font-weight: bold;
                 color: #374151;
                 font-family: 'Courier New', monospace;
             }
-            
+
             .signature-section {
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-end;
                 margin-top: 60px;
             }
-            
+
             .signature {
                 text-align: center;
                 width: 200px;
             }
-            
+
             .signature-line {
                 width: 180px;
                 height: 2px;
                 background: #9ca3af;
                 margin: 0 auto 10px;
             }
-            
+
             .signature-title {
                 font-size: 14px;
                 font-weight: 600;
                 color: #4b5563;
             }
-            
+
             .signature-subtitle {
                 font-size: 12px;
                 color: #6b7280;
             }
-            
+
             .seal {
                 width: 80px;
                 height: 80px;
@@ -268,11 +275,11 @@ function generateCertificateHTML({ certificate, course, user }: {
                 text-align: center;
                 margin-bottom: 10px;
             }
-            
+
             @media print {
                 body { background: white; padding: 0; }
-                .certificate { 
-                    box-shadow: none; 
+                .certificate {
+                    box-shadow: none;
                     page-break-inside: avoid;
                 }
                 @page {
@@ -288,34 +295,38 @@ function generateCertificateHTML({ certificate, course, user }: {
             <div class="corner top-right"></div>
             <div class="corner bottom-left"></div>
             <div class="corner bottom-right"></div>
-            
+
             <div class="logo">
                 <div class="logo-circle">VX</div>
                 <h1 class="academy-name">VX Academy</h1>
                 <div class="divider"></div>
             </div>
-            
+
             <h2 class="certificate-title">Certificate of Completion</h2>
-            
+
             <p class="certifies-text">This is to certify that</p>
-            
+
             <div class="recipient-name">${user.firstName} ${user.lastName}</div>
-            
+
             <p class="completion-text">has successfully completed the course</p>
-            
+
             <div class="course-name">${course.name}</div>
-            
+
             <div class="certificate-details">
                 <div class="detail-item">
                     <div class="detail-label">Certificate ID</div>
-                    <div class="detail-value">${certificate.certificateNumber}</div>
+                    <div class="detail-value">${
+                      certificate.certificateNumber
+                    }</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Date Issued</div>
-                    <div class="detail-value">${formatDate(certificate.createdAt)}</div>
+                    <div class="detail-value">${formatDate(
+                      certificate.createdAt
+                    )}</div>
                 </div>
             </div>
-            
+
             <div class="signature-section">
                 <div class="signature">
                     <div class="signature-line"></div>
@@ -338,13 +349,13 @@ async function updateCourseProgress(userId: number, courseId: number) {
   try {
     // Get all units for this course
     const units = await storage.getUnits(courseId);
-    
+
     if (units.length === 0) {
       // No units in course, mark as complete
       await storage.updateUserProgress(userId, courseId, {
         percentComplete: 100,
         completed: true,
-        lastAccessed: new Date()
+        lastAccessed: new Date(),
       });
       return;
     }
@@ -360,7 +371,12 @@ async function updateCourseProgress(userId: number, courseId: number) {
 
       // Count completed blocks using course-specific tracking
       for (const block of blocks) {
-        const blockProgress = await storage.getUserBlockProgress(userId, courseId, unit.id, block.id);
+        const blockProgress = await storage.getUserBlockProgress(
+          userId,
+          courseId,
+          unit.id,
+          block.id
+        );
         if (blockProgress && blockProgress.isCompleted) {
           completedItems++;
         }
@@ -372,19 +388,24 @@ async function updateCourseProgress(userId: number, courseId: number) {
 
       // Count passed assessments
       for (const assessment of assessments) {
-        const attempts = await storage.getAssessmentAttempts(userId, assessment.id);
-        if (attempts.some(attempt => attempt.passed)) {
+        const attempts = await storage.getAssessmentAttempts(
+          userId,
+          assessment.id
+        );
+        if (attempts.some((attempt) => attempt.passed)) {
           completedItems++;
         }
       }
     }
 
     // Get course-level assessments
-    let courseAssessments = [];
+    let courseAssessments: Assessment[] = [];
     try {
       // Try to get course assessments - they should be stored with courseId field
       const allAssessments = await storage.getAllAssessments();
-      courseAssessments = allAssessments.filter(assessment => assessment.courseId === courseId);
+      courseAssessments = allAssessments.filter(
+        (assessment) => assessment.courseId === courseId
+      );
     } catch (error) {
       console.error("Error fetching course assessments:", error);
       courseAssessments = [];
@@ -393,46 +414,58 @@ async function updateCourseProgress(userId: number, courseId: number) {
 
     // Count passed course assessments
     for (const assessment of courseAssessments) {
-      const attempts = await storage.getAssessmentAttempts(userId, assessment.id);
-      if (attempts.some(attempt => attempt.passed)) {
+      const attempts = await storage.getAssessmentAttempts(
+        userId,
+        assessment.id
+      );
+      if (attempts.some((attempt) => attempt.passed)) {
         completedItems++;
       }
     }
 
     // Calculate percentage
-    const percentComplete = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 100;
+    const percentComplete =
+      totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 100;
     const completed = percentComplete === 100;
 
     // Update or create user progress record
     try {
       const existingProgress = await storage.getUserProgress(userId, courseId);
       if (existingProgress) {
-        console.log(`Updating existing progress: user ${userId}, course ${courseId}, ${percentComplete}%`);
+        console.log(
+          `Updating existing progress: user ${userId}, course ${courseId}, ${percentComplete}%`
+        );
         await storage.updateUserProgress(userId, courseId, {
           percentComplete,
           completed,
-          lastAccessed: new Date()
+          lastAccessed: new Date(),
         });
       } else {
-        console.log(`Creating new progress record: user ${userId}, course ${courseId}, ${percentComplete}%`);
+        console.log(
+          `Creating new progress record: user ${userId}, course ${courseId}, ${percentComplete}%`
+        );
         // Create new progress record if it doesn't exist
         await storage.createUserProgress({
           userId,
           courseId,
           percentComplete,
           completed,
-          lastAccessed: new Date()
+          lastAccessed: new Date(),
         });
       }
 
-      console.log(`✓ Successfully updated course progress for user ${userId}, course ${courseId}: ${percentComplete}% (${completedItems}/${totalItems} items)`);
-      
+      console.log(
+        `✓ Successfully updated course progress for user ${userId}, course ${courseId}: ${percentComplete}% (${completedItems}/${totalItems} items)`
+      );
+
       // Verify the update worked by fetching the progress again
       const verifyProgress = await storage.getUserProgress(userId, courseId);
       console.log(`✓ Verified progress update:`, verifyProgress);
-      
     } catch (progressError) {
-      console.error(`Failed to update/create progress for user ${userId}, course ${courseId}:`, progressError);
+      console.error(
+        `Failed to update/create progress for user ${userId}, course ${courseId}:`,
+        progressError
+      );
       throw progressError;
     }
   } catch (error) {
@@ -450,7 +483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files from the public directory
   app.use(
     "/uploads",
-    express.static(path.join(process.cwd(), "public/uploads")),
+    express.static(path.join(process.cwd(), "public/uploads"))
   );
 
   // Add endpoint to get user permissions
@@ -479,7 +512,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     try {
       const { unitId, order, excludeId } = req.body;
-      const isUnique = await storage.checkUniqueLearningBlockOrder(unitId, order, excludeId);
+      const isUnique = await storage.checkUniqueLearningBlockOrder(
+        unitId,
+        order,
+        excludeId
+      );
       res.json({ isUnique });
     } catch (error) {
       res.status(500).json({ message: "Error validating order" });
@@ -576,12 +613,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(units);
     } catch (error) {
       console.error("Error fetching units:", error);
-      res
-        .status(500)
-        .json({
-          message: "Error fetching units",
-          error: error instanceof Error ? error.message : String(error),
-        });
+      res.status(500).json({
+        message: "Error fetching units",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   });
 
@@ -600,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.addUnitToCourse(
             courseIdNum,
             unit.id,
-            unitData.order || 1,
+            unitData.order || 1
           );
         }
       }
@@ -627,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (courseIds && Array.isArray(courseIds)) {
         // Convert courseIds to numbers if they're strings
         const normalizedCourseIds = courseIds.map((id) =>
-          typeof id === "string" ? parseInt(id) : id,
+          typeof id === "string" ? parseInt(id) : id
         );
 
         // Get current courses for this unit
@@ -741,7 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(
         `Retrieved ${
           blocks?.length || 0
-        } learning blocks for unit ID: ${unitId}`,
+        } learning blocks for unit ID: ${unitId}`
       );
       res.json(blocks || []);
     } catch (error) {
@@ -762,10 +797,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log(`Fetching all learning blocks for course ID: ${courseId}`);
-      
+
       // Get all units for this course
       const units = await storage.getUnits(courseId);
-      let allBlocks = [];
+      let allBlocks: LearningBlock[] = [];
 
       // Fetch blocks for each unit in the course
       for (const unit of units) {
@@ -773,7 +808,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         allBlocks = allBlocks.concat(blocks || []);
       }
 
-      console.log(`Retrieved ${allBlocks.length} total learning blocks for course ID: ${courseId}`);
+      console.log(
+        `Retrieved ${allBlocks.length} total learning blocks for course ID: ${courseId}`
+      );
       res.json(allBlocks);
     } catch (error) {
       console.error("Error fetching course learning blocks:", error);
@@ -824,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) {
       console.log(
         "Not authenticated for GET /api/progress - User session:",
-        req.session,
+        req.session
       );
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -851,7 +888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) {
       console.log(
         "Not authenticated for POST /api/progress - User session:",
-        req.session,
+        req.session
       );
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -903,8 +940,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Force refresh the progress data to ensure it's properly saved
-      const updatedProgressList =
-        await storage.getUserProgressForAllCourses(userId);
+      const updatedProgressList = await storage.getUserProgressForAllCourses(
+        userId
+      );
       console.log("All user progress after update:", updatedProgressList);
 
       res.json(progress);
@@ -942,8 +980,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const courseId = parseInt(req.params.courseId);
       const unitId = parseInt(req.params.unitId);
-      
-      const blockProgress = await storage.getUserBlockProgressForUnit(userId, courseId, unitId);
+
+      const blockProgress = await storage.getUserBlockProgressForUnit(
+        userId,
+        courseId,
+        unitId
+      );
       res.json(blockProgress);
     } catch (error) {
       console.error("Error fetching block progress:", error);
@@ -960,21 +1002,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const courseId = parseInt(req.params.courseId);
-      
+
       // Get all units for this course
       const units = await storage.getUnits(courseId);
-      
+
       // Get block progress for all units
       const allProgress = [];
       for (const unit of units) {
         try {
-          const unitProgress = await storage.getUserBlockProgressForUnit(userId, courseId, unit.id);
+          const unitProgress = await storage.getUserBlockProgressForUnit(
+            userId,
+            courseId,
+            unit.id
+          );
           allProgress.push(...unitProgress);
         } catch (error) {
-          console.error(`Error fetching block progress for unit ${unit.id}:`, error);
+          console.error(
+            `Error fetching block progress for unit ${unit.id}:`,
+            error
+          );
         }
       }
-      
+
       res.json(allProgress);
     } catch (error) {
       console.error("Error fetching all block progress:", error);
@@ -991,12 +1040,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const { courseId, unitId, blockId } = req.body;
-      
+
       if (!courseId || !unitId || !blockId) {
-        return res.status(400).json({ message: "Missing required fields: courseId, unitId, blockId" });
+        return res.status(400).json({
+          message: "Missing required fields: courseId, unitId, blockId",
+        });
       }
-      
-      const progress = await storage.markBlockComplete(userId, courseId, unitId, blockId);
+
+      const progress = await storage.markBlockComplete(
+        userId,
+        courseId,
+        unitId,
+        blockId
+      );
       res.json(progress);
     } catch (error) {
       console.error("Error marking block complete:", error);
@@ -1014,8 +1070,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const courseId = parseInt(req.params.courseId);
       const unitId = parseInt(req.params.unitId);
-      
-      const assessmentProgress = await storage.getUserAssessmentProgressForUnit(userId, courseId, unitId);
+
+      const assessmentProgress = await storage.getUserAssessmentProgressForUnit(
+        userId,
+        courseId,
+        unitId
+      );
       res.json(assessmentProgress);
     } catch (error) {
       console.error("Error fetching assessment progress:", error);
@@ -1032,25 +1092,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const courseId = parseInt(req.params.courseId);
-      
+
       // Get all units for this course
       const units = await storage.getUnits(courseId);
-      
+
       // Get assessment progress for all units
       const allProgress = [];
       for (const unit of units) {
         try {
-          const unitProgress = await storage.getUserAssessmentProgressForUnit(userId, courseId, unit.id);
+          const unitProgress = await storage.getUserAssessmentProgressForUnit(
+            userId,
+            courseId,
+            unit.id
+          );
           allProgress.push(...unitProgress);
         } catch (error) {
           console.error(`Error fetching progress for unit ${unit.id}:`, error);
         }
       }
-      
+
       res.json(allProgress);
     } catch (error) {
       console.error("Error fetching all assessment progress:", error);
-      res.status(500).json({ message: "Error fetching all assessment progress" });
+      res
+        .status(500)
+        .json({ message: "Error fetching all assessment progress" });
     }
   });
 
@@ -1063,12 +1129,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const { courseId, unitId, assessmentId } = req.body;
-      
+
       if (!courseId || !unitId || !assessmentId) {
-        return res.status(400).json({ message: "Missing required fields: courseId, unitId, assessmentId" });
+        return res.status(400).json({
+          message: "Missing required fields: courseId, unitId, assessmentId",
+        });
       }
-      
-      const progress = await storage.markAssessmentComplete(userId, courseId, unitId, assessmentId);
+
+      const progress = await storage.markAssessmentComplete(
+        userId,
+        courseId,
+        unitId,
+        assessmentId
+      );
       res.json(progress);
     } catch (error) {
       console.error("Error marking assessment complete:", error);
@@ -1091,7 +1164,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const unitProgress = await storage.getUserUnitProgressForCourse(userId, courseId);
+      const unitProgress = await storage.getUserUnitProgressForCourse(
+        userId,
+        courseId
+      );
       res.json(unitProgress);
     } catch (error) {
       console.error("Error fetching user unit progress:", error);
@@ -1109,16 +1185,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { courseId, unitId } = req.body;
 
       if (!courseId || !unitId) {
-        return res.status(400).json({ message: "Course ID and Unit ID are required" });
+        return res
+          .status(400)
+          .json({ message: "Course ID and Unit ID are required" });
       }
 
-      const unitProgress = await storage.markUnitAsComplete(userId, courseId, unitId);
-      
+      const unitProgress = await storage.markUnitAsComplete(
+        userId,
+        courseId,
+        unitId
+      );
+
       // Update course progress after unit completion
       try {
         await updateCourseProgress(userId, courseId);
       } catch (error) {
-        console.error("Error updating course progress after unit completion:", error);
+        console.error(
+          "Error updating course progress after unit completion:",
+          error
+        );
       }
 
       res.json(unitProgress);
@@ -1166,17 +1251,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Log block completion activity
-      await storage.createUserActivityLog({
-        userId,
-        activity: 'block_completed',
-        metadata: { 
-          blockId, 
-          blockTitle: block.title,
-          xpAwarded: block.xpPoints || 10 
-        }
-      }).catch(error => {
-        console.error('Failed to log block completion activity:', error);
-      });
+      await storage
+        .createUserActivityLog({
+          userId,
+          activity: "block_completed",
+          metadata: {
+            blockId,
+            blockTitle: block.title,
+            xpAwarded: block.xpPoints || 10,
+          },
+        })
+        .catch((error) => {
+          console.error("Failed to log block completion activity:", error);
+        });
 
       // Update course progress after block completion
       try {
@@ -1185,31 +1272,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (unit) {
           // Get all courses this unit belongs to
           const coursesForUnit = await storage.getCoursesForUnit(unit.id);
-          
+
           for (const course of coursesForUnit) {
-            console.log(`Updating course progress for user ${userId}, course ${course.id} after block ${blockId} completion`);
+            console.log(
+              `Updating course progress for user ${userId}, course ${course.id} after block ${blockId} completion`
+            );
             // Calculate updated progress for this course
             await updateCourseProgress(userId, course.id);
-            
+
             // Check if course is now complete and log it
-            const updatedProgress = await storage.getUserProgress(userId, course.id);
+            const updatedProgress = await storage.getUserProgress(
+              userId,
+              course.id
+            );
             if (updatedProgress && updatedProgress.completed) {
-              await storage.createUserActivityLog({
-                userId,
-                activity: 'course_completed',
-                metadata: { 
-                  courseId: course.id, 
-                  courseName: course.name,
-                  percentComplete: updatedProgress.percentComplete
-                }
-              }).catch(error => {
-                console.error('Failed to log course completion activity:', error);
-              });
+              await storage
+                .createUserActivityLog({
+                  userId,
+                  activity: "course_completed",
+                  metadata: {
+                    courseId: course.id,
+                    courseName: course.name,
+                    percentComplete: updatedProgress.percentComplete,
+                  },
+                })
+                .catch((error) => {
+                  console.error(
+                    "Failed to log course completion activity:",
+                    error
+                  );
+                });
             }
           }
         }
       } catch (error) {
-        console.error("Error updating course progress after block completion:", error);
+        console.error(
+          "Error updating course progress after block completion:",
+          error
+        );
       }
 
       res.json(completion);
@@ -1324,7 +1424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.body.questionType === "true_false") {
         console.log(
           "True/False question - incoming correctAnswer:",
-          req.body.correctAnswer,
+          req.body.correctAnswer
         );
       }
 
@@ -1371,7 +1471,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/user/badges", async (req, res) => {
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });    }
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     try {
       const userId = req.user!.id;
@@ -1380,7 +1481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get full badge details
       const badgeIds = userBadges.map((ub) => ub.badgeId);
       const badges = await Promise.all(
-        badgeIds.map((id) => storage.getBadge(id)),
+        badgeIds.map((id) => storage.getBadge(id))
       );
 
       // Combine user badge (earned date) with badge details
@@ -1452,7 +1553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter out admin and sub-admin users - only show regular users
       const filteredLeaderboard = leaderboard.filter(
-        (user) => user.role === "user",
+        (user) => user.role === "user"
       );
 
       // Remove sensitive data
@@ -1475,18 +1576,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const userId = req.user!.id;
-      const { 
-        firstName, 
-        lastName, 
-        email, 
-        language, 
-        nationality, 
-        yearsOfExperience, 
-        organizationName, 
-        roleCategory, 
-        subCategory, 
-        seniority, 
-        assets 
+      const {
+        firstName,
+        lastName,
+        email,
+        language,
+        nationality,
+        yearsOfExperience,
+        organizationName,
+        roleCategory,
+        subCategory,
+        seniority,
+        assets,
       } = req.body;
 
       // Validate required fields for basic profile update
@@ -1498,7 +1599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Prepare update data - allow users to update their profile fields
       const updateData: any = { firstName, lastName };
-      
+
       // Optional fields that users can update
       if (language) updateData.language = language;
       if (email) updateData.email = email;
@@ -1552,7 +1653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { comparePasswords } = await import("./auth.js");
       const isCurrentPasswordValid = await comparePasswords(
         currentPassword,
-        user.password,
+        user.password
       );
       if (!isCurrentPasswordValid) {
         return res
@@ -1580,9 +1681,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Tutor
-  app.post("/api/ai-tutor/message", handleTutorMessage);
-
   app.get("/api/ai-tutor/conversation", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -1607,29 +1705,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get total users
       const allUsers = await storage.getLeaderboard(1000);
-      const usersByRole = allUsers.reduce(
-        (acc, user) => {
-          const role = user.role || "user";
-          acc[role] = (acc[role] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
+      const usersByRole = allUsers.reduce((acc, user) => {
+        const role = user.role || "user";
+        acc[role] = (acc[role] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
       // Get courses
       const courses = await storage.getCourses();
 
       // Get courses by module
       const modules = await storage.getModules();
-      const coursesByModule = courses.reduce(
-        (acc, course) => {
-          const module = modules.find((m) => m.id === course.moduleId);
-          const moduleName = module ? module.name : `Module ${course.moduleId}`;
-          acc[moduleName] = (acc[moduleName] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
+      const coursesByModule = courses.reduce((acc, course) => {
+        const module = modules.find((m) => m.id === course.moduleId);
+        const moduleName = module ? module.name : `Module ${course.moduleId}`;
+        acc[moduleName] = (acc[moduleName] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
       // Get progress
       // In a real app, we would calculate these properly
@@ -1648,7 +1740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         courses: {
           total: courses.length,
           byModule: Object.entries(coursesByModule).map(
-            ([moduleName, count]) => ({ moduleName, count }),
+            ([moduleName, count]) => ({ moduleName, count })
           ),
         },
         progress: {
@@ -1898,7 +1990,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Get mandatory courses for user's role
             const mandatoryCourses = await storage.getMandatoryCoursesForUser(
-              user.id,
+              user.id
             );
             const totalMandatory = mandatoryCourses.length;
 
@@ -1906,11 +1998,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             let completedMandatory = 0;
             if (totalMandatory > 0) {
               const progressPromises = mandatoryCourses.map((course) =>
-                storage.getUserProgress(user.id, course.id),
+                storage.getUserProgress(user.id, course.id)
               );
               const progressResults = await Promise.all(progressPromises);
               completedMandatory = progressResults.filter(
-                (progress) => progress?.completed,
+                (progress) => progress?.completed
               ).length;
             }
 
@@ -1927,7 +2019,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               badgesCollected,
               mandatoryProgress,
             };
-          }),
+          })
         );
 
         res.json(enhancedUsers);
@@ -1935,7 +2027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error fetching enhanced users:", error);
         res.status(500).json({ error: "Failed to fetch enhanced users" });
       }
-    },
+    }
   );
 
   app.post("/api/admin/users", requireAdminOrSubAdmin, async (req, res) => {
@@ -1966,11 +2058,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.user!.role === "sub-admin") {
         // Sub-admins can only create users, not other sub-admins
         if (role !== "user") {
-          return res
-            .status(403)
-            .json({
-              message: "Sub-admins can only create users, not sub-admins",
-            });
+          return res.status(403).json({
+            message: "Sub-admins can only create users, not sub-admins",
+          });
         }
       }
 
@@ -2031,9 +2121,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Redirect old upload endpoint to new one for compatibility
-  app.post("/api/admin/users/upload-excel", requireAdminOrSubAdmin, uploadExcel, (req: Request, res: Response) => {
-    processExcelUpload(req, res, storage);
-  });
+  app.post(
+    "/api/admin/users/upload-excel",
+    requireAdminOrSubAdmin,
+    uploadExcel,
+    (req: Request, res: Response) => {
+      processExcelUpload(req, res, storage);
+    }
+  );
 
   // Create multiple users in bulk (admin and sub-admin)
   app.post(
@@ -2068,7 +2163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             // Check if username is already taken
             const existingUser = await storage.getUserByUsername(
-              userData.username,
+              userData.username
             );
             if (existingUser) {
               failedUsers.push({
@@ -2138,7 +2233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error in bulk user creation:", error);
         res.status(500).json({ message: "Failed to create users in bulk" });
       }
-    },
+    }
   );
 
   // Excel template download route
@@ -2146,7 +2241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const templatePath = path.join(
         process.cwd(),
-        "client/public/assets/VX Academy Import Format.xlsx",
+        "client/public/assets/VX Academy Import Format.xlsx"
       );
 
       if (!fs.existsSync(templatePath)) {
@@ -2213,7 +2308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error updating user:", error);
         res.status(500).json({ message: "Error updating user" });
       }
-    },
+    }
   );
 
   // Delete user endpoint
@@ -2300,7 +2395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...role,
             userCount: users.length,
           };
-        }),
+        })
       );
 
       res.json(enhancedRoles);
@@ -2468,7 +2563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } catch (error) {
             // Skip if already exists
             console.log(
-              `Course ${course.id} already assigned to role ${roleId}`,
+              `Course ${course.id} already assigned to role ${roleId}`
             );
           }
         }
@@ -2555,8 +2650,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const roleId = parseInt(req.params.roleId);
-      const coursesWithRelations =
-        await storage.getRoleMandatoryCourses(roleId);
+      const coursesWithRelations = await storage.getRoleMandatoryCourses(
+        roleId
+      );
 
       // These courses already have all the required data including the relation ID
       // We're just sending them directly to the client
@@ -2619,7 +2715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const success = await storage.removeMandatoryCourseFromRole(
           roleId,
-          courseId,
+          courseId
         );
 
         if (!success) {
@@ -2635,7 +2731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .status(500)
           .json({ message: "Failed to remove mandatory course from role" });
       }
-    },
+    }
   );
 
   // Get mandatory courses for the current user
@@ -2676,7 +2772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/upload/certificate-template",
     uploadCertificateTemplate,
-    handleCertificateTemplateUpload,
+    handleCertificateTemplateUpload
   );
 
   // Certificate Routes
@@ -2696,14 +2792,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user = await storage.getUser(cert.userId);
           console.log(
             `Certificate ${cert.id}: User ID ${cert.userId}, User data:`,
-            user,
+            user
           );
           return {
             ...cert,
             course,
             user,
           };
-        }),
+        })
       );
 
       res.set("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -2778,7 +2874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if certificate already exists
       const existingCertificate = await storage.getCertificateByCourseAndUser(
         userId,
-        courseId,
+        courseId
       );
       if (existingCertificate) {
         return res.json(existingCertificate);
@@ -2835,11 +2931,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const certificateHtml = generateCertificateHTML({
         certificate,
         course,
-        user
+        user,
       });
 
       // For now, return the HTML - in production you'd convert to PDF
-      res.setHeader('Content-Type', 'text/html');
+      res.setHeader("Content-Type", "text/html");
       res.send(certificateHtml);
     } catch (error) {
       console.error("Error generating certificate PDF:", error);
@@ -2854,7 +2950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/scorm-packages/:packageId/files/:filePath(*)", serveScormFile);
   app.post(
     "/api/scorm-packages/:scormPackageId/tracking",
-    saveScormTrackingData,
+    saveScormTrackingData
   );
   app.get("/api/scorm-packages/:scormPackageId/tracking", getScormTrackingData);
 
@@ -2866,27 +2962,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/media/files/:filename", serveMediaFile);
 
   // Assessment Attempts and Submission APIs
-  app.get("/api/assessments/:assessmentId/attempts/:userId", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const assessmentId = parseInt(req.params.assessmentId);
-      const userId = parseInt(req.params.userId);
-
-      // Ensure user can only access their own attempts (unless admin)
-      if (req.user!.id !== userId && req.user!.role !== "admin") {
-        return res.status(403).json({ message: "Access denied" });
+  app.get(
+    "/api/assessments/:assessmentId/attempts/:userId",
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const attempts = await storage.getAssessmentAttempts(userId, assessmentId);
-      res.json(attempts);
-    } catch (error) {
-      console.error("Error fetching assessment attempts:", error);
-      res.status(500).json({ message: "Error fetching assessment attempts" });
+      try {
+        const assessmentId = parseInt(req.params.assessmentId);
+        const userId = parseInt(req.params.userId);
+
+        // Ensure user can only access their own attempts (unless admin)
+        if (req.user!.id !== userId && req.user!.role !== "admin") {
+          return res.status(403).json({ message: "Access denied" });
+        }
+
+        const attempts = await storage.getAssessmentAttempts(
+          userId,
+          assessmentId
+        );
+        res.json(attempts);
+      } catch (error) {
+        console.error("Error fetching assessment attempts:", error);
+        res.status(500).json({ message: "Error fetching assessment attempts" });
+      }
     }
-  });
+  );
 
   app.post("/api/assessments/:assessmentId/submit", async (req, res) => {
     if (!req.isAuthenticated()) {
@@ -2909,7 +3011,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user has remaining attempts
-      const previousAttempts = await storage.getAssessmentAttempts(userId, assessmentId);
+      const previousAttempts = await storage.getAssessmentAttempts(
+        userId,
+        assessmentId
+      );
       if (previousAttempts.length >= assessment.maxRetakes) {
         return res.status(400).json({ message: "No attempts remaining" });
       }
@@ -2928,30 +3033,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           score,
           passed,
           answers: {},
-          completedAt: new Date()
+          completedAt: new Date(),
         });
 
         // Log assessment activity
-        await storage.createUserActivityLog({
-          userId,
-          activity: 'assessment_passed',
-          metadata: {
-            assessmentId,
-            score,
-            assessmentTitle: assessment.title,
-            totalQuestions: 0,
-            correctAnswers: 0
-          }
-        }).catch(error => {
-          console.error('Failed to log assessment activity:', error);
-        });
+        await storage
+          .createUserActivityLog({
+            userId,
+            activity: "assessment_passed",
+            metadata: {
+              assessmentId,
+              score,
+              assessmentTitle: assessment.title,
+              totalQuestions: 0,
+              correctAnswers: 0,
+            },
+          })
+          .catch((error) => {
+            console.error("Failed to log assessment activity:", error);
+          });
 
         let certificateGenerated = false;
         // Award XP points if passed
         const user = await storage.getUser(userId);
         if (user) {
           await storage.updateUser(userId, {
-            xpPoints: (user.xpPoints || 0) + assessment.xpPoints
+            xpPoints: (user.xpPoints || 0) + assessment.xpPoints,
           });
         }
         // Update course progress
@@ -2963,25 +3070,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           if (courseId) {
             await updateCourseProgress(userId, courseId);
-            
+
             // Mark assessment as complete in the progress tracking system
             if (assessment.unitId) {
-              await storage.markAssessmentComplete(userId, courseId, assessment.unitId, assessmentId);
+              await storage.markAssessmentComplete(
+                userId,
+                courseId,
+                assessment.unitId,
+                assessmentId
+              );
             }
           }
         } catch (error) {
-          console.error("Error updating course progress after assessment:", error);
+          console.error(
+            "Error updating course progress after assessment:",
+            error
+          );
         }
         // Generate certificate if enabled and user passed
         if (assessment.hasCertificate) {
           try {
             let courseId = assessment.courseId;
             if (!courseId && assessment.unitId) {
-              const courses = await storage.getCoursesForUnit(assessment.unitId);
+              const courses = await storage.getCoursesForUnit(
+                assessment.unitId
+              );
               courseId = courses[0]?.id;
             }
             if (courseId) {
-              const existingCertificate = await storage.getCertificateByCourseAndUser(userId, courseId);
+              const existingCertificate =
+                await storage.getCertificateByCourseAndUser(userId, courseId);
               if (!existingCertificate) {
                 const course = await storage.getCourse(courseId);
                 const user = await storage.getUser(userId);
@@ -2991,7 +3109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     courseId,
                     certificateNumber: `CERT-${Date.now()}-${userId}`,
                     status: "active",
-                    expiryDate: null
+                    expiryDate: null,
                   });
                   certificateGenerated = true;
                   await storage.createNotification({
@@ -2999,7 +3117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     type: "certificate-earned",
                     title: "Certificate Earned!",
                     message: `Congratulations! You've earned a certificate for completing \"${course.name}\".`,
-                    read: false
+                    read: false,
                   });
                 }
               }
@@ -3014,7 +3132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "assessment-passed",
           title: "Assessment Passed!",
           message: `You successfully passed \"${assessment.title}\" with a score of 100%.`,
-          read: false
+          read: false,
         });
         const responseData = {
           success: true,
@@ -3023,7 +3141,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           correctAnswers: 0,
           totalQuestions: 0,
           certificateGenerated,
-          attemptsRemaining: assessment.maxRetakes - previousAttempts.length - 1
+          attemptsRemaining:
+            assessment.maxRetakes - previousAttempts.length - 1,
         };
         return res.json(responseData);
       }
@@ -3037,28 +3156,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Total questions:", totalQuestions);
       console.log("User answers:", answers);
 
-      questions.forEach(question => {
+      questions.forEach((question) => {
         const questionId = question.id.toString();
         const userAnswer = answers[questionId];
         const correctAnswer = question.correctAnswer;
-        
+
         // Handle case-insensitive comparison for true/false questions
         let isCorrect = false;
-        if (question.questionType === 'true_false') {
-          isCorrect = userAnswer?.toLowerCase() === correctAnswer?.toLowerCase();
+        if (question.questionType === "true_false") {
+          isCorrect =
+            userAnswer?.toLowerCase() === correctAnswer?.toLowerCase();
         } else {
           isCorrect = userAnswer === correctAnswer;
         }
-        
+
         console.log(`Question ${questionId}:`, {
           questionText: question.questionText,
           userAnswer,
           correctAnswer,
           isCorrect,
           questionType: question.questionType,
-          comparisonUsed: question.questionType === 'true_false' ? 'case-insensitive' : 'exact'
+          comparisonUsed:
+            question.questionType === "true_false"
+              ? "case-insensitive"
+              : "exact",
         });
-        
+
         if (isCorrect) {
           correctAnswers++;
         }
@@ -3067,11 +3190,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Final scoring results:", {
         correctAnswers,
         totalQuestions,
-        percentage: Math.round((correctAnswers / totalQuestions) * 100)
+        percentage: Math.round((correctAnswers / totalQuestions) * 100),
       });
 
       const score = Math.round((correctAnswers / totalQuestions) * 100);
-      const passed = assessment.isGraded ? (assessment.passingScore ? score >= assessment.passingScore : score >= 70) : true;
+      const passed = assessment.isGraded
+        ? assessment.passingScore
+          ? score >= assessment.passingScore
+          : score >= 70
+        : true;
 
       // Create assessment attempt record
       const attempt = await storage.createAssessmentAttempt({
@@ -3080,23 +3207,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         score,
         passed,
         answers: answers,
-        completedAt: new Date()
+        completedAt: new Date(),
       });
 
       // Log assessment activity
-      await storage.createUserActivityLog({
-        userId,
-        activity: passed ? 'assessment_passed' : 'assessment_failed',
-        metadata: { 
-          assessmentId, 
-          score, 
-          assessmentTitle: assessment.title,
-          totalQuestions,
-          correctAnswers
-        }
-      }).catch(error => {
-        console.error('Failed to log assessment activity:', error);
-      });
+      await storage
+        .createUserActivityLog({
+          userId,
+          activity: passed ? "assessment_passed" : "assessment_failed",
+          metadata: {
+            assessmentId,
+            score,
+            assessmentTitle: assessment.title,
+            totalQuestions,
+            correctAnswers,
+          },
+        })
+        .catch((error) => {
+          console.error("Failed to log assessment activity:", error);
+        });
 
       let certificateGenerated = false;
 
@@ -3104,8 +3233,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (passed) {
         const user = await storage.getUser(userId);
         if (user) {
-          await storage.updateUser(userId, { 
-            xpPoints: (user.xpPoints || 0) + assessment.xpPoints 
+          await storage.updateUser(userId, {
+            xpPoints: (user.xpPoints || 0) + assessment.xpPoints,
           });
         }
 
@@ -3120,14 +3249,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (courseId) {
             await updateCourseProgress(userId, courseId);
-            
+
             // Mark assessment as complete in the progress tracking system
             if (assessment.unitId) {
-              await storage.markAssessmentComplete(userId, courseId, assessment.unitId, assessmentId);
+              await storage.markAssessmentComplete(
+                userId,
+                courseId,
+                assessment.unitId,
+                assessmentId
+              );
             }
           }
         } catch (error) {
-          console.error("Error updating course progress after assessment:", error);
+          console.error(
+            "Error updating course progress after assessment:",
+            error
+          );
         }
 
         // Generate certificate if enabled and user passed
@@ -3137,13 +3274,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             let courseId = assessment.courseId;
             if (!courseId && assessment.unitId) {
               // Get course from unit if assessment is unit-level
-              const courses = await storage.getCoursesForUnit(assessment.unitId);
+              const courses = await storage.getCoursesForUnit(
+                assessment.unitId
+              );
               courseId = courses[0]?.id;
             }
 
             if (courseId) {
               // Check if certificate already exists
-              const existingCertificate = await storage.getCertificateByCourseAndUser(userId, courseId);
+              const existingCertificate =
+                await storage.getCertificateByCourseAndUser(userId, courseId);
 
               if (!existingCertificate) {
                 const course = await storage.getCourse(courseId);
@@ -3155,7 +3295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     courseId,
                     certificateNumber: `CERT-${Date.now()}-${userId}`,
                     status: "active",
-                    expiryDate: null
+                    expiryDate: null,
                   });
 
                   certificateGenerated = true;
@@ -3166,7 +3306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     type: "certificate-earned",
                     title: "Certificate Earned!",
                     message: `Congratulations! You've earned a certificate for completing "${course.name}".`,
-                    read: false
+                    read: false,
                   });
                 }
               }
@@ -3183,17 +3323,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "assessment-passed",
           title: "Assessment Passed!",
           message: `You successfully passed "${assessment.title}" with a score of ${score}%.`,
-          read: false
+          read: false,
         });
       } else {
         // Create notification for failed attempt
-        const attemptsRemaining = assessment.maxRetakes - previousAttempts.length - 1;
+        const attemptsRemaining =
+          assessment.maxRetakes - previousAttempts.length - 1;
         await storage.createNotification({
           userId,
           type: "assessment-failed",
           title: "Assessment Not Passed",
-          message: `You scored ${score}% on "${assessment.title}". ${attemptsRemaining > 0 ? `You have ${attemptsRemaining} attempts remaining.` : 'No attempts remaining.'}`,
-          read: false
+          message: `You scored ${score}% on "${assessment.title}". ${
+            attemptsRemaining > 0
+              ? `You have ${attemptsRemaining} attempts remaining.`
+              : "No attempts remaining."
+          }`,
+          read: false,
         });
       }
 
@@ -3204,12 +3349,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         correctAnswers,
         totalQuestions,
         certificateGenerated,
-        attemptsRemaining: assessment.maxRetakes - previousAttempts.length - 1
+        attemptsRemaining: assessment.maxRetakes - previousAttempts.length - 1,
       };
 
       console.log("Sending response:", responseData);
       res.json(responseData);
-
     } catch (error) {
       console.error("Error submitting assessment:", error);
       res.status(500).json({ message: "Error submitting assessment" });
@@ -3228,7 +3372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all units for this course
       const units = await storage.getUnits(courseId);
-      const unitIds = units.map(u => u.id);
+      const unitIds = units.map((u) => u.id);
 
       // Get course-level assessments
       const courseAssessments = await storage.getAssessmentsByCourse(courseId);
@@ -3245,7 +3389,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter by placement if specified
       if (placement) {
-        relevantAssessments = relevantAssessments.filter(assessment => assessment.placement === placement);
+        relevantAssessments = relevantAssessments.filter(
+          (assessment) => assessment.placement === placement
+        );
       }
 
       res.json(relevantAssessments);
@@ -3258,26 +3404,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test PDF endpoint to verify binary handling
   app.get("/api/test-pdf", async (req, res) => {
     try {
-      const templatePath = path.resolve('attached_assets/Certificate_Template_With_Placeholders_1750244699874.pdf');
-      
+      const templatePath = path.resolve(
+        "attached_assets/Certificate_Template_With_Placeholders_1750244699874.pdf"
+      );
+
       if (!fs.existsSync(templatePath)) {
         return res.status(404).json({ message: "Test template not found" });
       }
-      
+
       const buffer = fs.readFileSync(templatePath);
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename="test-original.pdf"');
-      res.setHeader('Content-Length', buffer.length.toString());
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="test-original.pdf"'
+      );
+      res.setHeader("Content-Length", buffer.length.toString());
       res.end(buffer);
-      
     } catch (error) {
       console.error("Test PDF error:", error);
       res.status(500).json({ message: "Test failed" });
     }
   });
 
-  // Certificate Generation Endpoint  
+  // Certificate Generation Endpoint
   app.post("/api/certificate/generate", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -3291,7 +3441,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Assessment ID is required" });
       }
 
-      console.log(`🎓 Certificate generation requested for assessment ${assessmentId} by user ${userId}`);
+      console.log(
+        `🎓 Certificate generation requested for assessment ${assessmentId} by user ${userId}`
+      );
 
       // Get assessment details
       const assessment = await storage.getAssessment(assessmentId);
@@ -3301,18 +3453,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if assessment has certificate enabled
       if (!assessment.hasCertificate || !assessment.certificateTemplate) {
-        return res.status(400).json({ 
-          message: "Certificate not available for this assessment" 
+        return res.status(400).json({
+          message: "Certificate not available for this assessment",
         });
       }
 
       // Check if user has passed this assessment
-      const attempts = await storage.getAssessmentAttempts(userId, assessmentId);
-      const hasPassedAttempt = attempts.some(attempt => attempt.passed);
-      
+      const attempts = await storage.getAssessmentAttempts(
+        userId,
+        assessmentId
+      );
+      const hasPassedAttempt = attempts.some((attempt) => attempt.passed);
+
       if (!hasPassedAttempt) {
-        return res.status(403).json({ 
-          message: "You must pass the assessment to generate a certificate" 
+        return res.status(403).json({
+          message: "You must pass the assessment to generate a certificate",
         });
       }
 
@@ -3337,30 +3492,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get the best attempt for certificate details
       const bestAttempt = attempts
-        .filter(attempt => attempt.passed)
+        .filter((attempt) => attempt.passed)
         .sort((a, b) => b.score - a.score)[0];
 
       // Prepare certificate data
       const certificateData: CertificateData = {
         userName: `${user.firstName} ${user.lastName}`,
         courseName: course.name,
-        date: new Date().toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         }),
         certificateId: `CERT-${assessmentId}-${userId}-${bestAttempt.id}`,
-        issueDate: new Date().toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        issueDate: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         }),
-        completionDate: bestAttempt.completedAt 
-          ? new Date(bestAttempt.completedAt).toLocaleDateString('en-US', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            }) 
+        completionDate: bestAttempt.completedAt
+          ? new Date(bestAttempt.completedAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
           : undefined,
       };
 
@@ -3368,53 +3523,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // TEMPORARY: Use a hardcoded path to test certificate generation
       // TODO: Fix this to use assessment.certificateTemplate when path resolution is working
-      const templatePath = path.resolve('attached_assets/Certificate_Template_With_Placeholders_1750244699874.pdf');
+      const templatePath = path.resolve(
+        "attached_assets/Certificate_Template_With_Placeholders_1750244699874.pdf"
+      );
       console.log(`📁 Using template path: ${templatePath}`);
 
       // Validate template exists
-      const templateExists = await CertificatePDFService.validateTemplate(templatePath);
+      const templateExists = await CertificatePDFService.validateTemplate(
+        templatePath
+      );
       if (!templateExists) {
         console.log(`❌ Template not found at: ${templatePath}`);
-        console.log(`📋 Assessment template URL: ${assessment.certificateTemplate}`);
-        
-        return res.status(404).json({ 
+        console.log(
+          `📋 Assessment template URL: ${assessment.certificateTemplate}`
+        );
+
+        return res.status(404).json({
           message: "Certificate template not found or inaccessible",
           templatePath: templatePath,
-          originalUrl: assessment.certificateTemplate
+          originalUrl: assessment.certificateTemplate,
         });
       }
 
       // Generate the certificate PDF
-      const certificatePdfBuffer = await CertificatePDFService.generateCertificate(
-        templatePath, 
-        certificateData
-      );
+      const certificatePdfBuffer =
+        await CertificatePDFService.generateCertificate(
+          templatePath,
+          certificateData
+        );
 
       // Clean filename for download
       const cleanUserName = certificateData.userName
-        .replace(/[^a-zA-Z0-9\s]/g, '')
-        .replace(/\s+/g, '_');
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .replace(/\s+/g, "_");
       const cleanCourseName = course.name
-        .replace(/[^a-zA-Z0-9\s]/g, '')
-        .replace(/\s+/g, '_');
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .replace(/\s+/g, "_");
       const filename = `Certificate_${cleanUserName}_${cleanCourseName}.pdf`;
 
-      console.log(`📥 Sending certificate PDF: ${filename} (${certificatePdfBuffer.length} bytes)`);
+      console.log(
+        `📥 Sending certificate PDF: ${filename} (${certificatePdfBuffer.length} bytes)`
+      );
 
       // Set response headers for PDF download
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.setHeader('Content-Length', certificatePdfBuffer.length.toString());
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+      res.setHeader("Content-Length", certificatePdfBuffer.length.toString());
+      res.setHeader("Cache-Control", "no-cache");
 
       // Send the PDF buffer (without encoding parameter to prevent corruption)
       res.end(certificatePdfBuffer);
-
     } catch (error) {
       console.error("❌ Error generating certificate:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Error generating certificate",
-        error: error.message 
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   });
@@ -3517,9 +3683,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Excel upload endpoint for users
-  app.post("/api/admin/users/bulk-upload", requireAdminOrSubAdmin, uploadExcel, (req: Request, res: Response) => {
-    processExcelUpload(req, res, storage);
-  });
+  app.post(
+    "/api/admin/users/bulk-upload",
+    requireAdminOrSubAdmin,
+    uploadExcel,
+    (req: Request, res: Response) => {
+      processExcelUpload(req, res, storage);
+    }
+  );
 
   // Manual course progress refresh endpoint for debugging
   app.post("/api/refresh-course-progress/:courseId", async (req, res) => {
@@ -3531,15 +3702,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const courseId = parseInt(req.params.courseId);
 
-      console.log(`Manual progress refresh requested for user ${userId}, course ${courseId}`);
+      console.log(
+        `Manual progress refresh requested for user ${userId}, course ${courseId}`
+      );
       await updateCourseProgress(userId, courseId);
 
       // Get updated progress
       const updatedProgress = await storage.getUserProgress(userId, courseId);
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         progress: updatedProgress,
-        message: "Course progress refreshed successfully"
+        message: "Course progress refreshed successfully",
       });
     } catch (error) {
       console.error("Error refreshing course progress:", error);
@@ -3548,14 +3721,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Excel template download endpoint
-  app.get("/api/admin/users/template", requireAdminOrSubAdmin, (req: Request, res: Response) => {
-    const templatePath = path.join(__dirname, "../attached_assets/VX_Academy_Import_Format.xlsx");
-    if (fs.existsSync(templatePath)) {
-      res.download(templatePath, "VX_Academy_Import_Template.xlsx");
-    } else {
-      res.status(404).json({ message: "Template file not found" });
+  app.get(
+    "/api/admin/users/template",
+    requireAdminOrSubAdmin,
+    (req: Request, res: Response) => {
+      const templatePath = path.join(
+        __dirname,
+        "../attached_assets/VX_Academy_Import_Format.xlsx"
+      );
+      if (fs.existsSync(templatePath)) {
+        res.download(templatePath, "VX_Academy_Import_Template.xlsx", (err) => {
+          if (err) {
+            console.error("Error downloading template:", err);
+            res.status(500).json({ message: "Error downloading template" });
+          }
+        });
+      } else {
+        res.status(404).json({ message: "Template file not found" });
+      }
     }
-  });
+  );
 
   // Analytics Endpoints
   app.get("/api/admin/analytics", async (req, res) => {
@@ -3564,12 +3749,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const timeRange = req.query.timeRange as string || "month";
-      
+      const timeRange = (req.query.timeRange as string) || "month";
+
       // Calculate date range based on timeRange parameter
       const endDate = new Date();
       const startDate = new Date();
-      
+
       switch (timeRange) {
         case "week":
           startDate.setDate(endDate.getDate() - 7);
@@ -3597,7 +3782,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         newUsers,
         courseCompletions,
         assessmentAttempts,
-        enrollments
+        enrollments,
       ] = await Promise.all([
         storage.getAllUsersCount(),
         storage.getAllUsers(),
@@ -3607,67 +3792,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getNewUsersCount(startDate, endDate),
         storage.getCourseCompletionsCount(startDate, endDate),
         storage.getAssessmentAttemptsCount(startDate, endDate),
-        storage.getEnrollmentsByDateRange(startDate, endDate)
+        storage.getEnrollmentsByDateRange(startDate, endDate),
       ]);
 
       // Calculate active users from user activity logs (login activity)
       const activeUsers = await storage.getActiveUsersCount(startDate, endDate);
 
       // Calculate completion rate
-      const completedProgress = allProgress.filter(p => p.completed);
-      const avgCompletionRate = allProgress.length > 0 
-        ? Math.round((completedProgress.length / allProgress.length) * 100) 
-        : 0;
+      const completedProgress = allProgress.filter((p) => p.completed);
+      const avgCompletionRate =
+        allProgress.length > 0
+          ? Math.round((completedProgress.length / allProgress.length) * 100)
+          : 0;
 
       // Role distribution
       const roleDistribution = allUsers.reduce((acc, user) => {
-        const role = user.role || 'user';
+        const role = user.role || "user";
         acc[role] = (acc[role] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
       // Course completion data by course
-      const courseCompletionData = allCourses.map(course => {
-        const courseProgress = allProgress.filter(p => p.courseId === course.id);
-        const completedCount = courseProgress.filter(p => p.completed).length;
-        const totalEnrolled = courseProgress.length;
-        const completionRate = totalEnrolled > 0 ? Math.round((completedCount / totalEnrolled) * 100) : 0;
-        
-        return {
-          name: course.name,
-          completionRate,
-          totalEnrolled,
-          completedCount
-        };
-      }).sort((a, b) => b.completionRate - a.completionRate);
+      const courseCompletionData = allCourses
+        .map((course) => {
+          const courseProgress = allProgress.filter(
+            (p) => p.courseId === course.id
+          );
+          const completedCount = courseProgress.filter(
+            (p) => p.completed
+          ).length;
+          const totalEnrolled = courseProgress.length;
+          const completionRate =
+            totalEnrolled > 0
+              ? Math.round((completedCount / totalEnrolled) * 100)
+              : 0;
+
+          return {
+            name: course.name,
+            completionRate,
+            totalEnrolled,
+            completedCount,
+          };
+        })
+        .sort((a, b) => b.completionRate - a.completionRate);
 
       // XP distribution
       const xpDistribution = allUsers.reduce((acc, user) => {
         const xp = user.xpPoints || 0;
-        if (xp <= 500) acc['Beginner (0-500 XP)'] = (acc['Beginner (0-500 XP)'] || 0) + 1;
-        else if (xp <= 1500) acc['Intermediate (501-1500 XP)'] = (acc['Intermediate (501-1500 XP)'] || 0) + 1;
-        else if (xp <= 3000) acc['Advanced (1501-3000 XP)'] = (acc['Advanced (1501-3000 XP)'] || 0) + 1;
-        else acc['Expert (3000+ XP)'] = (acc['Expert (3000+ XP)'] || 0) + 1;
+        if (xp <= 500)
+          acc["Beginner (0-500 XP)"] = (acc["Beginner (0-500 XP)"] || 0) + 1;
+        else if (xp <= 1500)
+          acc["Intermediate (501-1500 XP)"] =
+            (acc["Intermediate (501-1500 XP)"] || 0) + 1;
+        else if (xp <= 3000)
+          acc["Advanced (1501-3000 XP)"] =
+            (acc["Advanced (1501-3000 XP)"] || 0) + 1;
+        else acc["Expert (3000+ XP)"] = (acc["Expert (3000+ XP)"] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
       // Assessment performance
-      const assessmentPerformance = allAssessmentAttempts.reduce((acc, attempt) => {
-        if (attempt.passed) {
-          acc.passed += 1;
-        }
-        acc.total += 1;
-        acc.totalScore += attempt.score;
-        return acc;
-      }, { passed: 0, total: 0, totalScore: 0 });
+      const assessmentPerformance = allAssessmentAttempts.reduce(
+        (acc, attempt) => {
+          if (attempt.passed) {
+            acc.passed += 1;
+          }
+          acc.total += 1;
+          acc.totalScore += attempt.score;
+          return acc;
+        },
+        { passed: 0, total: 0, totalScore: 0 }
+      );
 
-      const avgAssessmentScore = assessmentPerformance.total > 0 
-        ? Math.round(assessmentPerformance.totalScore / assessmentPerformance.total) 
-        : 0;
+      const avgAssessmentScore =
+        assessmentPerformance.total > 0
+          ? Math.round(
+              assessmentPerformance.totalScore / assessmentPerformance.total
+            )
+          : 0;
 
-      const passRate = assessmentPerformance.total > 0 
-        ? Math.round((assessmentPerformance.passed / assessmentPerformance.total) * 100) 
-        : 0;
+      const passRate =
+        assessmentPerformance.total > 0
+          ? Math.round(
+              (assessmentPerformance.passed / assessmentPerformance.total) * 100
+            )
+          : 0;
 
       res.json({
         summary: {
@@ -3678,17 +3887,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           avgCompletionRate,
           assessmentAttempts,
           avgAssessmentScore,
-          passRate
+          passRate,
         },
-        roleDistribution: Object.entries(roleDistribution).map(([name, value]) => ({ name, value })),
+        roleDistribution: Object.entries(roleDistribution).map(
+          ([name, value]) => ({ name, value })
+        ),
         courseCompletion: courseCompletionData,
-        xpDistribution: Object.entries(xpDistribution).map(([name, value]) => ({ name, value })),
+        xpDistribution: Object.entries(xpDistribution).map(([name, value]) => ({
+          name,
+          value,
+        })),
         timeRange: {
           start: startDate,
           end: endDate,
-          period: timeRange
+          period: timeRange,
         },
-        enrollments: enrollments.length
+        enrollments: enrollments.length,
       });
     } catch (error) {
       console.error("Analytics error:", error);
@@ -3703,14 +3917,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const timeRange = req.query.timeRange as string || "month";
+      const timeRange = (req.query.timeRange as string) || "month";
       const endDate = new Date();
       const startDate = new Date();
-      
+
       // Calculate periods
       let periodCount: number;
       let periodLength: number; // in days
-      
+
       switch (timeRange) {
         case "week":
           startDate.setDate(endDate.getDate() - 7);
@@ -3739,31 +3953,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const timeSeriesData = [];
-      
+
       for (let i = periodCount - 1; i >= 0; i--) {
         const periodEnd = new Date();
-        periodEnd.setDate(endDate.getDate() - (i * periodLength));
+        periodEnd.setDate(endDate.getDate() - i * periodLength);
         periodEnd.setHours(23, 59, 59, 999);
-        
+
         const periodStart = new Date(periodEnd);
         periodStart.setDate(periodEnd.getDate() - (periodLength - 1));
         periodStart.setHours(0, 0, 0, 0);
 
         // Get data for this period using existing tables
-        const [activeUsers, newUsers, enrollments, completions] = await Promise.all([
-          storage.getActiveUsersCount(periodStart, periodEnd), // Users who had any activity
-          storage.getNewUsersCount(periodStart, periodEnd), // New user registrations
-          storage.getEnrollmentsByDateRange(periodStart, periodEnd), // Course enrollments
-          storage.getCourseCompletionsCount(periodStart, periodEnd) // Completed courses
-        ]);
+        const [activeUsers, newUsers, enrollments, completions] =
+          await Promise.all([
+            storage.getActiveUsersCount(periodStart, periodEnd), // Users who had any activity
+            storage.getNewUsersCount(periodStart, periodEnd), // New user registrations
+            storage.getEnrollmentsByDateRange(periodStart, periodEnd), // Course enrollments
+            storage.getCourseCompletionsCount(periodStart, periodEnd), // Completed courses
+          ]);
 
         let dateLabel: string;
         if (timeRange === "week" || timeRange === "month") {
-          dateLabel = periodEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          dateLabel = periodEnd.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
         } else if (timeRange === "quarter") {
-          dateLabel = periodEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          dateLabel = periodEnd.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
         } else {
-          dateLabel = periodEnd.toLocaleDateString('en-US', { month: 'short' });
+          dateLabel = periodEnd.toLocaleDateString("en-US", { month: "short" });
         }
 
         timeSeriesData.push({
@@ -3771,7 +3992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           activeUsers,
           newUsers,
           enrollments: enrollments.length,
-          completions
+          completions,
         });
       }
 

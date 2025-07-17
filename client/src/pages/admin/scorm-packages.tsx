@@ -1,11 +1,16 @@
-
 import { useState } from "react";
 import AdminLayout from "@/components/layout/admin-layout";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, RefreshCcw, Info, FileText } from "lucide-react";
@@ -43,7 +48,7 @@ interface ScormPackage {
 const scormUploadSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
-  scormPackage: z.any()
+  scormPackage: z.any(),
 });
 
 export default function ScormPackagesPage() {
@@ -55,11 +60,15 @@ export default function ScormPackagesPage() {
     resolver: zodResolver(scormUploadSchema),
     defaultValues: {
       title: "",
-      description: ""
+      description: "",
     },
   });
 
-  const { data: scormPackages, isLoading, refetch } = useQuery<ScormPackage[]>({
+  const {
+    data: scormPackages,
+    isLoading,
+    refetch,
+  } = useQuery<ScormPackage[]>({
     queryKey: ["/api/scorm-packages"],
     queryFn: async () => {
       const response = await fetch("/api/scorm-packages");
@@ -72,7 +81,14 @@ export default function ScormPackagesPage() {
 
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return apiRequest("POST", "/api/scorm-packages/upload", data, null, null, true);
+      return apiRequest(
+        "POST",
+        "/api/scorm-packages/upload",
+        data,
+        null,
+        null,
+        true
+      );
     },
     onSuccess: () => {
       toast({
@@ -120,7 +136,8 @@ export default function ScormPackagesPage() {
     } else {
       toast({
         title: "No File Selected",
-        description: "Please select a SCORM package file (ZIP format) to upload.",
+        description:
+          "Please select a SCORM package file (ZIP format) to upload.",
         variant: "destructive",
       });
     }
@@ -133,19 +150,21 @@ export default function ScormPackagesPage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-2">
             SCORM Packages
           </h1>
-          <p className="text-slate-600">Manage SCORM compliant learning content</p>
+          <p className="text-slate-600">
+            Manage SCORM compliant learning content
+          </p>
         </div>
 
         <div className="flex items-center gap-2 mb-6">
-          <Button
-            onClick={() => refetch()}
-            variant="outline"
-          >
+          <Button onClick={() => refetch()} variant="outline">
             <RefreshCcw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
 
-          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+          <Dialog
+            open={isUploadDialogOpen}
+            onOpenChange={setIsUploadDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg">
                 <Upload className="h-4 w-4 mr-2" />
@@ -154,22 +173,34 @@ export default function ScormPackagesPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-xl border border-white/20">
               <DialogHeader>
-                <DialogTitle className="text-slate-800">Upload SCORM Package</DialogTitle>
+                <DialogTitle className="text-slate-800">
+                  Upload SCORM Package
+                </DialogTitle>
                 <DialogDescription className="text-slate-600">
-                  Upload a SCORM compliant package (.zip file) to add interactive learning content.
+                  Upload a SCORM compliant package (.zip file) to add
+                  interactive learning content.
                 </DialogDescription>
               </DialogHeader>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-700">Title (Optional)</FormLabel>
+                        <FormLabel className="text-slate-700">
+                          Title (Optional)
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="Package title" {...field} className="border-slate-200 focus:border-teal-500" />
+                          <Input
+                            placeholder="Package title"
+                            {...field}
+                            className="border-slate-200 focus:border-teal-500"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -181,9 +212,15 @@ export default function ScormPackagesPage() {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-700">Description (Optional)</FormLabel>
+                        <FormLabel className="text-slate-700">
+                          Description (Optional)
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="Brief description" {...field} className="border-slate-200 focus:border-teal-500" />
+                          <Input
+                            placeholder="Brief description"
+                            {...field}
+                            className="border-slate-200 focus:border-teal-500"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -191,11 +228,13 @@ export default function ScormPackagesPage() {
                   />
 
                   <FormItem>
-                    <FormLabel className="text-slate-700">SCORM Package (ZIP file)</FormLabel>
+                    <FormLabel className="text-slate-700">
+                      SCORM Package (ZIP file)
+                    </FormLabel>
                     <FormControl>
-                      <Input 
-                        type="file" 
-                        accept=".zip" 
+                      <Input
+                        type="file"
+                        accept=".zip"
                         ref={fileInputRef}
                         className="border-slate-200 focus:border-teal-500"
                         onChange={(e) => {
@@ -212,8 +251,14 @@ export default function ScormPackagesPage() {
                     <div>
                       <p className="font-medium">Important Notes:</p>
                       <ul className="list-disc list-inside mt-2 space-y-1">
-                        <li>The package must be a valid SCORM 1.2 or 2004 compliant ZIP file</li>
-                        <li>The ZIP must contain an 'imsmanifest.xml' file in its root</li>
+                        <li>
+                          The package must be a valid SCORM 1.2 or 2004
+                          compliant ZIP file
+                        </li>
+                        <li>
+                          The ZIP must contain an 'imsmanifest.xml' file in its
+                          root
+                        </li>
                         <li>Maximum file size: 50MB</li>
                       </ul>
                     </div>
@@ -228,7 +273,7 @@ export default function ScormPackagesPage() {
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       type="submit"
                       className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg"
                       disabled={uploadMutation.isPending}
@@ -256,10 +301,17 @@ export default function ScormPackagesPage() {
         ) : scormPackages && scormPackages.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {scormPackages.map((pkg) => (
-              <Card key={pkg.id} className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <Card
+                key={pkg.id}
+                className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
                 <CardHeader className="bg-gradient-to-r from-slate-50/80 to-slate-100/80 backdrop-blur-sm border-b border-slate-200/50">
-                  <CardTitle className="line-clamp-1 text-slate-800">{pkg.title}</CardTitle>
-                  <CardDescription className="text-slate-600">Version: {pkg.version}</CardDescription>
+                  <CardTitle className="line-clamp-1 text-slate-800">
+                    {pkg.title}
+                  </CardTitle>
+                  <CardDescription className="text-slate-600">
+                    Version: {pkg.version}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <p className="text-sm text-slate-600 line-clamp-3 mb-4">
@@ -280,7 +332,8 @@ export default function ScormPackagesPage() {
                     onClick={() => {
                       toast({
                         title: "Preview Feature",
-                        description: "SCORM package preview will be available soon.",
+                        description:
+                          "SCORM package preview will be available soon.",
                       });
                     }}
                   >
@@ -296,11 +349,17 @@ export default function ScormPackagesPage() {
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center mb-6 shadow-lg">
                 <FileText className="h-8 w-8 text-slate-500" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-800 mb-2">No SCORM packages available</h3>
+              <h3 className="text-xl font-semibold text-slate-800 mb-2">
+                No SCORM packages available
+              </h3>
               <p className="text-slate-600 mb-6 max-w-md">
-                Upload SCORM packages to create interactive learning experiences for your courses.
+                Upload SCORM packages to create interactive learning experiences
+                for your courses.
               </p>
-              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+              <Dialog
+                open={isUploadDialogOpen}
+                onOpenChange={setIsUploadDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg">
                     <Upload className="h-4 w-4 mr-2" />
@@ -309,22 +368,34 @@ export default function ScormPackagesPage() {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-xl border border-white/20">
                   <DialogHeader>
-                    <DialogTitle className="text-slate-800">Upload SCORM Package</DialogTitle>
+                    <DialogTitle className="text-slate-800">
+                      Upload SCORM Package
+                    </DialogTitle>
                     <DialogDescription className="text-slate-600">
-                      Upload a SCORM compliant package (.zip file) to add interactive learning content.
+                      Upload a SCORM compliant package (.zip file) to add
+                      interactive learning content.
                     </DialogDescription>
                   </DialogHeader>
 
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-4"
+                    >
                       <FormField
                         control={form.control}
                         name="title"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-700">Title (Optional)</FormLabel>
+                            <FormLabel className="text-slate-700">
+                              Title (Optional)
+                            </FormLabel>
                             <FormControl>
-                              <Input placeholder="Package title" {...field} className="border-slate-200 focus:border-teal-500" />
+                              <Input
+                                placeholder="Package title"
+                                {...field}
+                                className="border-slate-200 focus:border-teal-500"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -336,9 +407,15 @@ export default function ScormPackagesPage() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-700">Description (Optional)</FormLabel>
+                            <FormLabel className="text-slate-700">
+                              Description (Optional)
+                            </FormLabel>
                             <FormControl>
-                              <Input placeholder="Brief description" {...field} className="border-slate-200 focus:border-teal-500" />
+                              <Input
+                                placeholder="Brief description"
+                                {...field}
+                                className="border-slate-200 focus:border-teal-500"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -346,11 +423,13 @@ export default function ScormPackagesPage() {
                       />
 
                       <FormItem>
-                        <FormLabel className="text-slate-700">SCORM Package (ZIP file)</FormLabel>
+                        <FormLabel className="text-slate-700">
+                          SCORM Package (ZIP file)
+                        </FormLabel>
                         <FormControl>
-                          <Input 
-                            type="file" 
-                            accept=".zip" 
+                          <Input
+                            type="file"
+                            accept=".zip"
                             ref={fileInputRef}
                             className="border-slate-200 focus:border-teal-500"
                           />
@@ -363,8 +442,14 @@ export default function ScormPackagesPage() {
                         <div>
                           <p className="font-medium">Important Notes:</p>
                           <ul className="list-disc list-inside mt-2 space-y-1">
-                            <li>The package must be a valid SCORM 1.2 or 2004 compliant ZIP file</li>
-                            <li>The ZIP must contain an 'imsmanifest.xml' file in its root</li>
+                            <li>
+                              The package must be a valid SCORM 1.2 or 2004
+                              compliant ZIP file
+                            </li>
+                            <li>
+                              The ZIP must contain an 'imsmanifest.xml' file in
+                              its root
+                            </li>
                             <li>Maximum file size: 50MB</li>
                           </ul>
                         </div>
@@ -379,7 +464,7 @@ export default function ScormPackagesPage() {
                         >
                           Cancel
                         </Button>
-                        <Button 
+                        <Button
                           type="submit"
                           className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg"
                           disabled={uploadMutation.isPending}

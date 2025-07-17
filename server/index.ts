@@ -8,7 +8,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Serve uploaded images
-app.use('/uploads/images', express.static(path.join(process.cwd(), 'public/uploads/images')));
+app.use(
+  "/uploads/images",
+  express.static(path.join(process.cwd(), "public/uploads/images"))
+);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -58,7 +61,7 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   } else {
     serveStatic(app);
-  } 
+  }
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.

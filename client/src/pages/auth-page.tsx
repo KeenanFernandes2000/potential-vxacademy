@@ -131,7 +131,7 @@ export default function AuthPage() {
             </TabsList>
 
             <TabsContent value="login" className="fade-in">
-              <Card className="border-0 shadow-2xl rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 overflow-hidden">
+              <Card className="shadow-2xl rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 overflow-hidden">
                 <CardHeader className="pb-6 px-6 pt-8 lg:px-8">
                   <CardTitle className="text-white text-2xl lg:text-3xl font-bold text-center">
                     Welcome Back
@@ -218,7 +218,7 @@ export default function AuthPage() {
             </TabsContent>
 
             <TabsContent value="register" className="fade-in">
-              <Card className="border-0 shadow-2xl rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 overflow-hidden">
+              <Card className="shadow-2xl rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 overflow-hidden">
                 <CardHeader className="pb-6 px-6 pt-8 lg:px-8">
                   <CardTitle className="text-white text-2xl lg:text-3xl font-bold text-center">
                     Join VX Academy

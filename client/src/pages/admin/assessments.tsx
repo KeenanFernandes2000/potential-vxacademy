@@ -7,13 +7,11 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
   Assessment,
   InsertAssessment,
-  insertAssessmentSchema,
   Unit,
-  Question,
   Course,
   Module,
   TrainingArea,
-  CourseUnit, // <-- add this
+  CourseUnit,
 } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,7 +37,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -53,7 +50,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Pencil, Plus, Trash, Timer, Award, List } from "lucide-react";
+import { Loader2, Pencil, Trash, List } from "lucide-react";
 import AdminLayout from "@/components/layout/admin-layout";
 import { CertificateTemplateUpload } from "@/components/admin/certificate-template-upload";
 

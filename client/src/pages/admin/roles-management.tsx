@@ -1,26 +1,74 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Settings, Eye, Edit, Trash2, Users, Filter, MoreHorizontal } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Settings,
+  Edit,
+  Trash2,
+  Users,
+  MoreHorizontal,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import AdminLayout from "@/components/layout/admin-layout";
-import { type Unit, type Course, type TrainingArea, type Module } from "@shared/schema";
+import {
+  type Unit,
+  type Course,
+  type TrainingArea,
+  type Module,
+} from "@shared/schema";
 
 // Form schemas
 const roleFormSchema = z.object({
@@ -62,12 +110,21 @@ const ASSETS = [
   { value: "Hospitality", label: "Hospitality" },
   { value: "Malls", label: "Malls" },
   { value: "Tour Guides & operators", label: "Tour Guides & operators" },
-  { value: "Visitor information centers", label: "Visitor information centers" },
-  { value: "Entertainment & Attractions", label: "Entertainment & Attractions" },
+  {
+    value: "Visitor information centers",
+    label: "Visitor information centers",
+  },
+  {
+    value: "Entertainment & Attractions",
+    label: "Entertainment & Attractions",
+  },
 ];
 
 const ROLE_CATEGORIES = [
-  { value: "Transport and parking staff", label: "Transport and parking staff" },
+  {
+    value: "Transport and parking staff",
+    label: "Transport and parking staff",
+  },
   { value: "Welcome staff", label: "Welcome staff" },
   { value: "Ticketing staff", label: "Ticketing staff" },
   { value: "Information desk staff", label: "Information desk staff" },
@@ -78,10 +135,16 @@ const ROLE_CATEGORIES = [
   { value: "F&B staff", label: "F&B staff" },
   { value: "Housekeeping & janitorial", label: "Housekeeping & janitorial" },
   { value: "Customer service", label: "Customer service" },
-  { value: "Emergency & medical services", label: "Emergency & medical services" },
+  {
+    value: "Emergency & medical services",
+    label: "Emergency & medical services",
+  },
   { value: "Media and public relations", label: "Media and public relations" },
   { value: "Logistics", label: "Logistics" },
-  { value: "Recreation and entertainment", label: "Recreation and entertainment" },
+  {
+    value: "Recreation and entertainment",
+    label: "Recreation and entertainment",
+  },
 ];
 
 const SENIORITY_LEVELS = [
@@ -104,7 +167,8 @@ export default function RolesManagement() {
   const [seniorityFilter, setSeniorityFilter] = useState("all");
 
   // Filter states for unit assignment
-  const [selectedTrainingArea, setSelectedTrainingArea] = useState<string>("all");
+  const [selectedTrainingArea, setSelectedTrainingArea] =
+    useState<string>("all");
   const [selectedModule, setSelectedModule] = useState<string>("all");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
 
@@ -132,13 +196,18 @@ export default function RolesManagement() {
   // Data fetching
   const { data: roles = [], isLoading } = useQuery<Role[]>({
     queryKey: ["/api/admin/roles"],
-    queryFn: () => fetch("/api/admin/roles", { credentials: "include" }).then(res => res.json()),
+    queryFn: () =>
+      fetch("/api/admin/roles", { credentials: "include" }).then((res) =>
+        res.json()
+      ),
   });
 
   const { data: trainingAreas = [] } = useQuery<TrainingArea[]>({
     queryKey: ["/api/training-areas"],
     queryFn: async () => {
-      const res = await fetch("/api/training-areas", { credentials: "include" });
+      const res = await fetch("/api/training-areas", {
+        credentials: "include",
+      });
       if (!res.ok) {
         return []; // Return empty array if request fails
       }
@@ -159,17 +228,24 @@ export default function RolesManagement() {
 
   const { data: courses = [] } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
-    queryFn: () => fetch("/api/courses", { credentials: "include" }).then(res => res.json()),
+    queryFn: () =>
+      fetch("/api/courses", { credentials: "include" }).then((res) =>
+        res.json()
+      ),
   });
 
   const { data: units = [] } = useQuery<Unit[]>({
     queryKey: ["/api/units"],
-    queryFn: () => fetch("/api/units", { credentials: "include" }).then(res => res.json()),
+    queryFn: () =>
+      fetch("/api/units", { credentials: "include" }).then((res) => res.json()),
   });
 
   const { data: courseUnits = [] } = useQuery<any[]>({
     queryKey: ["/api/course-units"],
-    queryFn: () => fetch("/api/course-units", { credentials: "include" }).then(res => res.json()),
+    queryFn: () =>
+      fetch("/api/course-units", { credentials: "include" }).then((res) =>
+        res.json()
+      ),
   });
 
   // Mutations
@@ -180,7 +256,7 @@ export default function RolesManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to create role");
         return res.json();
       }),
@@ -209,7 +285,7 @@ export default function RolesManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to update role");
         return res.json();
       }),
@@ -237,7 +313,7 @@ export default function RolesManagement() {
       fetch(`/api/admin/roles/${roleId}`, {
         method: "DELETE",
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to delete role");
         return res.json();
       }),
@@ -264,7 +340,7 @@ export default function RolesManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ unitIds }),
         credentials: "include",
-      }).then(res => {
+      }).then((res) => {
         if (!res.ok) throw new Error("Failed to assign units");
         return res.json();
       }),
@@ -289,10 +365,14 @@ export default function RolesManagement() {
 
   // Filter roles based on search and filters
   const filteredRoles = roles.filter((role) => {
-    const matchesSearch = role.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = role.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     const matchesAsset = assetFilter === "all" || role.assets === assetFilter;
-    const matchesCategory = categoryFilter === "all" || role.roleCategory === categoryFilter;
-    const matchesSeniority = seniorityFilter === "all" || role.seniority === seniorityFilter;
+    const matchesCategory =
+      categoryFilter === "all" || role.roleCategory === categoryFilter;
+    const matchesSeniority =
+      seniorityFilter === "all" || role.seniority === seniorityFilter;
 
     return matchesSearch && matchesAsset && matchesCategory && matchesSeniority;
   });
@@ -301,18 +381,41 @@ export default function RolesManagement() {
   const filteredUnits = (Array.isArray(units) ? units : []).filter((unit) => {
     if (selectedCourse && selectedCourse !== "all") {
       const courseId = parseInt(selectedCourse);
-      return Array.isArray(courseUnits) && courseUnits.some(cu => cu.courseId === courseId && cu.unitId === unit.id);
+      return (
+        Array.isArray(courseUnits) &&
+        courseUnits.some(
+          (cu) => cu.courseId === courseId && cu.unitId === unit.id
+        )
+      );
     }
     if (selectedModule && selectedModule !== "all") {
-      const moduleCourses = Array.isArray(courses) ? courses.filter(c => c.moduleId === parseInt(selectedModule)) : [];
-      const moduleCourseIds = moduleCourses.map(c => c.id);
-      return Array.isArray(courseUnits) && courseUnits.some(cu => moduleCourseIds.includes(cu.courseId) && cu.unitId === unit.id);
+      const moduleCourses = Array.isArray(courses)
+        ? courses.filter((c) => c.moduleId === parseInt(selectedModule))
+        : [];
+      const moduleCourseIds = moduleCourses.map((c) => c.id);
+      return (
+        Array.isArray(courseUnits) &&
+        courseUnits.some(
+          (cu) => moduleCourseIds.includes(cu.courseId) && cu.unitId === unit.id
+        )
+      );
     }
     if (selectedTrainingArea && selectedTrainingArea !== "all") {
-      const areaModules = Array.isArray(modules) ? modules.filter(m => m.trainingAreaId === parseInt(selectedTrainingArea)) : [];
-      const areaCourses = Array.isArray(courses) ? courses.filter(c => areaModules.some(m => m.id === c.moduleId)) : [];
-      const areaCourseIds = areaCourses.map(c => c.id);
-      return Array.isArray(courseUnits) && courseUnits.some(cu => areaCourseIds.includes(cu.courseId) && cu.unitId === unit.id);
+      const areaModules = Array.isArray(modules)
+        ? modules.filter(
+            (m) => m.trainingAreaId === parseInt(selectedTrainingArea)
+          )
+        : [];
+      const areaCourses = Array.isArray(courses)
+        ? courses.filter((c) => areaModules.some((m) => m.id === c.moduleId))
+        : [];
+      const areaCourseIds = areaCourses.map((c) => c.id);
+      return (
+        Array.isArray(courseUnits) &&
+        courseUnits.some(
+          (cu) => areaCourseIds.includes(cu.courseId) && cu.unitId === unit.id
+        )
+      );
     }
     return true;
   });
@@ -360,7 +463,10 @@ export default function RolesManagement() {
 
   const handleUnitAssignmentSubmit = (data: UnitAssignmentData) => {
     if (selectedRole) {
-      assignUnitsMutation.mutate({ roleId: selectedRole.id, unitIds: data.unitIds });
+      assignUnitsMutation.mutate({
+        roleId: selectedRole.id,
+        unitIds: data.unitIds,
+      });
     }
   };
 
@@ -369,12 +475,18 @@ export default function RolesManagement() {
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Role Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Role Management
+            </h1>
             <p className="text-muted-foreground">
-              Create and manage roles with asset, category, and seniority configurations
+              Create and manage roles with asset, category, and seniority
+              configurations
             </p>
           </div>
-          <Button onClick={handleCreateRole} className="flex items-center gap-2">
+          <Button
+            onClick={handleCreateRole}
+            className="flex items-center gap-2"
+          >
             <Plus className="h-4 w-4" />
             Create Role
           </Button>
@@ -422,7 +534,10 @@ export default function RolesManagement() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Role Category</label>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <Select
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -439,7 +554,10 @@ export default function RolesManagement() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Seniority</label>
-                <Select value={seniorityFilter} onValueChange={setSeniorityFilter}>
+                <Select
+                  value={seniorityFilter}
+                  onValueChange={setSeniorityFilter}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -468,7 +586,9 @@ export default function RolesManagement() {
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center py-8">
-                <div className="text-sm text-muted-foreground">Loading roles...</div>
+                <div className="text-sm text-muted-foreground">
+                  Loading roles...
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -494,7 +614,13 @@ export default function RolesManagement() {
                         </TableCell>
                         <TableCell>{role.roleCategory}</TableCell>
                         <TableCell>
-                          <Badge variant={role.seniority === "Manager" ? "default" : "secondary"}>
+                          <Badge
+                            variant={
+                              role.seniority === "Manager"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
                             {role.seniority}
                           </Badge>
                         </TableCell>
@@ -513,15 +639,19 @@ export default function RolesManagement() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEditRole(role)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleEditRole(role)}
+                                >
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit Role
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleAssignUnits(role)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleAssignUnits(role)}
+                                >
                                   <Settings className="h-4 w-4 mr-2" />
                                   Assign Units
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => handleDeleteRole(role.id)}
                                   className="text-red-600"
                                 >
@@ -543,7 +673,10 @@ export default function RolesManagement() {
 
         {/* Role Form Dialog */}
         <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
-          <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogContent
+            className="max-w-md"
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle>
                 {editingRole ? "Edit Role" : "Create Role"}
@@ -551,7 +684,10 @@ export default function RolesManagement() {
             </DialogHeader>
 
             <Form {...roleForm}>
-              <form onSubmit={roleForm.handleSubmit(handleRoleFormSubmit)} className="space-y-4">
+              <form
+                onSubmit={roleForm.handleSubmit(handleRoleFormSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={roleForm.control}
                   name="name"
@@ -572,7 +708,10 @@ export default function RolesManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Asset *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select asset" />
@@ -597,7 +736,10 @@ export default function RolesManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role Category *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select role category" />
@@ -605,7 +747,10 @@ export default function RolesManagement() {
                         </FormControl>
                         <SelectContent>
                           {ROLE_CATEGORIES.map((category) => (
-                            <SelectItem key={category.value} value={category.value}>
+                            <SelectItem
+                              key={category.value}
+                              value={category.value}
+                            >
                               {category.label}
                             </SelectItem>
                           ))}
@@ -622,7 +767,10 @@ export default function RolesManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Seniority *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select seniority" />
@@ -646,18 +794,26 @@ export default function RolesManagement() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsRoleDialogOpen(false)}
-                    disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
+                    disabled={
+                      createRoleMutation.isPending ||
+                      updateRoleMutation.isPending
+                    }
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
-                  >
-                    {createRoleMutation.isPending || updateRoleMutation.isPending 
-                      ? "Saving..." 
-                      : editingRole ? "Update Role" : "Create Role"
+                  <Button
+                    type="submit"
+                    disabled={
+                      createRoleMutation.isPending ||
+                      updateRoleMutation.isPending
                     }
+                  >
+                    {createRoleMutation.isPending ||
+                    updateRoleMutation.isPending
+                      ? "Saving..."
+                      : editingRole
+                      ? "Update Role"
+                      : "Create Role"}
                   </Button>
                 </div>
               </form>
@@ -666,16 +822,25 @@ export default function RolesManagement() {
         </Dialog>
 
         {/* Unit Assignment Dialog */}
-        <Dialog open={isUnitAssignmentOpen} onOpenChange={setIsUnitAssignmentOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
+        <Dialog
+          open={isUnitAssignmentOpen}
+          onOpenChange={setIsUnitAssignmentOpen}
+        >
+          <DialogContent
+            className="max-w-4xl max-h-[90vh] overflow-y-auto"
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
-              <DialogTitle>
-                Assign Units to {selectedRole?.name}
-              </DialogTitle>
+              <DialogTitle>Assign Units to {selectedRole?.name}</DialogTitle>
             </DialogHeader>
 
             <Form {...unitAssignmentForm}>
-              <form onSubmit={unitAssignmentForm.handleSubmit(handleUnitAssignmentSubmit)} className="space-y-6">
+              <form
+                onSubmit={unitAssignmentForm.handleSubmit(
+                  handleUnitAssignmentSubmit
+                )}
+                className="space-y-6"
+              >
                 {/* Filters for Unit Selection */}
                 <Card>
                   <CardHeader>
@@ -687,56 +852,92 @@ export default function RolesManagement() {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Training Area</label>
-                        <Select value={selectedTrainingArea} onValueChange={setSelectedTrainingArea}>
+                        <label className="text-sm font-medium">
+                          Training Area
+                        </label>
+                        <Select
+                          value={selectedTrainingArea}
+                          onValueChange={setSelectedTrainingArea}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select training area" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">All Training Areas</SelectItem>
-                            {Array.isArray(trainingAreas) && trainingAreas.map((area) => (
-                              <SelectItem key={area.id} value={area.id.toString()}>
-                                {area.name}
-                              </SelectItem>
-                            ))}
+                            <SelectItem value="all">
+                              All Training Areas
+                            </SelectItem>
+                            {Array.isArray(trainingAreas) &&
+                              trainingAreas.map((area) => (
+                                <SelectItem
+                                  key={area.id}
+                                  value={area.id.toString()}
+                                >
+                                  {area.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Module</label>
-                        <Select value={selectedModule} onValueChange={setSelectedModule}>
+                        <Select
+                          value={selectedModule}
+                          onValueChange={setSelectedModule}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select module" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Modules</SelectItem>
-                            {Array.isArray(modules) && modules
-                              .filter(m => selectedTrainingArea === "all" || !selectedTrainingArea || m.trainingAreaId === parseInt(selectedTrainingArea))
-                              .map((module) => (
-                                <SelectItem key={module.id} value={module.id.toString()}>
-                                  {module.name}
-                                </SelectItem>
-                              ))}
+                            {Array.isArray(modules) &&
+                              modules
+                                .filter(
+                                  (m) =>
+                                    selectedTrainingArea === "all" ||
+                                    !selectedTrainingArea ||
+                                    m.trainingAreaId ===
+                                      parseInt(selectedTrainingArea)
+                                )
+                                .map((module) => (
+                                  <SelectItem
+                                    key={module.id}
+                                    value={module.id.toString()}
+                                  >
+                                    {module.name}
+                                  </SelectItem>
+                                ))}
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Course</label>
-                        <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                        <Select
+                          value={selectedCourse}
+                          onValueChange={setSelectedCourse}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select course" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Courses</SelectItem>
-                            {Array.isArray(courses) && courses
-                              .filter(c => selectedModule === "all" || !selectedModule || c.moduleId === parseInt(selectedModule))
-                              .map((course) => (
-                                <SelectItem key={course.id} value={course.id.toString()}>
-                                  {course.name}
-                                </SelectItem>
-                              ))}
+                            {Array.isArray(courses) &&
+                              courses
+                                .filter(
+                                  (c) =>
+                                    selectedModule === "all" ||
+                                    !selectedModule ||
+                                    c.moduleId === parseInt(selectedModule)
+                                )
+                                .map((course) => (
+                                  <SelectItem
+                                    key={course.id}
+                                    value={course.id.toString()}
+                                  >
+                                    {course.name}
+                                  </SelectItem>
+                                ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -772,15 +973,20 @@ export default function RolesManagement() {
                                     >
                                       <FormControl>
                                         <Checkbox
-                                          checked={field.value?.includes(unit.id)}
+                                          checked={field.value?.includes(
+                                            unit.id
+                                          )}
                                           onCheckedChange={(checked) => {
                                             return checked
-                                              ? field.onChange([...field.value, unit.id])
+                                              ? field.onChange([
+                                                  ...field.value,
+                                                  unit.id,
+                                                ])
                                               : field.onChange(
                                                   field.value?.filter(
                                                     (value) => value !== unit.id
                                                   )
-                                                )
+                                                );
                                           }}
                                         />
                                       </FormControl>
@@ -788,7 +994,7 @@ export default function RolesManagement() {
                                         {unit.name}
                                       </FormLabel>
                                     </FormItem>
-                                  )
+                                  );
                                 }}
                               />
                             ))}
@@ -809,8 +1015,13 @@ export default function RolesManagement() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={assignUnitsMutation.isPending}>
-                    {assignUnitsMutation.isPending ? "Assigning..." : "Assign Units"}
+                  <Button
+                    type="submit"
+                    disabled={assignUnitsMutation.isPending}
+                  >
+                    {assignUnitsMutation.isPending
+                      ? "Assigning..."
+                      : "Assign Units"}
                   </Button>
                 </div>
               </form>

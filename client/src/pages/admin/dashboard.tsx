@@ -1,9 +1,22 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import AdminLayout from "@/components/layout/admin-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Loader2, Users, BookOpen, GraduationCap, Award } from "lucide-react";
 
 // Dashboard summary types
@@ -38,20 +51,20 @@ export default function AdminDashboard() {
         return {
           users: {
             total: 0,
-            byRole: []
+            byRole: [],
           },
           courses: {
             total: 0,
-            byModule: []
+            byModule: [],
           },
           progress: {
             totalCompletions: 0,
             completionRate: 0,
-            topCourses: []
+            topCourses: [],
           },
           badges: {
-            totalAwarded: 0
-          }
+            totalAwarded: 0,
+          },
         };
       }
     },
@@ -64,7 +77,9 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-2">
             Admin Dashboard
           </h1>
-          <p className="text-slate-600">Welcome to the VX Academy Administration Portal</p>
+          <p className="text-slate-600">
+            Welcome to the VX Academy Administration Portal
+          </p>
         </div>
 
         {isLoading ? (
@@ -109,8 +124,12 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-lg">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-slate-800">Users by Role</CardTitle>
-                  <CardDescription className="text-slate-600">Distribution of users by role type</CardDescription>
+                  <CardTitle className="text-slate-800">
+                    Users by Role
+                  </CardTitle>
+                  <CardDescription className="text-slate-600">
+                    Distribution of users by role type
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
@@ -120,19 +139,35 @@ export default function AdminDashboard() {
                         margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                        <XAxis dataKey="role" angle={-45} textAnchor="end" stroke="#64748b" />
-                        <YAxis stroke="#64748b" />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            backdropFilter: 'blur(8px)'
-                          }} 
+                        <XAxis
+                          dataKey="role"
+                          angle={-45}
+                          textAnchor="end"
+                          stroke="#64748b"
                         />
-                        <Bar dataKey="count" fill="url(#tealGradient)" name="Users" radius={[4, 4, 0, 0]} />
+                        <YAxis stroke="#64748b" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "rgba(255, 255, 255, 0.95)",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "8px",
+                            backdropFilter: "blur(8px)",
+                          }}
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill="url(#tealGradient)"
+                          name="Users"
+                          radius={[4, 4, 0, 0]}
+                        />
                         <defs>
-                          <linearGradient id="tealGradient" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient
+                            id="tealGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
                             <stop offset="0%" stopColor="#14b8a6" />
                             <stop offset="100%" stopColor="#0891b2" />
                           </linearGradient>
@@ -146,7 +181,9 @@ export default function AdminDashboard() {
               <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-lg">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-slate-800">Top Courses</CardTitle>
-                  <CardDescription className="text-slate-600">Most completed courses</CardDescription>
+                  <CardDescription className="text-slate-600">
+                    Most completed courses
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
@@ -156,19 +193,35 @@ export default function AdminDashboard() {
                         margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                        <XAxis dataKey="courseName" angle={-45} textAnchor="end" stroke="#64748b" />
-                        <YAxis stroke="#64748b" />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            backdropFilter: 'blur(8px)'
-                          }} 
+                        <XAxis
+                          dataKey="courseName"
+                          angle={-45}
+                          textAnchor="end"
+                          stroke="#64748b"
                         />
-                        <Bar dataKey="completions" fill="url(#orangeGradient)" name="Completions" radius={[4, 4, 0, 0]} />
+                        <YAxis stroke="#64748b" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "rgba(255, 255, 255, 0.95)",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "8px",
+                            backdropFilter: "blur(8px)",
+                          }}
+                        />
+                        <Bar
+                          dataKey="completions"
+                          fill="url(#orangeGradient)"
+                          name="Completions"
+                          radius={[4, 4, 0, 0]}
+                        />
                         <defs>
-                          <linearGradient id="orangeGradient" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient
+                            id="orangeGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
                             <stop offset="0%" stopColor="#f97316" />
                             <stop offset="100%" stopColor="#dc2626" />
                           </linearGradient>
@@ -184,7 +237,9 @@ export default function AdminDashboard() {
             <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-lg">
               <CardHeader className="pb-4">
                 <CardTitle className="text-slate-800">Quick Actions</CardTitle>
-                <CardDescription className="text-slate-600">Common administrative tasks</CardDescription>
+                <CardDescription className="text-slate-600">
+                  Common administrative tasks
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -227,7 +282,13 @@ interface SummaryCardProps {
   gradient: string;
 }
 
-function SummaryCard({ title, value, description, icon, gradient }: SummaryCardProps) {
+function SummaryCard({
+  title,
+  value,
+  description,
+  icon,
+  gradient,
+}: SummaryCardProps) {
   return (
     <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
       <CardContent className="p-6">
@@ -237,7 +298,9 @@ function SummaryCard({ title, value, description, icon, gradient }: SummaryCardP
             <p className="text-3xl font-bold text-slate-800 mt-2">{value}</p>
             <p className="text-xs text-slate-500 mt-1">{description}</p>
           </div>
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+          <div
+            className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}
+          >
             {icon}
           </div>
         </div>
@@ -254,16 +317,26 @@ interface QuickActionLinkProps {
   icon?: React.ReactNode;
 }
 
-function QuickActionLink({ href, title, description, gradient, icon }: QuickActionLinkProps) {
+function QuickActionLink({
+  href,
+  title,
+  description,
+  gradient,
+  icon,
+}: QuickActionLinkProps) {
   return (
     <a
       href={href}
       className="group block p-6 rounded-2xl border border-slate-200/50 bg-white/60 backdrop-blur-sm hover:bg-white/80 hover:shadow-lg transition-all duration-300 hover:scale-105"
     >
-      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} mb-4 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center`}>
+      <div
+        className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} mb-4 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center`}
+      >
         {icon}
       </div>
-      <h3 className="font-semibold text-slate-800 group-hover:text-slate-900 transition-colors">{title}</h3>
+      <h3 className="font-semibold text-slate-800 group-hover:text-slate-900 transition-colors">
+        {title}
+      </h3>
       <p className="text-sm text-slate-600 mt-1">{description}</p>
     </a>
   );

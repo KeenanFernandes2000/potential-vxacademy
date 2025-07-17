@@ -6,10 +6,17 @@ export function useUnitProgress(userId: number, courseId: number) {
   const queryClient = useQueryClient();
 
   // Fetch unit progress for a specific course
-  const { data: unitProgress = [], isLoading, error } = useQuery<UserUnitProgress[]>({
+  const {
+    data: unitProgress = [],
+    isLoading,
+    error,
+  } = useQuery<UserUnitProgress[]>({
     queryKey: [`/api/progress/${userId}/${courseId}`],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/progress/${userId}/${courseId}`);
+      const res = await apiRequest(
+        "GET",
+        `/api/progress/${userId}/${courseId}`
+      );
       return res.json();
     },
     enabled: !!userId && !!courseId,
@@ -17,7 +24,13 @@ export function useUnitProgress(userId: number, courseId: number) {
 
   // Mark unit as complete mutation
   const markUnitCompleteMutation = useMutation({
-    mutationFn: async ({ courseId, unitId }: { courseId: number; unitId: number }) => {
+    mutationFn: async ({
+      courseId,
+      unitId,
+    }: {
+      courseId: number;
+      unitId: number;
+    }) => {
       const res = await apiRequest("POST", "/api/progress/complete", {
         courseId,
         unitId,
@@ -26,7 +39,9 @@ export function useUnitProgress(userId: number, courseId: number) {
     },
     onSuccess: () => {
       // Invalidate and refetch unit progress
-      queryClient.invalidateQueries({ queryKey: [`/api/progress/${userId}/${courseId}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/progress/${userId}/${courseId}`],
+      });
       // Also invalidate course progress
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
@@ -35,12 +50,16 @@ export function useUnitProgress(userId: number, courseId: number) {
 
   // Helper function to check if a unit is completed
   const isUnitCompleted = (unitId: number): boolean => {
-    return unitProgress.some(progress => progress.unitId === unitId && progress.isCompleted);
+    return unitProgress.some(
+      (progress) => progress.unitId === unitId && progress.isCompleted
+    );
   };
 
   // Helper function to get completion data for a unit
-  const getUnitCompletionData = (unitId: number): UserUnitProgress | undefined => {
-    return unitProgress.find(progress => progress.unitId === unitId);
+  const getUnitCompletionData = (
+    unitId: number
+  ): UserUnitProgress | undefined => {
+    return unitProgress.find((progress) => progress.unitId === unitId);
   };
 
   return {
@@ -52,4 +71,4 @@ export function useUnitProgress(userId: number, courseId: number) {
     getUnitCompletionData,
     isMarkingComplete: markUnitCompleteMutation.isPending,
   };
-} 
+}

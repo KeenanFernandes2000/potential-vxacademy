@@ -14,7 +14,10 @@ interface CourseProgressData {
   completedAssessments: number;
 }
 
-export function useCourseProgress(courseId: number | null, userId: number | null) {
+export function useCourseProgress(
+  courseId: number | null,
+  userId: number | null
+) {
   const queryClient = useQueryClient();
 
   // Fetch course data
@@ -57,7 +60,10 @@ export function useCourseProgress(courseId: number | null, userId: number | null
           const unitProgress = await res.json();
           allProgress.push(...unitProgress);
         } catch (error) {
-          console.error(`Error fetching block progress for unit ${unit.id}:`, error);
+          console.error(
+            `Error fetching block progress for unit ${unit.id}:`,
+            error
+          );
         }
       }
       return allProgress;
@@ -138,7 +144,9 @@ export function useCourseProgress(courseId: number | null, userId: number | null
     const completedAssessments = allAssessmentProgress.filter(
       (progress: any) => {
         const isCompleted = progress.isCompleted === true;
-        const assessment = allAssessments.find(a => a.id === progress.assessmentId);
+        const assessment = allAssessments.find(
+          (a) => a.id === progress.assessmentId
+        );
         // Only count non-final assessments
         return isCompleted && assessment && assessment.placement !== "end";
       }
@@ -187,7 +195,9 @@ export function useCourseProgress(courseId: number | null, userId: number | null
   const invalidateProgress = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
     queryClient.invalidateQueries({ queryKey: ["/api/user/progress"] });
-    queryClient.invalidateQueries({ queryKey: [`/api/progress/block/all/${courseId}`] });
+    queryClient.invalidateQueries({
+      queryKey: [`/api/progress/block/all/${courseId}`],
+    });
     queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
     queryClient.invalidateQueries({
       queryKey: [`/api/progress/assessment/all/${courseId}`],
@@ -204,4 +214,4 @@ export function useCourseProgress(courseId: number | null, userId: number | null
     blocks,
     assessments: allAssessments,
   };
-} 
+}

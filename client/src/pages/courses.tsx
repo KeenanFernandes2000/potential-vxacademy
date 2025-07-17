@@ -3,13 +3,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
-import { Course, UserProgress } from "@shared/schema";
-import { Link } from "wouter";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Course, UserProgress, User } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { CourseProgressBar } from "@/components/course/CourseProgressBar";
 import {
   Select,
   SelectContent,
@@ -74,7 +71,7 @@ export default function Courses() {
   });
 
   // Fetch current user for course progress tracking
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User>({
     queryKey: ["/api/user"],
   });
 

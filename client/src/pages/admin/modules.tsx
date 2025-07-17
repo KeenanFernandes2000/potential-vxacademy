@@ -67,7 +67,8 @@ export default function ModuleManagement() {
   const { toast } = useToast();
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTrainingAreaId, setSelectedTrainingAreaId] = useState<string>("all");
+  const [selectedTrainingAreaId, setSelectedTrainingAreaId] =
+    useState<string>("all");
 
   // Fetch existing modules
   const { data: modules, isLoading: isLoadingModules } = useQuery<Module[]>({
@@ -79,7 +80,9 @@ export default function ModuleManagement() {
   });
 
   // Fetch training areas for dropdown
-  const { data: trainingAreas, isLoading: isLoadingAreas } = useQuery<TrainingArea[]>({
+  const { data: trainingAreas, isLoading: isLoadingAreas } = useQuery<
+    TrainingArea[]
+  >({
     queryKey: ["/api/training-areas"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/training-areas");
@@ -114,7 +117,6 @@ export default function ModuleManagement() {
         name: "",
         description: "",
         imageUrl: "",
-        internalNote: "",
       });
       form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
@@ -145,7 +147,6 @@ export default function ModuleManagement() {
         name: "",
         description: "",
         imageUrl: "",
-        internalNote: "",
       });
       form.clearErrors();
       queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
@@ -207,34 +208,44 @@ export default function ModuleManagement() {
       name: "",
       description: "",
       imageUrl: "",
-      internalNote: "",
     });
     form.clearErrors();
   }
 
   // Filter modules based on search term and selected training area
-  const filteredModules = modules?.filter(module => {
-    const matchesSearch = module.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTrainingArea = selectedTrainingAreaId === "all" || 
-      module.trainingAreaId.toString() === selectedTrainingAreaId;
-    return matchesSearch && matchesTrainingArea;
-  }) || [];
+  const filteredModules =
+    modules?.filter((module) => {
+      const matchesSearch = module.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesTrainingArea =
+        selectedTrainingAreaId === "all" ||
+        module.trainingAreaId.toString() === selectedTrainingAreaId;
+      return matchesSearch && matchesTrainingArea;
+    }) || [];
 
-  const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;
+  const isSubmitting =
+    form.formState.isSubmitting ||
+    createMutation.isPending ||
+    updateMutation.isPending;
   const isLoading = isLoadingModules || isLoadingAreas;
 
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Module Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+            Module Management
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Module Form */}
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle>{editingModule ? "Edit Module" : "Add New Module"}</CardTitle>
+              <CardTitle>
+                {editingModule ? "Edit Module" : "Add New Module"}
+              </CardTitle>
               <CardDescription>
                 {editingModule
                   ? "Update the module information"
@@ -243,7 +254,10 @@ export default function ModuleManagement() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="trainingAreaId"
@@ -268,7 +282,10 @@ export default function ModuleManagement() {
                           </FormControl>
                           <SelectContent>
                             {trainingAreas?.map((area) => (
-                              <SelectItem key={area.id} value={area.id.toString()}>
+                              <SelectItem
+                                key={area.id}
+                                value={area.id.toString()}
+                              >
                                 {area.name}
                               </SelectItem>
                             ))}
@@ -286,7 +303,10 @@ export default function ModuleManagement() {
                       <FormItem>
                         <FormLabel>Module Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Customer Service Fundamentals" {...field} />
+                          <Input
+                            placeholder="e.g. Customer Service Fundamentals"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -331,7 +351,8 @@ export default function ModuleManagement() {
                       <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <Image className="h-5 w-5 text-green-600" />
                         <span className="text-sm font-medium text-green-800 flex-1 truncate">
-                          {form.watch("imageUrl").split('/').pop() || 'Image file'}
+                          {form.watch("imageUrl")?.split("/").pop() ||
+                            "Image file"}
                         </span>
                         <Button
                           type="button"
@@ -429,10 +450,13 @@ export default function ModuleManagement() {
                     <TableBody>
                       {filteredModules.map((module) => (
                         <TableRow key={module.id}>
-                          <TableCell className="font-medium">{module.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {module.name}
+                          </TableCell>
                           <TableCell>
-                            {trainingAreas?.find(area => area.id === module.trainingAreaId)?.name || 
-                            `Area ${module.trainingAreaId}`}
+                            {trainingAreas?.find(
+                              (area) => area.id === module.trainingAreaId
+                            )?.name || `Area ${module.trainingAreaId}`}
                           </TableCell>
                           <TableCell className="max-w-xs truncate">
                             {module.description || "-"}
@@ -461,7 +485,11 @@ export default function ModuleManagement() {
                                       variant="ghost"
                                       size="icon"
                                       onClick={() => {
-                                        if (window.confirm("Are you sure you want to delete this module? This will also affect any associated courses.")) {
+                                        if (
+                                          window.confirm(
+                                            "Are you sure you want to delete this module? This will also affect any associated courses."
+                                          )
+                                        ) {
                                           deleteMutation.mutate(module.id);
                                         }
                                       }}
@@ -484,7 +512,8 @@ export default function ModuleManagement() {
               ) : modules && modules.length > 0 ? (
                 <div className="text-center py-10">
                   <p className="text-muted-foreground">
-                    No modules match your search criteria. Try adjusting your search term or filter.
+                    No modules match your search criteria. Try adjusting your
+                    search term or filter.
                   </p>
                   <Button
                     variant="outline"
@@ -499,7 +528,9 @@ export default function ModuleManagement() {
                 </div>
               ) : (
                 <div className="text-center py-10">
-                  <p className="text-muted-foreground">No modules found. Create your first module to get started.</p>
+                  <p className="text-muted-foreground">
+                    No modules found. Create your first module to get started.
+                  </p>
                 </div>
               )}
             </CardContent>

@@ -12,7 +12,7 @@ export class NotificationTriggers {
       title: "New Course Available",
       message: `${courseName} has been assigned to your learning path. Start your journey today!`,
       read: false,
-      metadata: { courseId }
+      metadata: { courseId },
     };
     await this.storage.createNotification(notification);
   }
@@ -25,42 +25,55 @@ export class NotificationTriggers {
       title: "Achievement Unlocked!",
       message: `Congratulations! You have earned the "${badgeName}" badge.`,
       read: false,
-      metadata: { badgeId }
+      metadata: { badgeId },
     };
     await this.storage.createNotification(notification);
   }
 
   // Trigger when a user completes a course
-  async onCourseCompleted(userId: number, courseId: number, courseName: string) {
+  async onCourseCompleted(
+    userId: number,
+    courseId: number,
+    courseName: string
+  ) {
     const notification: InsertNotification = {
       userId,
       type: "achievement",
       title: "Course Completed!",
       message: `Fantastic work! You have successfully completed "${courseName}".`,
       read: false,
-      metadata: { courseId }
+      metadata: { courseId },
     };
     await this.storage.createNotification(notification);
   }
 
   // Trigger when a user earns a certificate
-  async onCertificateEarned(userId: number, certificateId: number, courseName: string) {
+  async onCertificateEarned(
+    userId: number,
+    certificateId: number,
+    courseName: string
+  ) {
     const notification: InsertNotification = {
       userId,
       type: "certificate_earned",
       title: "Certificate Awarded!",
       message: `Congratulations! You have earned a certificate for completing "${courseName}".`,
       read: false,
-      metadata: { certificateId }
+      metadata: { certificateId },
     };
     await this.storage.createNotification(notification);
   }
 
   // Trigger when leaderboard position changes
-  async onLeaderboardUpdate(userId: number, newPosition: number, previousPosition?: number) {
+  async onLeaderboardUpdate(
+    userId: number,
+    newPosition: number,
+    previousPosition?: number
+  ) {
     let message = "";
     if (!previousPosition) {
-      message = "You have joined the learning leaderboard. Complete courses to climb the rankings!";
+      message =
+        "You have joined the learning leaderboard. Complete courses to climb the rankings!";
     } else if (newPosition < previousPosition) {
       message = `Great progress! You've moved up to position ${newPosition} on the leaderboard.`;
     } else {
@@ -73,7 +86,7 @@ export class NotificationTriggers {
       title: "Leaderboard Update",
       message,
       read: false,
-      metadata: { position: newPosition, previousPosition }
+      metadata: { position: newPosition, previousPosition },
     };
     await this.storage.createNotification(notification);
   }
@@ -86,25 +99,27 @@ export class NotificationTriggers {
       title: "Course Reminder",
       message: `Don't forget to continue your ${courseName} course. You're making great progress!`,
       read: false,
-      metadata: { courseId }
+      metadata: { courseId },
     };
     await this.storage.createNotification(notification);
   }
 
   // Trigger when user passes an assessment
-  async onAssessmentPassed(userId: number, assessmentId: number, score: number) {
+  async onAssessmentPassed(
+    userId: number,
+    assessmentId: number,
+    score: number
+  ) {
     const notification: InsertNotification = {
       userId,
       type: "achievement",
       title: "Assessment Passed!",
       message: `Excellent work! You passed the assessment with a score of ${score}%.`,
       read: false,
-      metadata: { assessmentId, score }
+      metadata: { assessmentId, score },
     };
     await this.storage.createNotification(notification);
   }
-
-
 
   // Trigger welcome notification for new users
   async onUserWelcome(userId: number, userName: string) {
@@ -114,7 +129,7 @@ export class NotificationTriggers {
       title: "Welcome to EHC Academy!",
       message: `Welcome ${userName}! Start your learning journey by exploring our courses.`,
       read: false,
-      metadata: {}
+      metadata: {},
     };
     await this.storage.createNotification(notification);
   }

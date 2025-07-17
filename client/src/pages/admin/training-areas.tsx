@@ -106,7 +106,13 @@ export default function TrainingAreaManagement() {
 
   // Update training area mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<TrainingArea> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<TrainingArea>;
+    }) => {
       const res = await apiRequest("PATCH", `/api/training-areas/${id}`, data);
       return await res.json();
     },
@@ -183,20 +189,27 @@ export default function TrainingAreaManagement() {
     form.clearErrors();
   }
 
-  const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;
+  const isSubmitting =
+    form.formState.isSubmitting ||
+    createMutation.isPending ||
+    updateMutation.isPending;
 
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Training Area Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+            Training Area Management
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Training Area Form */}
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle>{editingArea ? "Edit Training Area" : "Add New Training Area"}</CardTitle>
+              <CardTitle>
+                {editingArea ? "Edit Training Area" : "Add New Training Area"}
+              </CardTitle>
               <CardDescription>
                 {editingArea
                   ? "Update the training area information"
@@ -205,7 +218,10 @@ export default function TrainingAreaManagement() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="name"
@@ -213,7 +229,10 @@ export default function TrainingAreaManagement() {
                       <FormItem>
                         <FormLabel>Area Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Abu Dhabi Information" {...field} />
+                          <Input
+                            placeholder="e.g. Abu Dhabi Information"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -258,7 +277,8 @@ export default function TrainingAreaManagement() {
                       <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <Image className="h-5 w-5 text-green-600" />
                         <span className="text-sm font-medium text-green-800 flex-1 truncate">
-                          {form.watch("imageUrl").split('/').pop() || 'Image file'}
+                          {form.watch("imageUrl")?.split("/").pop() ||
+                            "Image file"}
                         </span>
                         <Button
                           type="button"
@@ -291,7 +311,9 @@ export default function TrainingAreaManagement() {
                       {isSubmitting && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
-                      {editingArea ? "Update Training Area" : "Create Training Area"}
+                      {editingArea
+                        ? "Update Training Area"
+                        : "Create Training Area"}
                     </Button>
                   </div>
                 </form>
@@ -303,7 +325,9 @@ export default function TrainingAreaManagement() {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Existing Training Areas</CardTitle>
-              <CardDescription>Manage your existing training areas</CardDescription>
+              <CardDescription>
+                Manage your existing training areas
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -323,7 +347,9 @@ export default function TrainingAreaManagement() {
                     <TableBody>
                       {trainingAreas.map((area) => (
                         <TableRow key={area.id}>
-                          <TableCell className="font-medium">{area.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {area.name}
+                          </TableCell>
                           <TableCell className="max-w-xs truncate">
                             {area.description || "-"}
                           </TableCell>
@@ -351,7 +377,11 @@ export default function TrainingAreaManagement() {
                                       variant="ghost"
                                       size="icon"
                                       onClick={() => {
-                                        if (window.confirm("Are you sure you want to delete this training area? This will also affect any associated modules.")) {
+                                        if (
+                                          window.confirm(
+                                            "Are you sure you want to delete this training area? This will also affect any associated modules."
+                                          )
+                                        ) {
                                           deleteMutation.mutate(area.id);
                                         }
                                       }}
@@ -373,7 +403,10 @@ export default function TrainingAreaManagement() {
                 </div>
               ) : (
                 <div className="text-center py-10">
-                  <p className="text-muted-foreground">No training areas found. Create your first training area to get started.</p>
+                  <p className="text-muted-foreground">
+                    No training areas found. Create your first training area to
+                    get started.
+                  </p>
                 </div>
               )}
             </CardContent>

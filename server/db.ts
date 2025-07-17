@@ -1,93 +1,88 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Pool as PgPool } from 'pg';
-import { drizzle as pgDrizzle } from 'drizzle-orm/node-postgres';
-import ws from "ws";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import * as schema from "@shared/schema";
 import dotenv from "dotenv";
 import { sql } from "drizzle-orm";
 
 dotenv.config();
 
-// Default to local PostgreSQL if no DATABASE_URL is provided or if in development
-const DEFAULT_LOCAL_DB_URL = "postgresql://postgres:password@localhost:5432/vx_academy";
-const databaseUrl = process.env.DATABASE_URL || DEFAULT_LOCAL_DB_URL;
-const isLocalDatabase = databaseUrl.includes('localhost') || 
-                        databaseUrl.includes('127.0.0.1') || 
-                        !process.env.DATABASE_URL; // No DATABASE_URL means use local
+// Default to local PostgreSQL if no DATABASE_URL is provided
+const DEFAULT_LOCAL_DB_URL = "";
+const databaseUrl = process.env.DATABASE_URL || "DEFAULT_LOCAL_DB_URL";
 
-console.log(`Database configuration: ${isLocalDatabase ? 'Local PostgreSQL' : 'Neon Serverless'}`);
+console.log(
+  `Database configuration: ${
+    databaseUrl.includes("localhost") ? "Local PostgreSQL" : "Remote PostgreSQL"
+  }`
+);
 
-let pool: any;
+let pool: Pool;
 let db: any;
 
-if (isLocalDatabase) {
-  console.log("🔧 Configuring local PostgreSQL database...");
-  // Use traditional PostgreSQL for local development
-  pool = new PgPool({
-    connectionString: databaseUrl,
-    ssl: false,
-    connectionTimeoutMillis: 15000,
-    max: 5
-  });
-  
-  db = pgDrizzle({ client: pool, schema });
-  
-} else {
-  console.log("🔧 Configuring Neon serverless database...");
-  // Configure neon for serverless environments
-  neonConfig.webSocketConstructor = ws;
-  neonConfig.poolQueryViaFetch = true;
-
-  // Use Neon serverless for production
-  pool = new Pool({ 
-    connectionString: databaseUrl,
-    connectionTimeoutMillis: 30000,
-    idleTimeoutMillis: 60000,
-    max: 3,
-    ssl: { rejectUnauthorized: false }
-  });
-
-  db = drizzle({ client: pool, schema });
-}
-
-// Test the connection on startup
-async function testConnection() {
+async function createDatabaseConnection() {
   try {
-    await db.execute(sql`SELECT 1` as any);
-    console.log(`✅ Database connection successful (${isLocalDatabase ? 'Local PostgreSQL' : 'Neon'})`);
+    // Use traditional PostgreSQL driver for all connections
+    pool = new Pool({
+      connectionString: databaseUrl,
+      ssl:
+        process.env.NODE_ENV === "production"
+          ? { rejectUnauthorized: false }
+          : false,
+      connectionTimeoutMillis: 15000,
+      max: 5,
+    });
+
+    db = drizzle({ client: pool, schema });
+
+    // Test the connection
+    await db.execute(sql`SELECT 1`);
+    console.log("✅ Database connection successful");
+
+    return { pool, db };
   } catch (error: any) {
     console.error(`❌ Database connection failed: ${error.message}`);
-    
-    if (!isLocalDatabase) {
+
+    // Fallback to local database if remote connection fails
+    if (databaseUrl !== DEFAULT_LOCAL_DB_URL) {
       console.log("🔄 Attempting fallback to local PostgreSQL...");
       try {
-        // Recreate connection with local PostgreSQL
-        pool = new PgPool({
+        pool = new Pool({
           connectionString: DEFAULT_LOCAL_DB_URL,
           ssl: false,
           connectionTimeoutMillis: 15000,
-          max: 5
+          max: 5,
         });
-        
-        db = pgDrizzle({ client: pool, schema });
-        await db.execute(sql`SELECT 1` as any);
+
+        db = drizzle({ client: pool, schema });
+        await db.execute(sql`SELECT 1`);
         console.log("✅ Fallback to local PostgreSQL successful");
+
+        return { pool, db };
       } catch (fallbackError: any) {
-        console.error(`❌ Fallback to local database also failed: ${fallbackError.message}`);
-        console.error("Please ensure PostgreSQL is running locally on port 5432");
+        console.error(
+          `❌ Fallback to local database also failed: ${fallbackError.message}`
+        );
+        console.error(
+          "Please ensure PostgreSQL is running locally on port 5432"
+        );
+        throw fallbackError;
       }
     } else {
-      console.error("Local database connection failed. Please ensure PostgreSQL is running on localhost:5432");
+      console.error(
+        "Local database connection failed. Please ensure PostgreSQL is running on localhost:5432"
+      );
       console.error("You may need to:");
       console.error("1. Install PostgreSQL");
       console.error("2. Create a database named 'vx_academy'");
       console.error("3. Ensure the connection string is correct");
+      throw error;
     }
   }
 }
 
-// Test connection on module load
-testConnection();
+// Initialize connection on module load
+createDatabaseConnection().catch((error) => {
+  console.error("Failed to initialize database connection:", error);
+});
 
 export { pool, db };

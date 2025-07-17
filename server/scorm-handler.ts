@@ -26,19 +26,22 @@ const upload = multer({
       // Generate a unique filename
       const uniqueId = uuidv4();
       cb(null, `${uniqueId}-${file.originalname}`);
-    }
+    },
   }),
   fileFilter: (req, file, cb) => {
     // Only accept zip files
-    if (file.mimetype === "application/zip" || path.extname(file.originalname).toLowerCase() === ".zip") {
+    if (
+      file.mimetype === "application/zip" ||
+      path.extname(file.originalname).toLowerCase() === ".zip"
+    ) {
       cb(null, true);
     } else {
       cb(new Error("Only zip files are allowed"));
     }
   },
   limits: {
-    fileSize: 50 * 1024 * 1024 // 50MB limit
-  }
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
 });
 
 // Create directory for storing SCORM packages
@@ -49,7 +52,7 @@ fs.ensureDirSync(scormPackagesDir);
 async function parseManifestFile(manifestPath: string): Promise<any> {
   try {
     const manifestXml = await fs.readFile(manifestPath, "utf8");
-    
+
     return new Promise((resolve, reject) => {
       parseString(manifestXml, (err, result) => {
         if (err) {
@@ -74,20 +77,20 @@ function findScormEntryPoint(manifestData: any): string {
       const adlcpScormtype = resource?.["$"]?.["adlcp:scormtype"];
       return adlcpScormtype === "sco";
     });
-    
+
     if (scoResource) {
       return scoResource["$"]?.href || "";
     }
-    
+
     // If no resource has adlcp:scormtype="sco", try to find the first resource with a href
     const firstResourceWithHref = resources?.find((resource: any) => {
       return resource["$"]?.href;
     });
-    
+
     if (firstResourceWithHref) {
       return firstResourceWithHref["$"]?.href || "";
     }
-    
+
     // Default to index.html if nothing else is found
     return "index.html";
   } catch (error) {
@@ -100,8 +103,11 @@ function findScormEntryPoint(manifestData: any): string {
 function findScormTitle(manifestData: any): string {
   try {
     return (
-      manifestData?.manifest?.organizations?.[0]?.organization?.[0]?.title?.[0] ||
-      manifestData?.manifest?.metadata?.[0]?.["imsmd:lom"]?.[0]?.["imsmd:general"]?.[0]?.["imsmd:title"]?.[0]?.["imsmd:langstring"]?.[0]?._ ||
+      manifestData?.manifest?.organizations?.[0]?.organization?.[0]
+        ?.title?.[0] ||
+      manifestData?.manifest?.metadata?.[0]?.["imsmd:lom"]?.[0]?.[
+        "imsmd:general"
+      ]?.[0]?.["imsmd:title"]?.[0]?.["imsmd:langstring"]?.[0]?._ ||
       "SCORM Package"
     );
   } catch (error) {
@@ -114,8 +120,11 @@ function findScormTitle(manifestData: any): string {
 function findScormDescription(manifestData: any): string {
   try {
     return (
-      manifestData?.manifest?.organizations?.[0]?.organization?.[0]?.description?.[0] ||
-      manifestData?.manifest?.metadata?.[0]?.["imsmd:lom"]?.[0]?.["imsmd:general"]?.[0]?.["imsmd:description"]?.[0]?.["imsmd:langstring"]?.[0]?._ ||
+      manifestData?.manifest?.organizations?.[0]?.organization?.[0]
+        ?.description?.[0] ||
+      manifestData?.manifest?.metadata?.[0]?.["imsmd:lom"]?.[0]?.[
+        "imsmd:general"
+      ]?.[0]?.["imsmd:description"]?.[0]?.["imsmd:langstring"]?.[0]?._ ||
       "SCORM Package"
     );
   } catch (error) {
@@ -133,30 +142,32 @@ export async function handleScormUpload(req: Request, res: Response) {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-    
+
     // Create a unique directory for this SCORM package
     const packageId = uuidv4();
     const packageDir = path.join(scormPackagesDir, packageId);
     await fs.ensureDir(packageDir);
-    
+
     // Extract the zip file
     try {
       await extractZip(req.file.path, { dir: packageDir });
-      
+
       // Clean up the temporary upload file
       await fs.unlink(req.file.path);
     } catch (error) {
       console.error("Error extracting zip file:", error);
       return res.status(500).json({ error: "Failed to extract SCORM package" });
     }
-    
+
     // Look for the imsmanifest.xml file
     const manifestPath = path.join(packageDir, "imsmanifest.xml");
-    
+
     if (!(await fs.pathExists(manifestPath))) {
-      return res.status(400).json({ error: "Invalid SCORM package: missing imsmanifest.xml" });
+      return res
+        .status(400)
+        .json({ error: "Invalid SCORM package: missing imsmanifest.xml" });
     }
-    
+
     // Parse the manifest file
     let manifestData;
     try {
@@ -165,18 +176,21 @@ export async function handleScormUpload(req: Request, res: Response) {
       console.error("Error parsing manifest file:", error);
       return res.status(400).json({ error: "Invalid manifest file" });
     }
-    
+
     // Find the entry point (main HTML file)
     const entryPoint = findScormEntryPoint(manifestData);
     if (!entryPoint) {
-      return res.status(400).json({ error: "Could not determine SCORM entry point" });
+      return res
+        .status(400)
+        .json({ error: "Could not determine SCORM entry point" });
     }
-    
+
     // Extract metadata from the manifest
     const title = req.body.title || findScormTitle(manifestData);
-    const description = req.body.description || findScormDescription(manifestData);
+    const description =
+      req.body.description || findScormDescription(manifestData);
     const version = manifestData?.manifest?.["$"]?.version || "1.0";
-    
+
     // Save SCORM package info to the database
     const packageData: InsertScormPackage = {
       title,
@@ -186,9 +200,9 @@ export async function handleScormUpload(req: Request, res: Response) {
       entryPoint,
       manifestData,
     };
-    
+
     const scormPackage = await storage.createScormPackage(packageData);
-    
+
     // Return the saved SCORM package data
     return res.status(201).json(scormPackage);
   } catch (error) {
@@ -215,12 +229,12 @@ export async function getScormPackage(req: Request, res: Response) {
     if (isNaN(packageId)) {
       return res.status(400).json({ error: "Invalid package ID" });
     }
-    
+
     const scormPackage = await storage.getScormPackage(packageId);
     if (!scormPackage) {
       return res.status(404).json({ error: "SCORM package not found" });
     }
-    
+
     res.status(200).json(scormPackage);
   } catch (error) {
     console.error("Error getting SCORM package:", error);
@@ -231,20 +245,20 @@ export async function getScormPackage(req: Request, res: Response) {
 // Handler for serving SCORM package files
 export function serveScormFile(req: Request, res: Response) {
   const { packageId, filePath } = req.params;
-  
+
   // For security, make sure filePath doesn't contain '..' to prevent directory traversal
-  if (filePath.includes('..')) {
+  if (filePath.includes("..")) {
     return res.status(403).json({ error: "Forbidden" });
   }
-  
+
   // Construct the full file path
   const fullFilePath = path.join(scormPackagesDir, packageId, filePath);
-  
+
   // Check if file exists
   if (!fs.existsSync(fullFilePath)) {
     return res.status(404).json({ error: "File not found" });
   }
-  
+
   // Serve the file
   res.sendFile(fullFilePath);
 }
@@ -256,20 +270,25 @@ export async function saveScormTrackingData(req: Request, res: Response) {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    
+
     const userId = req.user!.id;
     const { scormPackageId } = req.params;
     const trackingData = req.body;
-    
+
     // Check if the SCORM package exists
-    const scormPackage = await storage.getScormPackage(parseInt(scormPackageId));
+    const scormPackage = await storage.getScormPackage(
+      parseInt(scormPackageId)
+    );
     if (!scormPackage) {
       return res.status(404).json({ error: "SCORM package not found" });
     }
-    
+
     // Check if tracking data already exists for this user and SCORM package
-    const existingData = await storage.getScormTrackingData(userId, parseInt(scormPackageId));
-    
+    const existingData = await storage.getScormTrackingData(
+      userId,
+      parseInt(scormPackageId)
+    );
+
     if (existingData) {
       // Update existing tracking data
       const updatedData = await storage.updateScormTrackingData(
@@ -280,7 +299,7 @@ export async function saveScormTrackingData(req: Request, res: Response) {
           scormPackageId: parseInt(scormPackageId),
         }
       );
-      
+
       return res.status(200).json(updatedData);
     } else {
       // Create new tracking data
@@ -289,7 +308,7 @@ export async function saveScormTrackingData(req: Request, res: Response) {
         scormPackageId: parseInt(scormPackageId),
         ...trackingData,
       });
-      
+
       return res.status(201).json(newData);
     }
   } catch (error) {
@@ -305,17 +324,20 @@ export async function getScormTrackingData(req: Request, res: Response) {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    
+
     const userId = req.user!.id;
     const { scormPackageId } = req.params;
-    
+
     // Get tracking data for this user and SCORM package
-    const trackingData = await storage.getScormTrackingData(userId, parseInt(scormPackageId));
-    
+    const trackingData = await storage.getScormTrackingData(
+      userId,
+      parseInt(scormPackageId)
+    );
+
     if (!trackingData) {
       return res.status(404).json({ error: "No tracking data found" });
     }
-    
+
     res.status(200).json(trackingData);
   } catch (error) {
     console.error("Error getting SCORM tracking data:", error);

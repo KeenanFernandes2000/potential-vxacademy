@@ -43,17 +43,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import {
-  Loader2,
-  Pencil,
-  Plus,
-  Trash,
-  Copy,
-  Search,
-  Filter,
-  X,
-  Image,
-} from "lucide-react";
+import { Loader2, Pencil, Trash, Copy, Search, X, Image } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -62,7 +52,6 @@ import {
 } from "@/components/ui/tooltip";
 import AdminLayout from "@/components/layout/admin-layout";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { MultiSelect } from "@/components/ui/multi-select";
 
 // Form validation schema
 const courseFormSchema = z.object({
@@ -192,8 +181,8 @@ export default function CourseManagement() {
   const form = useForm<InsertCourse>({
     resolver: zodResolver(enhancedCourseFormSchema),
     defaultValues: {
-      trainingAreaId: undefined,
-      moduleId: undefined,
+      trainingAreaId: 0,
+      moduleId: 0,
       name: "",
       description: "",
       imageUrl: "",
@@ -218,8 +207,8 @@ export default function CourseManagement() {
         description: "The course has been created successfully.",
       });
       form.reset({
-        trainingAreaId: undefined,
-        moduleId: "", // Set to empty string to reset dropdown
+        trainingAreaId: 0,
+        moduleId: 0,
         name: "",
         description: "",
         imageUrl: "",
@@ -230,9 +219,7 @@ export default function CourseManagement() {
         level: "beginner",
         showLevel: true,
       });
-      form.clearErrors();
       setSelectedTrainingAreaId(null);
-      form.setValue("moduleId", ""); // Explicitly set to empty string
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
     },
     onError: (error: Error) => {
@@ -367,8 +354,8 @@ export default function CourseManagement() {
     setEditingCourse(null);
     setSelectedTrainingAreaId(null);
     form.reset({
-      trainingAreaId: undefined,
-      moduleId: "", // Set to empty string to reset dropdown
+      trainingAreaId: 0,
+      moduleId: 0,
       name: "",
       description: "",
       imageUrl: "",
@@ -379,9 +366,6 @@ export default function CourseManagement() {
       level: "beginner",
       showLevel: true,
     });
-    // Clear any form errors
-    form.clearErrors();
-    form.setValue("moduleId", ""); // Explicitly set to empty string
   }
 
   function handleDuplicate(course: Course) {

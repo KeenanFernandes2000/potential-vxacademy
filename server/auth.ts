@@ -46,7 +46,9 @@ async function comparePasswords(supplied: string, stored: string) {
 
       // Ensure both buffers have the same length before comparison
       if (hashedBuf.length !== suppliedBuf.length) {
-        console.error(`Password buffer length mismatch: stored=${hashedBuf.length}, supplied=${suppliedBuf.length}`);
+        console.error(
+          `Password buffer length mismatch: stored=${hashedBuf.length}, supplied=${suppliedBuf.length}`
+        );
         return false;
       }
 
@@ -70,33 +72,33 @@ export function setupAuth(app: Express) {
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: false,
-      sameSite: 'lax',
-      httpOnly: true
-    }
+      sameSite: "lax",
+      httpOnly: true,
+    },
   };
 
   // Add error handling for session middleware
   app.set("trust proxy", 1);
-  
+
   try {
     app.use(session(sessionSettings));
   } catch (error) {
-    console.error('Session middleware initialization failed:', error);
+    console.error("Session middleware initialization failed:", error);
     // Create a fallback session configuration without store
     const fallbackSessionSettings = {
       ...sessionSettings,
-      store: undefined // Use default memory store
+      store: undefined, // Use default memory store
     };
     app.use(session(fallbackSessionSettings));
-    console.log('Using fallback session configuration');
+    console.log("Using fallback session configuration");
   }
-  
+
   app.use(passport.initialize());
   app.use(passport.session());
 
   passport.use(
     new LocalStrategy(
-      { usernameField: 'email' },
+      { usernameField: "email" },
       async (email, password, done) => {
         try {
           // Check all user roles to find user by email
@@ -105,7 +107,7 @@ export function setupAuth(app: Express) {
 
           for (const role of allRoles) {
             const usersWithRole = await storage.getUsersByRole(role);
-            const foundUser = usersWithRole.find(u => u.email === email);
+            const foundUser = usersWithRole.find((u) => u.email === email);
             if (foundUser) {
               user = foundUser;
               break;
@@ -120,7 +122,10 @@ export function setupAuth(app: Express) {
               await storage.createUserActivityLog({
                 userId: user.id,
                 activity: "login",
-                metadata: { loginMethod: "email", timestamp: new Date().toISOString() }
+                metadata: {
+                  loginMethod: "email",
+                  timestamp: new Date().toISOString(),
+                },
               });
             } catch (error) {
               console.error("Failed to log user activity:", error);
@@ -133,7 +138,7 @@ export function setupAuth(app: Express) {
           return done(null, false);
         }
       }
-    ),
+    )
   );
 
   passport.serializeUser((user, done) => done(null, user.id));
@@ -144,12 +149,16 @@ export function setupAuth(app: Express) {
 
   // Check if user is authenticated middleware
   app.use((req, res, next) => {
-    req.isAuthenticated = () => {
-      return !!(req.session && req.session.userId && req.session.user);
+    req.isAuthenticated = function (this: any): this is any {
+      return !!(this.session && this.session.userId && this.session.user);
     };
 
-    if (req.session && req.session.userId && req.session.user) {
-      req.user = req.session.user;
+    if (
+      req.session &&
+      (req.session as any).userId &&
+      (req.session as any).user
+    ) {
+      req.user = (req.session as any).user;
     }
 
     next();
@@ -176,18 +185,21 @@ export function setupAuth(app: Express) {
       // Check if email already exists
       // Since we don't have a direct getUserByEmail function, we need to check across all roles
       const allUsers = [
-        ...await storage.getUsersByRole("user"),
-        ...await storage.getUsersByRole("admin"),
-        ...await storage.getUsersByRole("sub-admin")
+        ...(await storage.getUsersByRole("user")),
+        ...(await storage.getUsersByRole("admin")),
+        ...(await storage.getUsersByRole("sub-admin")),
       ];
 
-      const emailExists = allUsers.some(user => user.email === email);
+      const emailExists = allUsers.some((user) => user.email === email);
       if (emailExists) {
-        return res.status(400).json({ message: "Email address already in use" });
+        return res
+          .status(400)
+          .json({ message: "Email address already in use" });
       }
 
       // Generate a username from the email (for backward compatibility)
-      const username = email.split('@')[0] + '_' + Math.floor(Math.random() * 1000);
+      const username =
+        email.split("@")[0] + "_" + Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
         firstName,
@@ -213,98 +225,111 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error | null, user: any, info: any) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: "Invalid email or password" });
-
-      req.login(user, (err: Error | null) => {
+    passport.authenticate(
+      "local",
+      (err: Error | null, user: any, info: any) => {
         if (err) return next(err);
+        if (!user)
+          return res.status(401).json({ message: "Invalid email or password" });
 
-        // Set session data
-        req.session.userId = user.id;
-        req.session.user = {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          username: user.username,
-          role: user.role,
-          xpPoints: user.xpPoints || 0,
-          avatar: user.avatar,
-          language: user.language,
-          nationality: user.nationality,
-          yearsOfExperience: user.yearsOfExperience,
-          assets: user.assets,
-          roleCategory: user.roleCategory,
-          subCategory: user.subCategory,
-          seniority: user.seniority,
-          organizationName: user.organizationName,
-          isActive: user.isActive,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt
-        };
+        req.login(user, (err: Error | null) => {
+          if (err) return next(err);
 
-        // Save session explicitly and regenerate session ID for security
-        req.session.save((err) => {
-          if (err) {
-            console.error('Session save error:', err);
-            return res.status(500).json({ message: "Session error" });
-          }
+          // Set session data
+          (req.session as any).userId = user.id;
+          (req.session as any).user = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            username: user.username,
+            role: user.role,
+            xpPoints: user.xpPoints || 0,
+            avatar: user.avatar,
+            language: user.language,
+            nationality: user.nationality,
+            yearsOfExperience: user.yearsOfExperience,
+            assets: user.assets,
+            roleCategory: user.roleCategory,
+            subCategory: user.subCategory,
+            seniority: user.seniority,
+            organizationName: user.organizationName,
+            isActive: user.isActive,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          };
 
-          // Log user login activity
-          storage.createUserActivityLog({
-            userId: user.id,
-            activity: 'login',
-            metadata: { loginMethod: 'email' },
-            ipAddress: req.ip || req.connection.remoteAddress,
-            userAgent: req.get('User-Agent')
-          }).catch(error => {
-            console.error('Failed to log login activity:', error);
+          // Save session explicitly and regenerate session ID for security
+          req.session.save((err) => {
+            if (err) {
+              console.error("Session save error:", err);
+              return res.status(500).json({ message: "Session error" });
+            }
+
+            // Log user login activity
+            storage
+              .createUserActivityLog({
+                userId: user.id,
+                activity: "login",
+                metadata: { loginMethod: "email" },
+                ipAddress: req.ip || req.connection.remoteAddress,
+                userAgent: req.get("User-Agent"),
+              })
+              .catch((error) => {
+                console.error("Failed to log login activity:", error);
+              });
+
+            console.log(
+              "Session saved successfully. User ID:",
+              (req.session as any).userId,
+              "Session ID:",
+              req.sessionID
+            );
+            const { password, ...userWithoutPassword } = user;
+            res.json(userWithoutPassword);
           });
-
-          console.log('Session saved successfully. User ID:', req.session.userId, 'Session ID:', req.sessionID);
-          const { password, ...userWithoutPassword } = user;
-          res.json(userWithoutPassword);
         });
-      });
-    })(req, res, next);
+      }
+    )(req, res, next);
   });
 
   app.post("/api/logout", (req, res, next) => {
     const userId = req.user?.id;
-    
+
     req.logout((err) => {
       if (err) return next(err);
-      
+
       // Log user logout activity
       if (userId) {
-        storage.createUserActivityLog({
-          userId,
-          activity: 'logout',
-          metadata: {},
-          ipAddress: req.ip || req.connection.remoteAddress,
-          userAgent: req.get('User-Agent')
-        }).catch(error => {
-          console.error('Failed to log logout activity:', error);
-        });
+        storage
+          .createUserActivityLog({
+            userId,
+            activity: "logout",
+            metadata: {},
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.get("User-Agent"),
+          })
+          .catch((error) => {
+            console.error("Failed to log logout activity:", error);
+          });
       }
-      
+
       res.sendStatus(200);
     });
   });
 
   // Get current user
   app.get("/api/user", (req, res) => {
-    console.log('GET /api/user - Session check:', {
+    console.log("GET /api/user - Session check:", {
       sessionExists: !!req.session,
-      userId: req.session?.userId,
-      userExists: !!req.session?.user,
+      userId: (req.session as any)?.userId,
+      userExists: !!(req.session as any)?.user,
       sessionID: req.sessionID,
-      isAuthenticated: req.isAuthenticated()
+      isAuthenticated: req.isAuthenticated(),
     });
 
     if (!req.isAuthenticated()) {
-      console.log('User not authenticated - Session details:', req.session);
+      console.log("User not authenticated - Session details:", req.session);
       return res.status(401).json({ message: "Not authenticated" });
     }
 

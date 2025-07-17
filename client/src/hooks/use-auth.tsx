@@ -4,7 +4,7 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser } from "@shared/schema";
+import { User as SelectUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -13,9 +13,17 @@ type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<Omit<SelectUser, "password">, Error, LoginData>;
+  loginMutation: UseMutationResult<
+    Omit<SelectUser, "password">,
+    Error,
+    LoginData
+  >;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<Omit<SelectUser, "password">, Error, RegisterData>;
+  registerMutation: UseMutationResult<
+    Omit<SelectUser, "password">,
+    Error,
+    RegisterData
+  >;
 };
 
 const loginSchema = z.object({
@@ -23,16 +31,18 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-const registerSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"], 
-});
+const registerSchema = z
+  .object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    email: z.string().email("Please enter a valid email"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type LoginData = z.infer<typeof loginSchema>;
 type RegisterData = z.infer<typeof registerSchema>;
@@ -77,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { confirmPassword, ...data } = credentials;
       const registerData = {
         ...data,
-        username: data.email.split('@')[0], // Generate username from email
+        username: data.email.split("@")[0], // Generate username from email
       };
       const res = await apiRequest("POST", "/api/register", registerData);
       return await res.json();
@@ -104,11 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
-      
+
       // Force a reload of the page to go to the landing page
       // This is more reliable than just using setLocation
       window.location.href = "/";
-      
+
       toast({
         title: "Logged out",
         description: "You have been successfully logged out",

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -20,8 +19,14 @@ export default function Dashboard() {
     <div className="h-screen flex flex-col md:flex-row">
       {/* Mobile sidebar (shown when toggled) */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={toggleSidebar}>
-          <div className="absolute top-0 left-0 bottom-0 w-64 bg-slate-900/90 backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={toggleSidebar}
+        >
+          <div
+            className="absolute top-0 left-0 bottom-0 w-64 bg-slate-900/90 backdrop-blur-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Sidebar />
           </div>
         </div>
@@ -38,12 +43,12 @@ export default function Dashboard() {
           <div className="space-y-6">
             <WelcomeCard />
             <ProgressSection />
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <AchievementsSection />
               <LeaderboardSection />
             </div>
-            
+
             <RecommendedCourses />
           </div>
         </main>

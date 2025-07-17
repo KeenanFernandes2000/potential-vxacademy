@@ -969,7 +969,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     About Us
                   </a>
@@ -977,7 +977,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     Training Areas
                   </a>
@@ -985,7 +985,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     Benefits
                   </a>
@@ -993,7 +993,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     Testimonials
                   </a>
@@ -1001,7 +1001,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     FAQ
                   </a>
@@ -1015,7 +1015,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     Help Center
                   </a>
@@ -1023,7 +1023,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     Contact Support
                   </a>
@@ -1031,7 +1031,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     Privacy Policy
                   </a>
@@ -1039,7 +1039,7 @@ export default function HomePage() {
                 <li>
                   <a
                     href="#"
-                    className="text-white/70 hover:text-white hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
                   >
                     Terms of Service
                   </a>

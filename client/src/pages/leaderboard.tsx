@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -161,28 +161,28 @@ export default function Leaderboard() {
                           index === 0
                             ? "text-teal-600"
                             : index === 1
-                              ? "text-cyan-500"
-                              : index === 2
-                                ? "text-amber-700"
-                                : "";
+                            ? "text-cyan-500"
+                            : index === 2
+                            ? "text-amber-700"
+                            : "";
 
                         const achievementLevel =
                           user.xpPoints >= 3000
                             ? "Expert"
                             : user.xpPoints >= 1500
-                              ? "Advanced"
-                              : user.xpPoints >= 500
-                                ? "Intermediate"
-                                : "Beginner";
+                            ? "Advanced"
+                            : user.xpPoints >= 500
+                            ? "Intermediate"
+                            : "Beginner";
 
                         const achievementIcon =
                           user.xpPoints >= 3000
                             ? "workspace_premium"
                             : user.xpPoints >= 1500
-                              ? "emoji_events"
-                              : user.xpPoints >= 500
-                                ? "military_tech"
-                                : "person";
+                            ? "emoji_events"
+                            : user.xpPoints >= 500
+                            ? "military_tech"
+                            : "person";
 
                         return (
                           <div
@@ -202,8 +202,8 @@ export default function Leaderboard() {
                                     {index === 0
                                       ? "looks_one"
                                       : index === 1
-                                        ? "looks_two"
-                                        : "looks_3"}
+                                      ? "looks_two"
+                                      : "looks_3"}
                                   </span>
                                 </div>
                               ) : (
@@ -220,7 +220,9 @@ export default function Leaderboard() {
                                   />
                                 ) : (
                                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
-                                    {user.firstName?.charAt(0) || user.username?.charAt(0) || "?"}
+                                    {user.firstName?.charAt(0) ||
+                                      user.username?.charAt(0) ||
+                                      "?"}
                                   </div>
                                 )}
                                 {index < 3 && (
@@ -230,8 +232,8 @@ export default function Leaderboard() {
                                         index === 0
                                           ? "text-yellow-500"
                                           : index === 1
-                                            ? "text-gray-400"
-                                            : "text-amber-700"
+                                          ? "text-gray-400"
+                                          : "text-amber-700"
                                       }`}
                                     >
                                       emoji_events
@@ -241,7 +243,9 @@ export default function Leaderboard() {
                               </div>
                               <div className="ml-3">
                                 <span
-                                  className={`font-medium ${isCurrentUser ? "text-teal-600" : ""}`}
+                                  className={`font-medium ${
+                                    isCurrentUser ? "text-teal-600" : ""
+                                  }`}
                                 >
                                   {user.firstName} {user.lastName}
                                   {isCurrentUser && (
@@ -258,10 +262,10 @@ export default function Leaderboard() {
                                   user.xpPoints >= 3000
                                     ? "text-secondary"
                                     : user.xpPoints >= 1500
-                                      ? "text-neutrals-500"
-                                      : user.xpPoints >= 500
-                                        ? "text-amber-700"
-                                        : "text-neutrals-400"
+                                    ? "text-neutrals-500"
+                                    : user.xpPoints >= 500
+                                    ? "text-amber-700"
+                                    : "text-neutrals-400"
                                 }`}
                               >
                                 {achievementIcon}
@@ -368,18 +372,18 @@ export default function Leaderboard() {
                           index === 0
                             ? "text-teal-600"
                             : index === 1
-                              ? "text-cyan-500"
-                              : index === 2
-                                ? "text-amber-700"
-                                : "";
+                            ? "text-cyan-500"
+                            : index === 2
+                            ? "text-amber-700"
+                            : "";
 
                         // Mock department assignment based on user role
                         const userDepartment =
                           user.role === "admin"
                             ? "Administration"
                             : user.role === "instructor"
-                              ? "Training"
-                              : "Customer Service";
+                            ? "Training"
+                            : "Customer Service";
 
                         return (
                           <div
@@ -399,8 +403,8 @@ export default function Leaderboard() {
                                     {index === 0
                                       ? "looks_one"
                                       : index === 1
-                                        ? "looks_two"
-                                        : "looks_3"}
+                                      ? "looks_two"
+                                      : "looks_3"}
                                   </span>
                                 </div>
                               ) : (
@@ -417,7 +421,9 @@ export default function Leaderboard() {
                                   />
                                 ) : (
                                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
-                                    {user.firstName?.charAt(0) || user.username?.charAt(0) || "?"}
+                                    {user.firstName?.charAt(0) ||
+                                      user.username?.charAt(0) ||
+                                      "?"}
                                   </div>
                                 )}
                                 {index < 3 && (
@@ -427,8 +433,8 @@ export default function Leaderboard() {
                                         index === 0
                                           ? "text-yellow-500"
                                           : index === 1
-                                            ? "text-gray-400"
-                                            : "text-amber-700"
+                                          ? "text-gray-400"
+                                          : "text-amber-700"
                                       }`}
                                     >
                                       emoji_events
@@ -438,7 +444,9 @@ export default function Leaderboard() {
                               </div>
                               <div className="ml-3">
                                 <span
-                                  className={`font-medium ${isCurrentUser ? "text-teal-600" : ""}`}
+                                  className={`font-medium ${
+                                    isCurrentUser ? "text-teal-600" : ""
+                                  }`}
                                 >
                                   {user.firstName} {user.lastName}
                                   {isCurrentUser && (
@@ -548,10 +556,10 @@ export default function Leaderboard() {
                           index === 0
                             ? "text-teal-600"
                             : index === 1
-                              ? "text-cyan-500"
-                              : index === 2
-                                ? "text-amber-700"
-                                : "";
+                            ? "text-cyan-500"
+                            : index === 2
+                            ? "text-amber-700"
+                            : "";
 
                         // Mock location assignment based on user id
                         const userLocation = [
@@ -579,8 +587,8 @@ export default function Leaderboard() {
                                     {index === 0
                                       ? "looks_one"
                                       : index === 1
-                                        ? "looks_two"
-                                        : "looks_3"}
+                                      ? "looks_two"
+                                      : "looks_3"}
                                   </span>
                                 </div>
                               ) : (
@@ -597,7 +605,9 @@ export default function Leaderboard() {
                                   />
                                 ) : (
                                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center text-sm font-semibold">
-                                    {user.firstName?.charAt(0) || user.username?.charAt(0) || "?"}
+                                    {user.firstName?.charAt(0) ||
+                                      user.username?.charAt(0) ||
+                                      "?"}
                                   </div>
                                 )}
                                 {index < 3 && (
@@ -607,8 +617,8 @@ export default function Leaderboard() {
                                         index === 0
                                           ? "text-yellow-500"
                                           : index === 1
-                                            ? "text-gray-400"
-                                            : "text-amber-700"
+                                          ? "text-gray-400"
+                                          : "text-amber-700"
                                       }`}
                                     >
                                       emoji_events
@@ -618,7 +628,9 @@ export default function Leaderboard() {
                               </div>
                               <div className="ml-3">
                                 <span
-                                  className={`font-medium ${isCurrentUser ? "text-teal-600" : ""}`}
+                                  className={`font-medium ${
+                                    isCurrentUser ? "text-teal-600" : ""
+                                  }`}
                                 >
                                   {user.firstName} {user.lastName}
                                   {isCurrentUser && (
@@ -692,14 +704,14 @@ export default function Leaderboard() {
                       0
                         ? "You're at the top! Keep up the great work."
                         : leaderboard.findIndex(
-                              (u) => u.id === currentUser.id,
-                            ) < 3
-                          ? "You're in the top 3! Almost at the top."
-                          : leaderboard.findIndex(
-                                (u) => u.id === currentUser.id,
-                              ) < 10
-                            ? "You're in the top 10! Keep pushing forward."
-                            : "Keep learning to climb the leaderboard."}
+                            (u) => u.id === currentUser.id
+                          ) < 3
+                        ? "You're in the top 3! Almost at the top."
+                        : leaderboard.findIndex(
+                            (u) => u.id === currentUser.id
+                          ) < 10
+                        ? "You're in the top 10! Keep pushing forward."
+                        : "Keep learning to climb the leaderboard."}
                     </p>
                   </>
                 ) : (
@@ -736,7 +748,7 @@ export default function Leaderboard() {
                 ) : leaderboard && currentUser ? (
                   (() => {
                     const userIndex = leaderboard.findIndex(
-                      (u) => u.id === currentUser.id,
+                      (u) => u.id === currentUser.id
                     );
                     if (userIndex <= 0) {
                       return (
@@ -771,8 +783,8 @@ export default function Leaderboard() {
                           {pointsNeeded <= 100
                             ? "You're very close to the next rank!"
                             : pointsNeeded <= 500
-                              ? "Keep going, you're making progress!"
-                              : "Stay committed to your learning journey."}
+                            ? "Keep going, you're making progress!"
+                            : "Stay committed to your learning journey."}
                         </p>
                       </>
                     );
@@ -822,7 +834,7 @@ export default function Leaderboard() {
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold mr-3">
-                        {leaderboard[0].firstName?.charAt(0) || '?'}
+                        {leaderboard[0].firstName?.charAt(0) || "?"}
                       </div>
                     )}
                     <div>

@@ -4,7 +4,6 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { useAuth } from "@/hooks/use-auth";
-import { User, Course, UserProgress } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Redirect } from "wouter";
 import {

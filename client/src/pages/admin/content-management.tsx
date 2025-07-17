@@ -5,20 +5,12 @@ import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Course, TrainingArea, Module, Unit, LearningBlock, Assessment, Question } from "@shared/schema";
+import { Course, TrainingArea, Module, Unit } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, Filter, FileEdit, Plus, Trash, Pencil, ChevronRight } from "lucide-react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+import { Loader2, Search, FileEdit, Plus, Trash, Pencil } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -26,18 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -71,12 +56,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import MediaManagement from "@/components/MediaManagement";
 
 // Course form schema
@@ -169,14 +148,16 @@ export default function ContentManagement() {
     queryKey: ["/api/courses"],
   });
 
-  const { data: trainingAreas, isLoading: isLoadingAreas } = useQuery<TrainingArea[]>({
+  const { data: trainingAreas, isLoading: isLoadingAreas } = useQuery<
+    TrainingArea[]
+  >({
     queryKey: ["/api/training-areas"],
   });
 
   const { data: modules, isLoading: isLoadingModules } = useQuery<Module[]>({
     queryKey: ["/api/modules"],
   });
-  
+
   // Fetch units
   const { data: units, isLoading: isLoadingUnits } = useQuery<Unit[]>({
     queryKey: ["/api/units", selectedCourse?.id],
@@ -224,7 +205,7 @@ export default function ContentManagement() {
       imageUrl: "",
     },
   });
-  
+
   // Unit form
   const unitForm = useForm<UnitFormValues>({
     resolver: zodResolver(unitFormSchema),
@@ -264,7 +245,13 @@ export default function ContentManagement() {
 
   // Update training area mutation
   const updateAreaMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<TrainingArea> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<TrainingArea>;
+    }) => {
       const res = await apiRequest("PATCH", `/api/training-areas/${id}`, data);
       return res.json();
     },
@@ -320,11 +307,15 @@ export default function ContentManagement() {
   };
 
   const handleDeleteArea = (id: number) => {
-    if (confirm("Are you sure you want to delete this training area? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this training area? This action cannot be undone."
+      )
+    ) {
       deleteAreaMutation.mutate(id);
     }
   };
-  
+
   const openEditAreaModal = (area: TrainingArea) => {
     setSelectedArea(area);
     areaForm.reset({
@@ -403,7 +394,7 @@ export default function ContentManagement() {
       });
     },
   });
-  
+
   // Create module mutation
   const createModuleMutation = useMutation({
     mutationFn: async (data: ModuleFormValues) => {
@@ -427,7 +418,7 @@ export default function ContentManagement() {
       });
     },
   });
-  
+
   // Update module mutation
   const updateModuleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<Module> }) => {
@@ -450,7 +441,7 @@ export default function ContentManagement() {
       });
     },
   });
-  
+
   // Delete module mutation
   const deleteModuleMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -486,7 +477,11 @@ export default function ContentManagement() {
   };
 
   const handleDeleteCourse = (id: number) => {
-    if (confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this course? This action cannot be undone."
+      )
+    ) {
       deleteCourseMutation.mutate(id);
     }
   };
@@ -503,7 +498,7 @@ export default function ContentManagement() {
     });
     setIsEditModalOpen(true);
   };
-  
+
   // Module handlers
   const handleAddModule = (data: ModuleFormValues) => {
     createModuleMutation.mutate(data);
@@ -519,11 +514,15 @@ export default function ContentManagement() {
   };
 
   const handleDeleteModule = (id: number) => {
-    if (confirm("Are you sure you want to delete this module? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this module? This action cannot be undone."
+      )
+    ) {
       deleteModuleMutation.mutate(id);
     }
   };
-  
+
   const openEditModuleModal = (module: Module) => {
     setSelectedModule(module);
     moduleForm.reset({
@@ -534,7 +533,7 @@ export default function ContentManagement() {
     });
     setIsEditModuleModalOpen(true);
   };
-  
+
   // Unit mutations
   const createUnitMutation = useMutation({
     mutationFn: async (data: UnitFormValues) => {
@@ -548,7 +547,9 @@ export default function ContentManagement() {
       });
       setIsAddUnitModalOpen(false);
       unitForm.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedCourse?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/units", selectedCourse?.id],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -558,7 +559,7 @@ export default function ContentManagement() {
       });
     },
   });
-  
+
   // Update unit mutation
   const updateUnitMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<Unit> }) => {
@@ -571,7 +572,9 @@ export default function ContentManagement() {
         description: "Unit has been updated successfully",
       });
       setIsEditUnitModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedCourse?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/units", selectedCourse?.id],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -581,7 +584,7 @@ export default function ContentManagement() {
       });
     },
   });
-  
+
   // Delete unit mutation
   const deleteUnitMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -592,7 +595,9 @@ export default function ContentManagement() {
         title: "Unit deleted",
         description: "Unit has been deleted successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/units", selectedCourse?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/units", selectedCourse?.id],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -602,12 +607,12 @@ export default function ContentManagement() {
       });
     },
   });
-  
+
   // Unit handlers
   const handleAddUnit = (data: UnitFormValues) => {
     createUnitMutation.mutate(data);
   };
-  
+
   const handleEditUnit = (data: UnitFormValues) => {
     if (selectedUnit) {
       updateUnitMutation.mutate({
@@ -616,18 +621,22 @@ export default function ContentManagement() {
       });
     }
   };
-  
+
   const handleDeleteUnit = (id: number) => {
-    if (confirm("Are you sure you want to delete this unit? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this unit? This action cannot be undone."
+      )
+    ) {
       deleteUnitMutation.mutate(id);
     }
   };
-  
+
   const openEditUnitModal = (unit: Unit) => {
     setSelectedUnit(unit);
     unitForm.reset({
       name: unit.name,
-      courseId: unit.courseId,
+      courseId: selectedCourse?.id || 0,
       description: unit.description || "",
       order: unit.order,
       duration: unit.duration || 30,
@@ -638,25 +647,35 @@ export default function ContentManagement() {
 
   // Filter courses based on search
   const filteredCourses = courses
-    ? courses.filter(course =>
-        course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (course.description && course.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? courses.filter(
+        (course) =>
+          course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (course.description &&
+            course.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()))
       )
     : [];
 
   // Filter modules based on search
   const filteredModules = modules
-    ? modules.filter(module =>
-        module.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (module.description && module.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? modules.filter(
+        (module) =>
+          module.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (module.description &&
+            module.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()))
       )
     : [];
 
   // Filter training areas based on search
   const filteredAreas = trainingAreas
-    ? trainingAreas.filter(area =>
-        area.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (area.description && area.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? trainingAreas.filter(
+        (area) =>
+          area.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (area.description &&
+            area.description.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : [];
 
@@ -664,8 +683,14 @@ export default function ContentManagement() {
     <div className="h-screen flex flex-col md:flex-row">
       {/* Mobile sidebar (shown when toggled) */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={toggleSidebar}>
-          <div className="absolute top-0 left-0 bottom-0 w-64 bg-primary" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={toggleSidebar}
+        >
+          <div
+            className="absolute top-0 left-0 bottom-0 w-64 bg-primary"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Sidebar />
           </div>
         </div>
@@ -681,8 +706,10 @@ export default function ContentManagement() {
         <main className="flex-1 overflow-y-auto bg-neutrals-100 p-4 pb-16 md:pb-4">
           <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-4 md:mb-0">Content Management</h1>
-              
+              <h1 className="font-heading text-2xl font-semibold text-neutrals-800 mb-4 md:mb-0">
+                Content Management
+              </h1>
+
               <div className="w-full md:w-auto flex flex-col md:flex-row gap-3">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -694,18 +721,24 @@ export default function ContentManagement() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                
-                <Button onClick={() => {
-                  courseForm.reset();
-                  setIsAddModalOpen(true);
-                }}>
+
+                <Button
+                  onClick={() => {
+                    courseForm.reset();
+                    setIsAddModalOpen(true);
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Content
                 </Button>
               </div>
             </div>
-            
-            <Tabs defaultValue="areas" value={activeTab} onValueChange={setActiveTab}>
+
+            <Tabs
+              defaultValue="areas"
+              value={activeTab}
+              onValueChange={setActiveTab}
+            >
               <TabsList className="mb-6">
                 <TabsTrigger value="media">Media</TabsTrigger>
                 <TabsTrigger value="areas">Training Areas</TabsTrigger>
@@ -715,30 +748,32 @@ export default function ContentManagement() {
                 <TabsTrigger value="blocks">Learning Blocks</TabsTrigger>
                 <TabsTrigger value="assessments">Assessments</TabsTrigger>
               </TabsList>
-              
+
               {/* Media Tab */}
               <TabsContent value="media">
                 <MediaManagement />
               </TabsContent>
-              
+
               {/* Courses Tab */}
               <TabsContent value="courses">
                 {isLoadingCourses ? (
                   <div className="space-y-4">
-                    {Array(5).fill(0).map((_, i) => (
-                      <Card key={i}>
-                        <CardHeader className="pb-2">
-                          <Skeleton className="h-6 w-64" />
-                          <Skeleton className="h-4 w-40" />
-                        </CardHeader>
-                        <CardContent>
-                          <Skeleton className="h-16 w-full" />
-                        </CardContent>
-                        <CardFooter>
-                          <Skeleton className="h-9 w-24" />
-                        </CardFooter>
-                      </Card>
-                    ))}
+                    {Array(5)
+                      .fill(0)
+                      .map((_, i) => (
+                        <Card key={i}>
+                          <CardHeader className="pb-2">
+                            <Skeleton className="h-6 w-64" />
+                            <Skeleton className="h-4 w-40" />
+                          </CardHeader>
+                          <CardContent>
+                            <Skeleton className="h-16 w-full" />
+                          </CardContent>
+                          <CardFooter>
+                            <Skeleton className="h-9 w-24" />
+                          </CardFooter>
+                        </Card>
+                      ))}
                   </div>
                 ) : filteredCourses.length > 0 ? (
                   <div className="space-y-4">
@@ -748,7 +783,10 @@ export default function ContentManagement() {
                           <div className="flex justify-between">
                             <div>
                               <CardTitle>{course.name}</CardTitle>
-                              <CardDescription>{getModuleName(course.moduleId, modules)} • {course.level}</CardDescription>
+                              <CardDescription>
+                                {getModuleName(course.moduleId, modules)} •{" "}
+                                {course.level}
+                              </CardDescription>
                             </div>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -757,11 +795,15 @@ export default function ContentManagement() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => openEditCourseModal(course)}>
+                                <DropdownMenuItem
+                                  onClick={() => openEditCourseModal(course)}
+                                >
                                   <Pencil className="h-4 w-4 mr-2" />
                                   Edit Course
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteCourse(course.id)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteCourse(course.id)}
+                                >
                                   <Trash className="h-4 w-4 mr-2" />
                                   Delete Course
                                 </DropdownMenuItem>
@@ -770,28 +812,38 @@ export default function ContentManagement() {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-sm text-neutrals-600">{course.description || "No description provided."}</p>
+                          <p className="text-sm text-neutrals-600">
+                            {course.description || "No description provided."}
+                          </p>
                           <div className="flex items-center mt-2 space-x-4 text-xs text-neutrals-500">
                             <div className="flex items-center">
-                              <span className="material-icons text-xs mr-1">schedule</span>
-                              <span>{formatDuration(course.duration || 0)}</span>
+                              <span className="material-icons text-xs mr-1">
+                                schedule
+                              </span>
+                              <span>
+                                {formatDuration(course.duration || 0)}
+                              </span>
                             </div>
                             <div className="flex items-center">
-                              <span className="material-icons text-xs mr-1">stars</span>
+                              <span className="material-icons text-xs mr-1">
+                                stars
+                              </span>
                               <span>XP: Various</span>
                             </div>
                           </div>
                         </CardContent>
                         <CardFooter>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => {
                               setSelectedCourse(course);
                               setActiveTab("units");
                             }}
                           >
-                            <span className="material-icons text-xs mr-2">view_module</span>
+                            <span className="material-icons text-xs mr-2">
+                              view_module
+                            </span>
                             Manage Units
                           </Button>
                         </CardFooter>
@@ -801,36 +853,46 @@ export default function ContentManagement() {
                 ) : (
                   <div className="flex flex-col items-center justify-center p-12 text-center">
                     <div className="rounded-full bg-neutrals-100 p-3 mb-4">
-                      <span className="material-icons text-4xl text-neutrals-400">school</span>
+                      <span className="material-icons text-4xl text-neutrals-400">
+                        school
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">No courses found</h3>
-                    <p className="text-neutrals-600 mb-6">Get started by creating your first course.</p>
-                    <Button onClick={() => {
-                      courseForm.reset();
-                      setIsAddModalOpen(true);
-                    }}>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No courses found
+                    </h3>
+                    <p className="text-neutrals-600 mb-6">
+                      Get started by creating your first course.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        courseForm.reset();
+                        setIsAddModalOpen(true);
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Add First Course
                     </Button>
                   </div>
                 )}
               </TabsContent>
-              
+
               {/* Modules Tab */}
               <TabsContent value="modules">
                 {isLoadingModules ? (
                   <div className="space-y-4">
-                    {Array(5).fill(0).map((_, i) => (
-                      <Card key={i}>
-                        <CardHeader className="pb-2">
-                          <Skeleton className="h-6 w-64" />
-                          <Skeleton className="h-4 w-40" />
-                        </CardHeader>
-                        <CardContent>
-                          <Skeleton className="h-12 w-full" />
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {Array(5)
+                      .fill(0)
+                      .map((_, i) => (
+                        <Card key={i}>
+                          <CardHeader className="pb-2">
+                            <Skeleton className="h-6 w-64" />
+                            <Skeleton className="h-4 w-40" />
+                          </CardHeader>
+                          <CardContent>
+                            <Skeleton className="h-12 w-full" />
+                          </CardContent>
+                        </Card>
+                      ))}
                   </div>
                 ) : filteredModules.length > 0 ? (
                   <div className="space-y-4">
@@ -841,7 +903,10 @@ export default function ContentManagement() {
                             <div>
                               <CardTitle>{module.name}</CardTitle>
                               <CardDescription>
-                                {getTrainingAreaName(module.trainingAreaId, trainingAreas)}
+                                {getTrainingAreaName(
+                                  module.trainingAreaId,
+                                  trainingAreas
+                                )}
                               </CardDescription>
                             </div>
                             <DropdownMenu>
@@ -851,11 +916,15 @@ export default function ContentManagement() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => openEditModuleModal(module)}>
+                                <DropdownMenuItem
+                                  onClick={() => openEditModuleModal(module)}
+                                >
                                   <Pencil className="h-4 w-4 mr-2" />
                                   Edit Module
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteModule(module.id)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteModule(module.id)}
+                                >
                                   <Trash className="h-4 w-4 mr-2" />
                                   Delete Module
                                 </DropdownMenuItem>
@@ -864,7 +933,9 @@ export default function ContentManagement() {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-sm text-neutrals-600">{module.description || "No description provided."}</p>
+                          <p className="text-sm text-neutrals-600">
+                            {module.description || "No description provided."}
+                          </p>
                           <div className="mt-4">
                             <Button variant="outline" size="sm">
                               <Plus className="h-4 w-4 mr-2" />
@@ -878,40 +949,53 @@ export default function ContentManagement() {
                 ) : (
                   <div className="flex flex-col items-center justify-center p-12 text-center">
                     <div className="rounded-full bg-neutrals-100 p-3 mb-4">
-                      <span className="material-icons text-4xl text-neutrals-400">folder</span>
+                      <span className="material-icons text-4xl text-neutrals-400">
+                        folder
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">No modules found</h3>
-                    <p className="text-neutrals-600 mb-6">Get started by creating your first module.</p>
-                    <Button onClick={() => {
-                      moduleForm.reset({
-                        name: "",
-                        trainingAreaId: trainingAreas && trainingAreas.length > 0 ? trainingAreas[0].id : 0,
-                        description: "",
-                        imageUrl: "",
-                      });
-                      setIsAddModuleModalOpen(true);
-                    }}>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No modules found
+                    </h3>
+                    <p className="text-neutrals-600 mb-6">
+                      Get started by creating your first module.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        moduleForm.reset({
+                          name: "",
+                          trainingAreaId:
+                            trainingAreas && trainingAreas.length > 0
+                              ? trainingAreas[0].id
+                              : 0,
+                          description: "",
+                          imageUrl: "",
+                        });
+                        setIsAddModuleModalOpen(true);
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Add First Module
                     </Button>
                   </div>
                 )}
               </TabsContent>
-              
+
               {/* Training Areas Tab */}
               <TabsContent value="areas">
                 {isLoadingAreas ? (
                   <div className="space-y-4">
-                    {Array(3).fill(0).map((_, i) => (
-                      <Card key={i}>
-                        <CardHeader className="pb-2">
-                          <Skeleton className="h-6 w-48" />
-                        </CardHeader>
-                        <CardContent>
-                          <Skeleton className="h-12 w-full" />
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {Array(3)
+                      .fill(0)
+                      .map((_, i) => (
+                        <Card key={i}>
+                          <CardHeader className="pb-2">
+                            <Skeleton className="h-6 w-48" />
+                          </CardHeader>
+                          <CardContent>
+                            <Skeleton className="h-12 w-full" />
+                          </CardContent>
+                        </Card>
+                      ))}
                   </div>
                 ) : filteredAreas.length > 0 ? (
                   <div className="space-y-4">
@@ -927,11 +1011,15 @@ export default function ContentManagement() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => openEditAreaModal(area)}>
+                                <DropdownMenuItem
+                                  onClick={() => openEditAreaModal(area)}
+                                >
                                   <Pencil className="h-4 w-4 mr-2" />
                                   Edit Area
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteArea(area.id)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteArea(area.id)}
+                                >
                                   <Trash className="h-4 w-4 mr-2" />
                                   Delete Area
                                 </DropdownMenuItem>
@@ -940,10 +1028,12 @@ export default function ContentManagement() {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-sm text-neutrals-600">{area.description || "No description provided."}</p>
+                          <p className="text-sm text-neutrals-600">
+                            {area.description || "No description provided."}
+                          </p>
                           <div className="mt-4">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => {
                                 moduleForm.reset({
@@ -966,31 +1056,44 @@ export default function ContentManagement() {
                 ) : (
                   <div className="flex flex-col items-center justify-center p-12 text-center">
                     <div className="rounded-full bg-neutrals-100 p-3 mb-4">
-                      <span className="material-icons text-4xl text-neutrals-400">category</span>
+                      <span className="material-icons text-4xl text-neutrals-400">
+                        category
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">No training areas found</h3>
-                    <p className="text-neutrals-600 mb-6">Get started by creating your first training area.</p>
-                    <Button onClick={() => {
-                      areaForm.reset();
-                      setIsAddAreaModalOpen(true);
-                    }}>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No training areas found
+                    </h3>
+                    <p className="text-neutrals-600 mb-6">
+                      Get started by creating your first training area.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        areaForm.reset();
+                        setIsAddAreaModalOpen(true);
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Add First Training Area
                     </Button>
                   </div>
                 )}
               </TabsContent>
-              
+
               {/* Units Tab */}
               <TabsContent value="units">
                 {!selectedCourse ? (
                   <div className="text-center p-12">
                     <div className="rounded-full bg-neutrals-100 p-3 inline-flex mb-4">
-                      <span className="material-icons text-4xl text-neutrals-400">menu_book</span>
+                      <span className="material-icons text-4xl text-neutrals-400">
+                        menu_book
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Units Management</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Units Management
+                    </h3>
                     <p className="text-neutrals-600 mb-6 max-w-md mx-auto">
-                      To manage units, please select a course first. Units are organized within courses.
+                      To manage units, please select a course first. Units are
+                      organized within courses.
                     </p>
                     <Button onClick={() => setActiveTab("courses")}>
                       <span className="material-icons mr-2">arrow_back</span>
@@ -1005,43 +1108,54 @@ export default function ContentManagement() {
                           <span className="material-icons mr-2">menu_book</span>
                           Units for {selectedCourse.name}
                         </h2>
-                        <p className="text-sm text-neutrals-600">Manage units for this course</p>
+                        <p className="text-sm text-neutrals-600">
+                          Manage units for this course
+                        </p>
                       </div>
                       <div className="flex space-x-2">
-                        <Button variant="outline" onClick={() => {
-                          setSelectedCourse(null);
-                          setActiveTab("courses");
-                        }}>
-                          <span className="material-icons mr-2">arrow_back</span>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedCourse(null);
+                            setActiveTab("courses");
+                          }}
+                        >
+                          <span className="material-icons mr-2">
+                            arrow_back
+                          </span>
                           Back to Courses
                         </Button>
-                        <Button onClick={() => {
-                          unitForm.reset({
-                            name: "",
-                            courseId: selectedCourse.id,
-                            description: "",
-                            order: 1
-                          });
-                          setIsAddUnitModalOpen(true);
-                        }}>
+                        <Button
+                          onClick={() => {
+                            unitForm.reset({
+                              name: "",
+                              courseId: selectedCourse.id,
+                              description: "",
+                              order: 1,
+                            });
+                            setIsAddUnitModalOpen(true);
+                          }}
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           Add Unit
                         </Button>
                       </div>
                     </div>
-                    
+
                     {isLoadingUnits ? (
                       <div className="space-y-4">
-                        {Array(3).fill(0).map((_, i) => (
-                          <Card key={i}>
-                            <CardHeader className="pb-2">
-                              <Skeleton className="h-6 w-48" />
-                            </CardHeader>
-                            <CardContent>
-                              <Skeleton className="h-12 w-full" />
-                            </CardContent>
-                          </Card>
-                        ))}
+                        {Array(3)
+                          .fill(0)
+                          .map((_, i) => (
+                            <Card key={i}>
+                              <CardHeader className="pb-2">
+                                <Skeleton className="h-6 w-48" />
+                              </CardHeader>
+                              <CardContent>
+                                <Skeleton className="h-12 w-full" />
+                              </CardContent>
+                            </Card>
+                          ))}
                       </div>
                     ) : units && units.length > 0 ? (
                       <div className="space-y-4">
@@ -1051,7 +1165,9 @@ export default function ContentManagement() {
                               <div className="flex justify-between items-center">
                                 <div className="flex items-center">
                                   <div className="bg-neutrals-100 w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                                    <span className="text-lg font-semibold">{unit.order}</span>
+                                    <span className="text-lg font-semibold">
+                                      {unit.order}
+                                    </span>
                                   </div>
                                   <div>
                                     <CardTitle>{unit.name}</CardTitle>
@@ -1064,11 +1180,15 @@ export default function ContentManagement() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => openEditUnitModal(unit)}>
+                                    <DropdownMenuItem
+                                      onClick={() => openEditUnitModal(unit)}
+                                    >
                                       <Pencil className="h-4 w-4 mr-2" />
                                       Edit Unit
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleDeleteUnit(unit.id)}>
+                                    <DropdownMenuItem
+                                      onClick={() => handleDeleteUnit(unit.id)}
+                                    >
                                       <Trash className="h-4 w-4 mr-2" />
                                       Delete Unit
                                     </DropdownMenuItem>
@@ -1077,10 +1197,12 @@ export default function ContentManagement() {
                               </div>
                             </CardHeader>
                             <CardContent>
-                              <p className="text-sm text-neutrals-600">{unit.description || "No description provided."}</p>
+                              <p className="text-sm text-neutrals-600">
+                                {unit.description || "No description provided."}
+                              </p>
                               <div className="mt-4 flex space-x-2">
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
                                   onClick={() => {
                                     setSelectedUnit(unit);
@@ -1090,15 +1212,17 @@ export default function ContentManagement() {
                                   <Plus className="h-4 w-4 mr-2" />
                                   Manage Learning Blocks
                                 </Button>
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
                                   onClick={() => {
                                     setSelectedUnit(unit);
                                     setActiveTab("assessments");
                                   }}
                                 >
-                                  <span className="material-icons text-xs mr-2">quiz</span>
+                                  <span className="material-icons text-xs mr-2">
+                                    quiz
+                                  </span>
                                   Manage Assessments
                                 </Button>
                               </div>
@@ -1109,19 +1233,28 @@ export default function ContentManagement() {
                     ) : (
                       <div className="flex flex-col items-center justify-center p-12 text-center">
                         <div className="rounded-full bg-neutrals-100 p-3 mb-4">
-                          <span className="material-icons text-4xl text-neutrals-400">menu_book</span>
+                          <span className="material-icons text-4xl text-neutrals-400">
+                            menu_book
+                          </span>
                         </div>
-                        <h3 className="text-lg font-semibold mb-2">No units found</h3>
-                        <p className="text-neutrals-600 mb-6">Get started by creating your first unit for this course.</p>
-                        <Button onClick={() => {
-                          unitForm.reset({
-                            name: "",
-                            courseId: selectedCourse.id,
-                            description: "",
-                            order: 1
-                          });
-                          setIsAddUnitModalOpen(true);
-                        }}>
+                        <h3 className="text-lg font-semibold mb-2">
+                          No units found
+                        </h3>
+                        <p className="text-neutrals-600 mb-6">
+                          Get started by creating your first unit for this
+                          course.
+                        </p>
+                        <Button
+                          onClick={() => {
+                            unitForm.reset({
+                              name: "",
+                              courseId: selectedCourse.id,
+                              description: "",
+                              order: 1,
+                            });
+                            setIsAddUnitModalOpen(true);
+                          }}
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           Add First Unit
                         </Button>
@@ -1130,17 +1263,22 @@ export default function ContentManagement() {
                   </div>
                 )}
               </TabsContent>
-              
+
               {/* Learning Blocks Tab */}
               <TabsContent value="blocks">
                 {!selectedUnit ? (
                   <div className="text-center p-12">
                     <div className="rounded-full bg-neutrals-100 p-3 inline-flex mb-4">
-                      <span className="material-icons text-4xl text-neutrals-400">widgets</span>
+                      <span className="material-icons text-4xl text-neutrals-400">
+                        widgets
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Learning Blocks Management</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Learning Blocks Management
+                    </h3>
                     <p className="text-neutrals-600 mb-6 max-w-md mx-auto">
-                      To manage learning blocks, please select a unit first. Learning blocks are organized within units.
+                      To manage learning blocks, please select a unit first.
+                      Learning blocks are organized within units.
                     </p>
                     <Button onClick={() => setActiveTab("units")}>
                       <span className="material-icons mr-2">arrow_back</span>
@@ -1155,20 +1293,29 @@ export default function ContentManagement() {
                           <span className="material-icons mr-2">widgets</span>
                           Learning Blocks for {selectedUnit.name}
                         </h2>
-                        <p className="text-sm text-neutrals-600">Manage learning blocks for this unit</p>
+                        <p className="text-sm text-neutrals-600">
+                          Manage learning blocks for this unit
+                        </p>
                       </div>
                       <div className="flex space-x-2">
-                        <Button variant="outline" onClick={() => {
-                          setSelectedUnit(null);
-                          setActiveTab("units");
-                        }}>
-                          <span className="material-icons mr-2">arrow_back</span>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedUnit(null);
+                            setActiveTab("units");
+                          }}
+                        >
+                          <span className="material-icons mr-2">
+                            arrow_back
+                          </span>
                           Back to Units
                         </Button>
-                        <Button onClick={() => {
-                          // Redirect to the learning blocks management page with query parameter for unitId
-                          window.location.href = `/admin/learning-blocks?unitId=${selectedUnit.id}`;
-                        }}>
+                        <Button
+                          onClick={() => {
+                            // Redirect to the learning blocks management page with query parameter for unitId
+                            window.location.href = `/admin/learning-blocks?unitId=${selectedUnit.id}`;
+                          }}
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           Add Learning Block
                         </Button>
@@ -1177,15 +1324,24 @@ export default function ContentManagement() {
                     <Card>
                       <CardContent className="p-6">
                         <div className="text-center py-12">
-                          <span className="material-icons text-5xl text-abu-gold mb-4">school</span>
-                          <h3 className="text-lg font-semibold mb-2">Manage Learning Blocks</h3>
+                          <span className="material-icons text-5xl text-abu-gold mb-4">
+                            school
+                          </span>
+                          <h3 className="text-lg font-semibold mb-2">
+                            Manage Learning Blocks
+                          </h3>
                           <p className="text-neutrals-600 mb-6 max-w-md mx-auto">
-                            You'll be redirected to the dedicated Learning Blocks management interface.
+                            You'll be redirected to the dedicated Learning
+                            Blocks management interface.
                           </p>
-                          <Button onClick={() => {
-                            window.location.href = `/admin/learning-blocks?unitId=${selectedUnit.id}`;
-                          }}>
-                            <span className="material-icons mr-2">open_in_new</span>
+                          <Button
+                            onClick={() => {
+                              window.location.href = `/admin/learning-blocks?unitId=${selectedUnit.id}`;
+                            }}
+                          >
+                            <span className="material-icons mr-2">
+                              open_in_new
+                            </span>
                             Open Learning Blocks Manager
                           </Button>
                         </div>
@@ -1194,17 +1350,22 @@ export default function ContentManagement() {
                   </div>
                 )}
               </TabsContent>
-              
+
               {/* Assessments Tab */}
               <TabsContent value="assessments">
                 {!selectedUnit ? (
                   <div className="text-center p-12">
                     <div className="rounded-full bg-neutrals-100 p-3 inline-flex mb-4">
-                      <span className="material-icons text-4xl text-neutrals-400">quiz</span>
+                      <span className="material-icons text-4xl text-neutrals-400">
+                        quiz
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Assessments Management</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Assessments Management
+                    </h3>
                     <p className="text-neutrals-600 mb-6 max-w-md mx-auto">
-                      To manage assessments, please select a unit first. Assessments are organized within units.
+                      To manage assessments, please select a unit first.
+                      Assessments are organized within units.
                     </p>
                     <Button onClick={() => setActiveTab("units")}>
                       <span className="material-icons mr-2">arrow_back</span>
@@ -1219,20 +1380,29 @@ export default function ContentManagement() {
                           <span className="material-icons mr-2">quiz</span>
                           Assessments for {selectedUnit.name}
                         </h2>
-                        <p className="text-sm text-neutrals-600">Manage assessments for this unit</p>
+                        <p className="text-sm text-neutrals-600">
+                          Manage assessments for this unit
+                        </p>
                       </div>
                       <div className="flex space-x-2">
-                        <Button variant="outline" onClick={() => {
-                          setSelectedUnit(null);
-                          setActiveTab("units");
-                        }}>
-                          <span className="material-icons mr-2">arrow_back</span>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedUnit(null);
+                            setActiveTab("units");
+                          }}
+                        >
+                          <span className="material-icons mr-2">
+                            arrow_back
+                          </span>
                           Back to Units
                         </Button>
-                        <Button onClick={() => {
-                          // Redirect to the assessments management page with query parameter for unitId
-                          window.location.href = `/admin/assessments?unitId=${selectedUnit.id}`;
-                        }}>
+                        <Button
+                          onClick={() => {
+                            // Redirect to the assessments management page with query parameter for unitId
+                            window.location.href = `/admin/assessments?unitId=${selectedUnit.id}`;
+                          }}
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           Add Assessment
                         </Button>
@@ -1241,15 +1411,24 @@ export default function ContentManagement() {
                     <Card>
                       <CardContent className="p-6">
                         <div className="text-center py-12">
-                          <span className="material-icons text-5xl text-abu-gold mb-4">quiz</span>
-                          <h3 className="text-lg font-semibold mb-2">Manage Assessments</h3>
+                          <span className="material-icons text-5xl text-abu-gold mb-4">
+                            quiz
+                          </span>
+                          <h3 className="text-lg font-semibold mb-2">
+                            Manage Assessments
+                          </h3>
                           <p className="text-neutrals-600 mb-6 max-w-md mx-auto">
-                            You'll be redirected to the dedicated Assessments management interface.
+                            You'll be redirected to the dedicated Assessments
+                            management interface.
                           </p>
-                          <Button onClick={() => {
-                            window.location.href = `/admin/assessments?unitId=${selectedUnit.id}`;
-                          }}>
-                            <span className="material-icons mr-2">open_in_new</span>
+                          <Button
+                            onClick={() => {
+                              window.location.href = `/admin/assessments?unitId=${selectedUnit.id}`;
+                            }}
+                          >
+                            <span className="material-icons mr-2">
+                              open_in_new
+                            </span>
                             Open Assessments Manager
                           </Button>
                         </div>
@@ -1274,9 +1453,12 @@ export default function ContentManagement() {
               Create a new course by filling out the information below.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...courseForm}>
-            <form onSubmit={courseForm.handleSubmit(handleAddCourse)} className="space-y-4">
+            <form
+              onSubmit={courseForm.handleSubmit(handleAddCourse)}
+              className="space-y-4"
+            >
               <FormField
                 control={courseForm.control}
                 name="name"
@@ -1290,7 +1472,7 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={courseForm.control}
                 name="moduleId"
@@ -1308,7 +1490,10 @@ export default function ContentManagement() {
                       </FormControl>
                       <SelectContent>
                         {modules?.map((module) => (
-                          <SelectItem key={module.id} value={module.id.toString()}>
+                          <SelectItem
+                            key={module.id}
+                            value={module.id.toString()}
+                          >
                             {module.name}
                           </SelectItem>
                         ))}
@@ -1318,7 +1503,7 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={courseForm.control}
                 name="description"
@@ -1326,17 +1511,17 @@ export default function ContentManagement() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Enter course description" 
-                        {...field} 
-                        className="min-h-[100px]" 
+                      <Textarea
+                        placeholder="Enter course description"
+                        {...field}
+                        className="min-h-[100px]"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={courseForm.control}
@@ -1354,7 +1539,7 @@ export default function ContentManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={courseForm.control}
                   name="duration"
@@ -1362,11 +1547,13 @@ export default function ContentManagement() {
                     <FormItem>
                       <FormLabel>Duration (minutes)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Enter duration" 
+                        <Input
+                          type="number"
+                          placeholder="Enter duration"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))} 
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -1374,17 +1561,14 @@ export default function ContentManagement() {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={courseForm.control}
                 name="level"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Level</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a level" />
@@ -1392,7 +1576,9 @@ export default function ContentManagement() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="intermediate">
+                          Intermediate
+                        </SelectItem>
                         <SelectItem value="advanced">Advanced</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1400,18 +1586,17 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button 
-                  type="submit" 
-                  disabled={createCourseMutation.isPending}
-                >
+                <Button type="submit" disabled={createCourseMutation.isPending}>
                   {createCourseMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating...
                     </>
-                  ) : "Create Course"}
+                  ) : (
+                    "Create Course"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -1428,9 +1613,12 @@ export default function ContentManagement() {
               Modify the course information below.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...courseForm}>
-            <form onSubmit={courseForm.handleSubmit(handleEditCourse)} className="space-y-4">
+            <form
+              onSubmit={courseForm.handleSubmit(handleEditCourse)}
+              className="space-y-4"
+            >
               <FormField
                 control={courseForm.control}
                 name="name"
@@ -1444,7 +1632,7 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={courseForm.control}
                 name="moduleId"
@@ -1462,7 +1650,10 @@ export default function ContentManagement() {
                       </FormControl>
                       <SelectContent>
                         {modules?.map((module) => (
-                          <SelectItem key={module.id} value={module.id.toString()}>
+                          <SelectItem
+                            key={module.id}
+                            value={module.id.toString()}
+                          >
                             {module.name}
                           </SelectItem>
                         ))}
@@ -1472,7 +1663,7 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={courseForm.control}
                 name="description"
@@ -1480,17 +1671,17 @@ export default function ContentManagement() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Enter course description" 
-                        {...field} 
-                        className="min-h-[100px]" 
+                      <Textarea
+                        placeholder="Enter course description"
+                        {...field}
+                        className="min-h-[100px]"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={courseForm.control}
@@ -1508,7 +1699,7 @@ export default function ContentManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={courseForm.control}
                   name="duration"
@@ -1516,11 +1707,13 @@ export default function ContentManagement() {
                     <FormItem>
                       <FormLabel>Duration (minutes)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Enter duration" 
+                        <Input
+                          type="number"
+                          placeholder="Enter duration"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))} 
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -1528,17 +1721,14 @@ export default function ContentManagement() {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={courseForm.control}
                 name="level"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Level</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a level" />
@@ -1546,7 +1736,9 @@ export default function ContentManagement() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="intermediate">
+                          Intermediate
+                        </SelectItem>
                         <SelectItem value="advanced">Advanced</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1554,18 +1746,17 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button 
-                  type="submit" 
-                  disabled={updateCourseMutation.isPending}
-                >
+                <Button type="submit" disabled={updateCourseMutation.isPending}>
                   {updateCourseMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Updating...
                     </>
-                  ) : "Update Course"}
+                  ) : (
+                    "Update Course"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -1594,7 +1785,10 @@ export default function ContentManagement() {
       />
 
       {/* Add Module Dialog */}
-      <Dialog open={isAddModuleModalOpen} onOpenChange={setIsAddModuleModalOpen}>
+      <Dialog
+        open={isAddModuleModalOpen}
+        onOpenChange={setIsAddModuleModalOpen}
+      >
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Add New Module</DialogTitle>
@@ -1602,9 +1796,12 @@ export default function ContentManagement() {
               Create a new module by filling out the information below.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...moduleForm}>
-            <form onSubmit={moduleForm.handleSubmit(handleAddModule)} className="space-y-4">
+            <form
+              onSubmit={moduleForm.handleSubmit(handleAddModule)}
+              className="space-y-4"
+            >
               <FormField
                 control={moduleForm.control}
                 name="name"
@@ -1618,7 +1815,7 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={moduleForm.control}
                 name="trainingAreaId"
@@ -1646,7 +1843,7 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={moduleForm.control}
                 name="description"
@@ -1654,17 +1851,17 @@ export default function ContentManagement() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Enter module description" 
-                        {...field} 
-                        className="min-h-[100px]" 
+                      <Textarea
+                        placeholder="Enter module description"
+                        {...field}
+                        className="min-h-[100px]"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={moduleForm.control}
                 name="imageUrl"
@@ -1681,18 +1878,17 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button 
-                  type="submit" 
-                  disabled={createModuleMutation.isPending}
-                >
+                <Button type="submit" disabled={createModuleMutation.isPending}>
                   {createModuleMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating...
                     </>
-                  ) : "Create Module"}
+                  ) : (
+                    "Create Module"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -1701,7 +1897,10 @@ export default function ContentManagement() {
       </Dialog>
 
       {/* Edit Module Dialog */}
-      <Dialog open={isEditModuleModalOpen} onOpenChange={setIsEditModuleModalOpen}>
+      <Dialog
+        open={isEditModuleModalOpen}
+        onOpenChange={setIsEditModuleModalOpen}
+      >
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Edit Module</DialogTitle>
@@ -1709,9 +1908,12 @@ export default function ContentManagement() {
               Modify the module information below.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...moduleForm}>
-            <form onSubmit={moduleForm.handleSubmit(handleEditModule)} className="space-y-4">
+            <form
+              onSubmit={moduleForm.handleSubmit(handleEditModule)}
+              className="space-y-4"
+            >
               <FormField
                 control={moduleForm.control}
                 name="name"
@@ -1725,7 +1927,7 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={moduleForm.control}
                 name="trainingAreaId"
@@ -1753,7 +1955,7 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={moduleForm.control}
                 name="description"
@@ -1761,17 +1963,17 @@ export default function ContentManagement() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Enter module description" 
-                        {...field} 
-                        className="min-h-[100px]" 
+                      <Textarea
+                        placeholder="Enter module description"
+                        {...field}
+                        className="min-h-[100px]"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={moduleForm.control}
                 name="imageUrl"
@@ -1788,18 +1990,17 @@ export default function ContentManagement() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button 
-                  type="submit" 
-                  disabled={updateModuleMutation.isPending}
-                >
+                <Button type="submit" disabled={updateModuleMutation.isPending}>
                   {updateModuleMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Updating...
                     </>
-                  ) : "Update Module"}
+                  ) : (
+                    "Update Module"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -1834,20 +2035,23 @@ export default function ContentManagement() {
 function formatDuration(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  return `${hours}h ${mins > 0 ? `${mins}m` : ''}`;
+  return `${hours}h ${mins > 0 ? `${mins}m` : ""}`;
 }
 
 // Helper function to get module name by ID
 function getModuleName(moduleId: number, modules: Module[] | undefined) {
   if (!modules) return "Unknown Module";
-  const module = modules.find(m => m.id === moduleId);
+  const module = modules.find((m) => m.id === moduleId);
   return module ? module.name : "Unknown Module";
 }
 
 // Helper function to get training area name by ID
-function getTrainingAreaName(areaId: number, areas: TrainingArea[] | undefined) {
+function getTrainingAreaName(
+  areaId: number,
+  areas: TrainingArea[] | undefined
+) {
   if (!areas) return "Unknown Area";
-  const area = areas.find(a => a.id === areaId);
+  const area = areas.find((a) => a.id === areaId);
   return area ? area.name : "Unknown Area";
 }
 
@@ -1872,14 +2076,16 @@ export function AddEditTrainingAreaDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Training Area" : "Add New Training Area"}</DialogTitle>
+          <DialogTitle>
+            {isEditing ? "Edit Training Area" : "Add New Training Area"}
+          </DialogTitle>
           <DialogDescription>
-            {isEditing 
-              ? "Update the training area information" 
+            {isEditing
+              ? "Update the training area information"
               : "Create a new training area for the VX Academy"}
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -1889,13 +2095,16 @@ export function AddEditTrainingAreaDialog({
                 <FormItem>
                   <FormLabel>Area Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Abu Dhabi Information" {...field} />
+                    <Input
+                      placeholder="e.g. Abu Dhabi Information"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -1903,9 +2112,9 @@ export function AddEditTrainingAreaDialog({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Training area description..." 
-                      {...field} 
+                    <Textarea
+                      placeholder="Training area description..."
+                      {...field}
                       className="min-h-[100px]"
                       value={field.value || ""}
                     />
@@ -1914,7 +2123,7 @@ export function AddEditTrainingAreaDialog({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="imageUrl"
@@ -1935,18 +2144,19 @@ export function AddEditTrainingAreaDialog({
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
-              <Button 
-                type="submit" 
-                disabled={isPending}
-              >
+              <Button type="submit" disabled={isPending}>
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {isEditing ? "Updating..." : "Creating..."}
                   </>
-                ) : isEditing ? "Update Training Area" : "Create Training Area"}
+                ) : isEditing ? (
+                  "Update Training Area"
+                ) : (
+                  "Create Training Area"
+                )}
               </Button>
             </DialogFooter>
           </form>
@@ -1978,12 +2188,12 @@ export function AddEditUnitDialog({
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Unit" : "Add New Unit"}</DialogTitle>
           <DialogDescription>
-            {isEditing 
-              ? "Update the unit information" 
+            {isEditing
+              ? "Update the unit information"
               : "Create a new unit for this course"}
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -1993,13 +2203,16 @@ export function AddEditUnitDialog({
                 <FormItem>
                   <FormLabel>Unit Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Introduction to Abu Dhabi Culture" {...field} />
+                    <Input
+                      placeholder="e.g. Introduction to Abu Dhabi Culture"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -2007,9 +2220,9 @@ export function AddEditUnitDialog({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Unit description..." 
-                      {...field} 
+                    <Textarea
+                      placeholder="Unit description..."
+                      {...field}
                       className="min-h-[100px]"
                       value={field.value || ""}
                     />
@@ -2018,7 +2231,7 @@ export function AddEditUnitDialog({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="duration"
@@ -2030,7 +2243,9 @@ export function AddEditUnitDialog({
                       type="number"
                       placeholder="60"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
                   <FormDescription>
@@ -2040,7 +2255,7 @@ export function AddEditUnitDialog({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="order"
@@ -2052,7 +2267,9 @@ export function AddEditUnitDialog({
                       type="number"
                       placeholder="1"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
                   <FormDescription>
@@ -2062,7 +2279,7 @@ export function AddEditUnitDialog({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="xpPoints"
@@ -2074,7 +2291,9 @@ export function AddEditUnitDialog({
                       type="number"
                       placeholder="100"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
                   <FormDescription>
@@ -2086,16 +2305,17 @@ export function AddEditUnitDialog({
             />
 
             <DialogFooter>
-              <Button 
-                type="submit" 
-                disabled={isPending}
-              >
+              <Button type="submit" disabled={isPending}>
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {isEditing ? "Updating..." : "Creating..."}
                   </>
-                ) : isEditing ? "Update Unit" : "Create Unit"}
+                ) : isEditing ? (
+                  "Update Unit"
+                ) : (
+                  "Create Unit"
+                )}
               </Button>
             </DialogFooter>
           </form>

@@ -44,7 +44,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, ArrowLeft, Plus, Pencil, Trash } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -101,7 +100,7 @@ export default function QuestionsManagement() {
     queryFn: async () => {
       const res = await apiRequest(
         "GET",
-        `/api/assessments/${assessmentId}/questions`,
+        `/api/assessments/${assessmentId}/questions`
       );
       return await res.json();
     },
@@ -273,7 +272,7 @@ export default function QuestionsManagement() {
         "True/False question - converting value:",
         values.correctAnswer,
         "to:",
-        correctAnswer,
+        correctAnswer
       );
     }
 
@@ -318,7 +317,7 @@ export default function QuestionsManagement() {
       // If we're removing an option before the correct one, adjust the index
       form.setValue(
         "correctAnswer",
-        (parseInt(currentCorrectAnswer) - 1).toString(),
+        (parseInt(currentCorrectAnswer) - 1).toString()
       );
     }
   };

@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation, Link } from "wouter";
-import { Course, Unit, InsertUnit, TrainingArea, Module } from "@shared/schema";
+import { useLocation } from "wouter";
+import { Course, Unit, TrainingArea, Module } from "@shared/schema";
 
 // UI Components
 import {
@@ -44,23 +44,11 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
   Loader2,
   Pencil,
-  Plus,
   Trash,
-  FileText,
   School,
-  ChevronRight,
   Search,
-  Filter,
   Eye,
   EyeOff,
 } from "lucide-react";

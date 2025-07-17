@@ -7,6 +7,7 @@ import {
   Unit,
   LearningBlock,
   UserProgress,
+  User,
 } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -14,21 +15,7 @@ import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Loader2,
   Trophy,
@@ -40,7 +27,6 @@ import {
   Play,
   FileText,
   Monitor,
-  Plus,
   Zap,
   FileQuestion,
   BookOpen,
@@ -61,9 +47,9 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
+      <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
       <MobileNav />
@@ -108,7 +94,7 @@ export default function EnhancedCourseDetail() {
   );
 
   // Fetch current user
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User | null>({
     queryKey: ["/api/user"],
   });
 
@@ -155,7 +141,7 @@ export default function EnhancedCourseDetail() {
   });
 
   // Fetch user progress for all courses
-  const { data: userProgress = [] } = useQuery({
+  const { data: userProgress = [] } = useQuery<UserProgress[]>({
     queryKey: ["/api/user/progress"],
   });
 
@@ -172,7 +158,7 @@ export default function EnhancedCourseDetail() {
   });
 
   // Fetch course prerequisites
-  const { data: prerequisites = [] } = useQuery({
+  const { data: prerequisites = [] } = useQuery<Course[]>({
     queryKey: [`/api/courses/${courseId}/prerequisites`],
     enabled: !!courseId,
   });
@@ -345,25 +331,26 @@ export default function EnhancedCourseDetail() {
     }
   }, [blocks]);
 
-  // Initialize completed assessments and blocks from progress data
+  // Initialize completed assessments from the new progress system
   useEffect(() => {
-    if (progress && Array.isArray(progress) && courseId) {
-      const courseProgress = progress.find((p: any) => p.courseId === courseId);
-      if (courseProgress?.completedAssessments) {
-        setCompletedAssessments((prev) => {
-          const newSet = new Set(courseProgress.completedAssessments);
-          // Only update if the set is actually different
-          if (
-            prev.size !== newSet.size ||
-            [...prev].some((id) => !newSet.has(id))
-          ) {
-            return newSet;
-          }
-          return prev;
-        });
-      }
+    if (allAssessmentProgress && Array.isArray(allAssessmentProgress)) {
+      const completedIds = allAssessmentProgress
+        .filter((p: any) => p.isCompleted)
+        .map((p: any) => p.assessmentId);
+
+      setCompletedAssessments((prev) => {
+        const newSet = new Set(completedIds);
+        // Only update if the set is actually different
+        if (
+          prev.size !== newSet.size ||
+          Array.from(prev).some((id) => !newSet.has(id))
+        ) {
+          return newSet;
+        }
+        return prev;
+      });
     }
-  }, [progress, courseId]);
+  }, [allAssessmentProgress]);
 
   // Course-specific block progress is handled by useCourseProgress hook
   // No need to initialize completedBlocks from legacy data
@@ -1142,11 +1129,6 @@ export default function EnhancedCourseDetail() {
                         )}
                         {selectedBlock.title}
                       </CardTitle>
-                      {selectedBlock.description && (
-                        <CardDescription>
-                          {selectedBlock.description}
-                        </CardDescription>
-                      )}
                     </CardHeader>
                     <CardContent>
                       {selectedBlock.type === "text" && (
@@ -1218,7 +1200,7 @@ export default function EnhancedCourseDetail() {
                     </CardContent>
                   </Card>
                 )}
-                {selectedContent.type === "assessment" && (
+                {selectedContent.type === "assessment" && user && (
                   <div>
                     {isAssessmentCompletedUnified(selectedContent.id) ? (
                       <Card>
