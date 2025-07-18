@@ -334,7 +334,7 @@ export function AssessmentFlow({
         </CardHeader>
         <CardContent>
           {currentQuestion.questionType === "mcq" &&
-            currentQuestion.options && (
+            currentQuestion.options !== null && (
               <RadioGroup
                 value={selectedAnswers[currentQuestion.id.toString()] || ""}
                 onValueChange={(value) =>
@@ -343,7 +343,7 @@ export function AssessmentFlow({
                 className="space-y-3"
               >
                 {(() => {
-                  let options = currentQuestion.options;
+                  let options = currentQuestion.options as any;
 
                   // Handle different option formats
                   if (typeof options === "string") {
@@ -360,7 +360,7 @@ export function AssessmentFlow({
                     );
                   }
 
-                  return options.map((option, index) => (
+                  return options.map((option: any, index: number) => (
                     <div
                       key={index}
                       className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50"

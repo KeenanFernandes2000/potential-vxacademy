@@ -5,15 +5,38 @@ import { z } from "zod";
 import { Download, Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Simplified form schema for bulk upload - only file upload needed
 const bulkUploadSchema = z.object({
-  file: z.any().refine((file) => file && file.length > 0, "Please select an Excel file to upload"),
+  file: z
+    .any()
+    .refine(
+      (file) => file && file.length > 0,
+      "Please select an Excel file to upload"
+    ),
 });
 
 type BulkUploadFormData = z.infer<typeof bulkUploadSchema>;
@@ -42,14 +65,14 @@ export function BulkUploadDialog({
     if (file) {
       // Validate file type
       const allowedTypes = [
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       ];
 
       if (!allowedTypes.includes(file.type)) {
-        form.setError("file", { 
-          type: "manual", 
-          message: "Please select a valid Excel file (.xlsx or .xls)" 
+        form.setError("file", {
+          type: "manual",
+          message: "Please select a valid Excel file (.xlsx or .xls)",
         });
         return;
       }
@@ -62,15 +85,17 @@ export function BulkUploadDialog({
 
   const handleSubmit = (data: BulkUploadFormData) => {
     if (selectedFile) {
-      onSubmit({ file: selectedFile });
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      onSubmit(formData);
     }
   };
 
   const handleDownloadTemplate = () => {
     // Create a download link for the Excel template
-    const link = document.createElement('a');
-    link.href = '/api/admin/users/template';
-    link.download = 'VX_Academy_Import_Template.xlsx';
+    const link = document.createElement("a");
+    link.href = "/api/admin/users/template";
+    link.download = "VX_Academy_Import_Template.xlsx";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -78,7 +103,10 @@ export function BulkUploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className="sm:max-w-md max-h-[80vh] overflow-y-auto"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
@@ -90,14 +118,17 @@ export function BulkUploadDialog({
           {/* Template Download Section */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Step 1: Download Template</CardTitle>
+              <CardTitle className="text-sm">
+                Step 1: Download Template
+              </CardTitle>
               <CardDescription>
-                Download the VX Academy Import Format template and fill in your user data.
+                Download the VX Academy Import Format template and fill in your
+                user data.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleDownloadTemplate}
                 className="w-full"
               >
@@ -110,14 +141,19 @@ export function BulkUploadDialog({
           {/* File Upload Section */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Step 2: Upload Completed File</CardTitle>
+              <CardTitle className="text-sm">
+                Step 2: Upload Completed File
+              </CardTitle>
               <CardDescription>
                 Upload your completed Excel file with user data
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="file"
@@ -141,7 +177,8 @@ export function BulkUploadDialog({
                     <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
                       <FileSpreadsheet className="h-4 w-4 text-green-600" />
                       <span className="text-sm text-green-700">
-                        Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                        Selected: {selectedFile.name} (
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                       </span>
                     </div>
                   )}
@@ -183,13 +220,23 @@ export function BulkUploadDialog({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="space-y-2">
-              <div><strong>Excel Format Requirements:</strong></div>
+              <div>
+                <strong>Excel Format Requirements:</strong>
+              </div>
               <ul className="text-sm space-y-1 ml-4">
                 <li>• Row 1 must contain headers that map to user fields</li>
                 <li>• Required fields: First Name, Email</li>
-                <li>• Optional fields: Last Name, Username, Password, Role, Language, Assets, etc.</li>
-                <li>• If no password is provided, email will be used as the password</li>
-                <li>• Invalid rows will be skipped with detailed error reporting</li>
+                <li>
+                  • Optional fields: Last Name, Username, Password, Role,
+                  Language, Assets, etc.
+                </li>
+                <li>
+                  • If no password is provided, email will be used as the
+                  password
+                </li>
+                <li>
+                  • Invalid rows will be skipped with detailed error reporting
+                </li>
               </ul>
             </AlertDescription>
           </Alert>

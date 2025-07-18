@@ -160,7 +160,7 @@ export function CertificatePrint({
       </div>
 
       {/* Print Styles */}
-      <style jsx>{`
+      <style>{`
         @media print {
           body {
             -webkit-print-color-adjust: exact;

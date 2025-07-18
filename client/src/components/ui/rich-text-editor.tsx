@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Strike from "@tiptap/extension-strike";
@@ -63,7 +63,7 @@ export function RichTextEditor({
   className,
   disabled = false,
 }: RichTextEditorProps) {
-  const editor = useEditor({
+  const editor: Editor | null = useEditor({
     extensions: [
       StarterKit.configure({
         // Configure hard break to preserve line breaks
@@ -119,7 +119,7 @@ export function RichTextEditor({
           disabled && "opacity-50 cursor-not-allowed"
         ),
       },
-      handleKeyDown: (view, event) => {
+      handleKeyDown: (view, event): boolean => {
         // Handle Shift+Enter as line break, Enter as paragraph break
         if (event.key === "Enter" && event.shiftKey) {
           return editor?.commands.setHardBreak() || false;
