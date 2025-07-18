@@ -23,7 +23,7 @@ export function ProgressSection() {
   });
 
   // Fetch current user for course progress tracking
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<{ id: number }>({
     queryKey: ["/api/user"],
   });
 
@@ -42,6 +42,7 @@ export function ProgressSection() {
             userId: 0,
             id: 0,
             createdAt: null,
+            updatedAt: null,
           },
         };
       });
@@ -270,8 +271,14 @@ export function ProgressSection() {
                 key={course.id}
                 course={course}
                 progress={{
-                  ...course.progress,
+                  id: course.progress?.id || 0,
+                  courseId: course.progress?.courseId || course.id,
+                  userId: course.progress?.userId || 0,
+                  completed: course.progress?.completed || false,
                   percentComplete: calculatedProgress.percentComplete,
+                  lastAccessed: course.progress?.lastAccessed || new Date(),
+                  createdAt: course.progress?.createdAt || null,
+                  updatedAt: course.progress?.updatedAt || null,
                 }}
                 units={allUnitsAndBlocks?.[course.id]?.units || []}
                 formatDuration={formatDuration}
@@ -289,7 +296,8 @@ export function ProgressSection() {
                 Start a course to view your progress here
               </h3>
               <p className="text-neutrals-600 mb-4">
-                Begin your learning journey by enrolling in a course to track your progress.
+                Begin your learning journey by enrolling in a course to track
+                your progress.
               </p>
               <Link
                 href="/courses"

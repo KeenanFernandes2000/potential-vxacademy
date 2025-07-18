@@ -356,7 +356,7 @@ export function RecommendedCourses() {
                   <div className="flex flex-col space-y-2">
                     <Link href={`/courses/${course.id}`}>
                       <Button
-                        variant="primary"
+                        variant="default"
                         className="w-full bg-primary hover:bg-primary-dark text-white"
                       >
                         View Course
