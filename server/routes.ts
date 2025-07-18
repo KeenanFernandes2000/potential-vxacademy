@@ -386,13 +386,15 @@ async function updateCourseProgress(userId: number, courseId: number) {
       const assessments = await storage.getAssessments(unit.id);
       totalItems += assessments.length;
 
-      // Count passed assessments
+      // Count passed assessments using course-specific progress
       for (const assessment of assessments) {
-        const attempts = await storage.getAssessmentAttempts(
+        const assessmentProgress = await storage.getUserAssessmentProgress(
           userId,
+          courseId,
+          unit.id,
           assessment.id
         );
-        if (attempts.some((attempt) => attempt.passed)) {
+        if (assessmentProgress && assessmentProgress.isCompleted) {
           completedItems++;
         }
       }
@@ -412,13 +414,17 @@ async function updateCourseProgress(userId: number, courseId: number) {
     }
     totalItems += courseAssessments.length;
 
-    // Count passed course assessments
+    // Count passed course assessments using course-specific progress
     for (const assessment of courseAssessments) {
-      const attempts = await storage.getAssessmentAttempts(
+      // For course-level assessments, we need to check if they have course-specific progress
+      // Since course-level assessments don't have unitId, we'll check if they have any progress records
+      const assessmentProgress = await storage.getUserAssessmentProgress(
         userId,
+        courseId,
+        -1, // Use -1 for course-level assessments (no unit)
         assessment.id
       );
-      if (attempts.some((attempt) => attempt.passed)) {
+      if (assessmentProgress && assessmentProgress.isCompleted) {
         completedItems++;
       }
     }
@@ -2972,6 +2978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const assessmentId = parseInt(req.params.assessmentId);
         const userId = parseInt(req.params.userId);
+        const courseId = req.query.courseId ? parseInt(req.query.courseId as string) : undefined;
 
         // Ensure user can only access their own attempts (unless admin)
         if (req.user!.id !== userId && req.user!.role !== "admin") {
@@ -2980,7 +2987,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const attempts = await storage.getAssessmentAttempts(
           userId,
-          assessmentId
+          assessmentId,
+          courseId
         );
         res.json(attempts);
       } catch (error) {
@@ -3000,20 +3008,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const { answers, score: clientScore, timeExpired, startedAt } = req.body;
 
-      if (!answers) {
-        return res.status(400).json({ message: "Answers are required" });
+      // Extract course ID from the referrer URL or request headers
+      let courseIdFromContext: number | null = null;
+      
+      // Try to get course ID from referrer header
+      const referer = req.get('referer');
+      if (referer) {
+        const courseMatch = referer.match(/\/courses\/(\d+)/);
+        if (courseMatch) {
+          courseIdFromContext = parseInt(courseMatch[1]);
+          console.log(`Extracted course ID from referrer: ${courseIdFromContext}`);
+        }
+      }
+      
+      // If not found in referrer, try to get from custom header (fallback)
+      if (!courseIdFromContext) {
+        const courseIdHeader = req.get('x-course-id');
+        if (courseIdHeader) {
+          courseIdFromContext = parseInt(courseIdHeader);
+          console.log(`Extracted course ID from header: ${courseIdFromContext}`);
+        }
       }
 
-      // Get assessment details
+      // Get assessment details to determine unit ID
       const assessment = await storage.getAssessment(assessmentId);
       if (!assessment) {
         return res.status(404).json({ message: "Assessment not found" });
       }
 
-      // Check if user has remaining attempts
+      // Determine course ID and unit ID for the attempt
+      const attemptCourseId = courseIdFromContext || assessment.courseId;
+      const attemptUnitId = assessment.unitId || 0; // Use 0 for course-level assessments
+
+      if (!attemptCourseId) {
+        return res.status(400).json({ message: "Could not determine course context for assessment attempt" });
+      }
+
+      if (!answers) {
+        return res.status(400).json({ message: "Answers are required" });
+      }
+
+      // Check if user has remaining attempts (filter by course context)
       const previousAttempts = await storage.getAssessmentAttempts(
         userId,
-        assessmentId
+        assessmentId,
+        attemptCourseId // Use course-specific retake counting
       );
       if (previousAttempts.length >= assessment.maxRetakes) {
         return res.status(400).json({ message: "No attempts remaining" });
@@ -3030,6 +3069,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const attempt = await storage.createAssessmentAttempt({
           userId,
           assessmentId,
+          courseId: attemptCourseId,
+          unitId: attemptUnitId,
           score,
           passed,
           answers: {},
@@ -3061,10 +3102,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             xpPoints: (user.xpPoints || 0) + assessment.xpPoints,
           });
         }
-        // Update course progress
+        // Update course progress - Use course ID from URL context
         try {
-          let courseId = assessment.courseId;
+          let courseId = courseIdFromContext || assessment.courseId;
           if (!courseId && assessment.unitId) {
+            // If no courseId from context, use the first course that contains this unit
             const courses = await storage.getCoursesForUnit(assessment.unitId);
             courseId = courses[0]?.id;
           }
@@ -3073,10 +3115,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Mark assessment as complete in the progress tracking system
             if (assessment.unitId) {
+              // Unit-level assessment
               await storage.markAssessmentComplete(
                 userId,
                 courseId,
                 assessment.unitId,
+                assessmentId
+              );
+            } else {
+              // Course-level assessment
+              await storage.markAssessmentComplete(
+                userId,
+                courseId,
+                0, // Use 0 for course-level assessments (no unit)
                 assessmentId
               );
             }
@@ -3204,6 +3255,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const attempt = await storage.createAssessmentAttempt({
         userId,
         assessmentId,
+        courseId: attemptCourseId,
+        unitId: attemptUnitId,
         score,
         passed,
         answers: answers,
@@ -3238,11 +3291,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Update course progress
+        // Update course progress - Use course ID from URL context
         try {
-          let courseId = assessment.courseId;
+          let courseId = courseIdFromContext || assessment.courseId;
           if (!courseId && assessment.unitId) {
-            // Get course from unit if assessment is unit-level
+            // If no courseId from context, use the first course that contains this unit
             const courses = await storage.getCoursesForUnit(assessment.unitId);
             courseId = courses[0]?.id;
           }
@@ -3252,10 +3305,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Mark assessment as complete in the progress tracking system
             if (assessment.unitId) {
+              // Unit-level assessment
               await storage.markAssessmentComplete(
                 userId,
                 courseId,
                 assessment.unitId,
+                assessmentId
+              );
+            } else {
+              // Course-level assessment
+              await storage.markAssessmentComplete(
+                userId,
+                courseId,
+                0, // Use 0 for course-level assessments (no unit)
                 assessmentId
               );
             }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useRoute } from "wouter";
 import { Assessment, Question } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,13 @@ export function AssessmentFlow({
   onComplete,
   onCancel,
 }: AssessmentFlowProps) {
+  // Extract course_id from URL as fallback
+  const [match, params] = useRoute("/courses/:id");
+  const urlCourseId = params?.id ? parseInt(params.id) : null;
+
+  // Use courseId from assessment if available, otherwise use from URL
+  const effectiveCourseId = assessment.courseId || urlCourseId;
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<string, string>
@@ -46,7 +54,17 @@ export function AssessmentFlow({
 
   // Fetch user's previous attempts
   const { data: attempts, isLoading: isLoadingAttempts } = useQuery<any[]>({
-    queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
+    queryKey: [
+      `/api/assessments/${assessment.id}/attempts/${userId}`,
+      effectiveCourseId,
+    ] as const,
+    queryFn: async () => {
+      const url = `/api/assessments/${assessment.id}/attempts/${userId}${
+        effectiveCourseId ? `?courseId=${effectiveCourseId}` : ""
+      }`;
+      const res = await apiRequest("GET", url);
+      return res.json();
+    },
     enabled: !!assessment.id && !!userId,
   });
 
@@ -66,7 +84,10 @@ export function AssessmentFlow({
 
       // Invalidate related queries
       queryClient.invalidateQueries({
-        queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
+        queryKey: [
+          `/api/assessments/${assessment.id}/attempts/${userId}`,
+          effectiveCourseId,
+        ] as const,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/user/progress`] });
 

@@ -85,7 +85,7 @@ import {
   type InsertCourseEnrollment,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, desc, and, inArray, ne, gte, lte } from "drizzle-orm";
+import { eq, asc, desc, and, inArray, ne, gte, lte, isNull } from "drizzle-orm";
 import session from "express-session";
 import { IStorage } from "./storage";
 import connectPg from "connect-pg-simple";
@@ -876,17 +876,23 @@ export class DatabaseStorage implements IStorage {
   // Assessment Attempts
   async getAssessmentAttempts(
     userId: number,
-    assessmentId: number
+    assessmentId: number,
+    courseId?: number // Add optional courseId parameter for course-specific counting
   ): Promise<AssessmentAttempt[]> {
+    const conditions = [
+      eq(assessmentAttempts.userId, userId),
+      eq(assessmentAttempts.assessmentId, assessmentId)
+    ];
+    
+    // If courseId is provided, filter by course context for retake counting
+    if (courseId) {
+      conditions.push(eq(assessmentAttempts.courseId, courseId));
+    }
+    
     return await db
       .select()
       .from(assessmentAttempts)
-      .where(
-        and(
-          eq(assessmentAttempts.userId, userId),
-          eq(assessmentAttempts.assessmentId, assessmentId)
-        )
-      );
+      .where(and(...conditions));
   }
 
   async createAssessmentAttempt(

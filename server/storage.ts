@@ -261,7 +261,8 @@ export interface IStorage {
   // Assessment Attempts
   getAssessmentAttempts(
     userId: number,
-    assessmentId: number
+    assessmentId: number,
+    courseId?: number
   ): Promise<AssessmentAttempt[]>;
   createAssessmentAttempt(
     attempt: InsertAssessmentAttempt

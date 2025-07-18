@@ -508,10 +508,18 @@ export default function AssessmentsManagement() {
                           onValueChange={(value) => {
                             field.onChange(value);
                             setAssessmentFor(value as "course" | "unit");
-                            // Reset hierarchical selections
+                            // Reset hierarchical selections in state
                             setSelectedTrainingAreaId(null);
                             setSelectedModuleId(null);
                             setSelectedCourseId(null);
+                            // Reset form values for the other assessment type
+                            if (value === "course") {
+                              form.setValue("unitId", undefined);
+                            } else {
+                              form.setValue("trainingAreaId", undefined);
+                              form.setValue("moduleId", undefined);
+                              form.setValue("courseId", undefined);
+                            }
                           }}
                           value={field.value}
                         >
@@ -597,7 +605,7 @@ export default function AssessmentsManagement() {
                                 setSelectedCourseId(null);
                               }}
                               value={field.value?.toString() || ""}
-                              disabled={!selectedTrainingAreaId}
+                              disabled={!form.watch("trainingAreaId")}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -642,7 +650,7 @@ export default function AssessmentsManagement() {
                                 setSelectedCourseId(courseId);
                               }}
                               value={field.value?.toString() || ""}
-                              disabled={!selectedModuleId}
+                              disabled={!form.watch("moduleId")}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -762,10 +770,6 @@ export default function AssessmentsManagement() {
                                     ?.filter((unit) => {
                                       if (!form.watch("courseId")) return false;
                                       // Use courseUnits relationship to filter
-                                      // We'll need to fetch courseUnits in this component
-                                      // For now, fallback to units with a courseId property if available
-                                      // (but in this schema, units are many-to-many, so we need courseUnits)
-                                      // We'll use a local state for courseUnits
                                       if (!courseUnits) return true;
                                       return courseUnits.some(
                                         (cu) =>

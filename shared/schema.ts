@@ -347,12 +347,19 @@ export const assessmentAttempts = pgTable("assessment_attempts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   assessmentId: integer("assessment_id").notNull(),
+  courseId: integer("course_id").notNull(), // Course context for the attempt
+  unitId: integer("unit_id").notNull(), // Unit context for the attempt
   score: integer("score").notNull(),
   passed: boolean("passed").notNull(),
   answers: json("answers"), // User's answers
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
-});
+}, (table) => ({
+  // Unique constraint to prevent duplicate attempts for same user/course/unit/assessment
+  userCourseUnitAssessmentUnique: uniqueIndex(
+    "assessment_attempts_user_course_unit_assessment_idx"
+  ).on(table.userId, table.courseId, table.unitId, table.assessmentId),
+}));
 
 export const insertAssessmentAttemptSchema = createInsertSchema(
   assessmentAttempts
@@ -731,6 +738,14 @@ export const assessmentAttemptsRelations = relations(
       fields: [assessmentAttempts.assessmentId],
       references: [assessments.id],
     }),
+    course: one(courses, {
+      fields: [assessmentAttempts.courseId],
+      references: [courses.id],
+    }),
+    unit: one(units, {
+      fields: [assessmentAttempts.unitId],
+      references: [units.id],
+    }),
   })
 );
 
@@ -942,7 +957,7 @@ export const userAssessmentProgress = pgTable(
     id: serial("id").primaryKey(),
     userId: integer("user_id").notNull(),
     courseId: integer("course_id").notNull(),
-    unitId: integer("unit_id").notNull(),
+    unitId: integer("unit_id").notNull(), // Keep NOT NULL, use -1 for course-level assessments
     assessmentId: integer("assessment_id").notNull(),
     isCompleted: boolean("is_completed").notNull().default(false),
     completedAt: timestamp("completed_at"),

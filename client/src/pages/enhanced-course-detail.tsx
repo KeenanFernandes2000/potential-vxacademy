@@ -1218,6 +1218,11 @@ export default function EnhancedCourseDetail() {
                       <ComprehensiveAssessment
                         assessment={selectedContent.data}
                         userId={user.id}
+                        courseId={courseId!}
+                        unitId={selectedUnit?.id}
+                        isCompleted={isAssessmentCompletedUnified(
+                          selectedContent.id
+                        )}
                         onComplete={(result) =>
                           handleAssessmentComplete({
                             ...result,

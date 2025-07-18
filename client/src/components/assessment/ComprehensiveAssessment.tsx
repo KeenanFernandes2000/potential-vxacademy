@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useRoute } from "wouter";
 import { Assessment, Question } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,9 @@ import {
 interface ComprehensiveAssessmentProps {
   assessment: Assessment;
   userId: number;
+  courseId: number; // Add course context
+  unitId?: number; // Add unit context
+  isCompleted?: boolean; // Add completion status from parent
   onComplete: (result: {
     passed: boolean;
     score: number;
@@ -32,9 +36,19 @@ interface ComprehensiveAssessmentProps {
 export function ComprehensiveAssessment({
   assessment,
   userId,
+  courseId,
+  unitId,
+  isCompleted = false, // Default to false
   onComplete,
   onCancel,
 }: ComprehensiveAssessmentProps) {
+  // Extract course_id from URL as fallback
+  const [match, params] = useRoute("/courses/:id");
+  const urlCourseId = params?.id ? parseInt(params.id) : null;
+
+  // Use courseId from props if available, otherwise use from URL
+  const effectiveCourseId = courseId || urlCourseId;
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<string, string>
@@ -59,7 +73,17 @@ export function ComprehensiveAssessment({
   // Fetch previous attempts
   const { data: attempts = [], isLoading: isLoadingAttempts } = useQuery<any[]>(
     {
-      queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
+      queryKey: [
+        `/api/assessments/${assessment.id}/attempts/${userId}`,
+        effectiveCourseId,
+      ] as const,
+      queryFn: async () => {
+        const url = `/api/assessments/${assessment.id}/attempts/${userId}${
+          effectiveCourseId ? `?courseId=${effectiveCourseId}` : ""
+        }`;
+        const res = await apiRequest("GET", url);
+        return res.json();
+      },
       enabled: !!assessment.id && !!userId,
     }
   );
@@ -114,9 +138,25 @@ export function ComprehensiveAssessment({
 
       // Invalidate related queries
       queryClient.invalidateQueries({
-        queryKey: [`/api/assessments/${assessment.id}/attempts/${userId}`],
+        queryKey: [
+          `/api/assessments/${assessment.id}/attempts/${userId}`,
+          effectiveCourseId,
+        ] as const,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/user/progress`] });
+      // Invalidate course-specific progress
+      if (effectiveCourseId) {
+        queryClient.invalidateQueries({
+          queryKey: [`/api/progress/assessment/all/${effectiveCourseId}`],
+        });
+        if (unitId) {
+          queryClient.invalidateQueries({
+            queryKey: [
+              `/api/progress/assessment/${effectiveCourseId}/${unitId}`,
+            ],
+          });
+        }
+      }
     },
     onError: (error) => {
       console.error("Assessment submission error:", error);
@@ -127,8 +167,8 @@ export function ComprehensiveAssessment({
   const attemptsUsed = attempts.length;
   const attemptsRemaining = Math.max(0, assessment.maxRetakes - attemptsUsed);
   const canTakeAssessment = attemptsRemaining > 0;
-  const hasPassed = attempts.some((attempt) => attempt.passed);
-  const lastAttempt = attempts[attempts.length - 1];
+  // Remove global hasPassed check - use the prop instead
+  const hasPassed = isCompleted;
 
   // Simple certificate check - just use the certificate template URL from assessment
   const hasCertificateUrl =
@@ -416,14 +456,14 @@ export function ComprehensiveAssessment({
             </div>
           </div>
 
-          {attempts.length > 0 && (
+          {/* {attempts.length > 0 && (
             <Alert className="border-blue-200 bg-blue-50">
               <AlertDescription className="text-blue-700">
                 Previous attempts:{" "}
                 {attempts.map((a) => `${a.score}%`).join(", ")}
               </AlertDescription>
             </Alert>
-          )}
+          )} */}
 
           <div className="flex space-x-3">
             <Button

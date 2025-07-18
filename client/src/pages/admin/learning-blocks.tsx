@@ -1158,7 +1158,11 @@ export default function LearningBlocksManagement() {
                     </label>
                     <Select
                       value={selectedCourseId}
-                      onValueChange={setSelectedCourseId}
+                      onValueChange={(value) => {
+                        setSelectedCourseId(value);
+                        // Reset unit filter when course changes
+                        setSelectedFilterUnitId("all");
+                      }}
                     >
                       <SelectTrigger className="h-9">
                         <SelectValue placeholder="All Courses" />
@@ -1197,11 +1201,27 @@ export default function LearningBlocksManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Units</SelectItem>
-                        {units?.map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id.toString()}>
-                            {unit.name}
-                          </SelectItem>
-                        ))}
+                        {units
+                          ?.filter((unit) => {
+                            // If no specific course is selected, show all units
+                            if (selectedCourseId === "all") {
+                              return true;
+                            }
+                            // Filter units based on selected course
+                            const unitCourses =
+                              courseUnits
+                                ?.filter((cu: any) => cu.unitId === unit.id)
+                                .map((cu: any) => cu.courseId.toString()) || [];
+                            return unitCourses.includes(selectedCourseId);
+                          })
+                          .map((unit) => (
+                            <SelectItem
+                              key={unit.id}
+                              value={unit.id.toString()}
+                            >
+                              {unit.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
