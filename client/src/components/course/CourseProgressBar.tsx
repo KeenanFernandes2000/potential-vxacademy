@@ -24,34 +24,7 @@ export const CourseProgressBar = ({
         </span>
         <span className="text-sm text-gray-500">{percent}% Complete</span>
       </div>
-      <Progress value={percent} className="h-3" />
-
-      {/* Progress details */}
-      <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-        <div className="flex items-center gap-2">
-          <CheckCircle className="h-3 w-3" />
-          <span>{percent}% Complete</span>
-        </div>
-        {hasEndAssessment && (
-          <div className="flex items-center gap-1">
-            {endAssessmentAvailable ? (
-              <>
-                <Award className="h-3 w-3 text-green-600" />
-                <span className="text-green-600">
-                  Final Assessment Available
-                </span>
-              </>
-            ) : (
-              <>
-                <Clock className="h-3 w-3 text-orange-500" />
-                <span className="text-orange-500">
-                  Complete all content to unlock final assessment
-                </span>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      <Progress value={percent} className="h-3 mb-2" />
     </div>
   );
 };

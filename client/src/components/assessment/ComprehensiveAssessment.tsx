@@ -129,6 +129,18 @@ export function ComprehensiveAssessment({
     onSuccess: (result) => {
       console.log("Assessment submission successful:", result);
       setIsSubmitting(false);
+
+      // If the user failed the assessment, reset to start screen
+      if (!result.passed) {
+        setAssessmentStarted(false);
+        setCurrentQuestionIndex(0);
+        setSelectedAnswers({});
+        setTimeExpired(false);
+        if (assessment?.hasTimeLimit && assessment?.timeLimit) {
+          setTimeRemaining(assessment.timeLimit * 60);
+        }
+      }
+
       onComplete({
         passed: result.passed,
         score: result.score,
@@ -482,6 +494,97 @@ export function ComprehensiveAssessment({
     );
   }
 
+  // Assessment start screen (for assessments with questions)
+  if (!assessmentStarted && questions && questions.length > 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Trophy className="mr-2 h-5 w-5 text-blue-600" />
+            {assessment.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {assessment.description && (
+            <p className="text-gray-600">{assessment.description}</p>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h4 className="font-semibold">Assessment Details:</h4>
+              <p>
+                <strong>Questions:</strong> {questions?.length || 0}
+              </p>
+              {assessment.isGraded && assessment.passingScore && (
+                <p>
+                  <strong>Passing Score:</strong> {assessment.passingScore}%
+                </p>
+              )}
+              <p>
+                <strong>XP Points:</strong> {assessment.xpPoints}
+              </p>
+              {assessment.hasCertificate && (
+                <div className="flex items-center text-green-600">
+                  <Award className="mr-1 h-4 w-4" />
+                  <span>Certificate awarded upon passing</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-semibold">Attempt Information:</h4>
+              <p>
+                <strong>Attempts used:</strong> {attemptsUsed} /{" "}
+                {assessment.maxRetakes}
+              </p>
+              <p>
+                <strong>Attempts remaining:</strong> {attemptsRemaining}
+              </p>
+              {assessment.hasTimeLimit && assessment.timeLimit && (
+                <div className="flex items-center text-orange-600">
+                  <Clock className="mr-1 h-4 w-4" />
+                  <span>Time limit: {assessment.timeLimit} minutes</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {attempts && attempts.length > 0 && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <AlertDescription className="text-blue-700">
+                Previous attempts:{" "}
+                {attempts.map((a) => `${a.score}%`).join(", ")}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {attempts &&
+            attempts.length > 0 &&
+            attempts[attempts.length - 1]?.passed === false && (
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <AlertDescription className="text-yellow-700">
+                  Your last attempt was unsuccessful. You can retake this
+                  assessment to improve your score.
+                </AlertDescription>
+              </Alert>
+            )}
+
+          <div className="flex space-x-3">
+            <Button
+              onClick={handleStartAssessment}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Start Assessment
+            </Button>
+            <Button onClick={onCancel} variant="outline">
+              Cancel
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!questions || questions.length === 0) {
     return (
       <Card>
@@ -500,7 +603,13 @@ export function ComprehensiveAssessment({
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const currentQuestionId = currentQuestion.id.toString();
+  const isCurrentQuestionAnswered =
+    selectedAnswers[currentQuestionId] !== undefined;
+
+  // Calculate progress based on answered questions, not just position
+  const answeredQuestions = Object.keys(selectedAnswers).length;
+  const progress = (answeredQuestions / questions.length) * 100;
   const allAnswered = Object.keys(selectedAnswers).length === questions.length;
 
   // Helper function to render MCQ options with proper typing
@@ -569,7 +678,8 @@ export function ComprehensiveAssessment({
               Question {currentQuestionIndex + 1} of {questions.length}
             </span>
             <span className="text-sm text-gray-500">
-              {Math.round(progress)}% complete
+              {answeredQuestions} of {questions.length} answered (
+              {Math.round(progress)}% complete)
             </span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -579,9 +689,17 @@ export function ComprehensiveAssessment({
       {/* Current Question */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">
-            {currentQuestion.questionText}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">
+              {currentQuestion.questionText}
+            </CardTitle>
+            {isCurrentQuestionAnswered && (
+              <div className="flex items-center text-green-600">
+                <CheckCircle className="h-5 w-5 mr-1" />
+                <span className="text-sm font-medium">Answered</span>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {currentQuestion.questionType === "mcq" &&
@@ -640,6 +758,12 @@ export function ComprehensiveAssessment({
                   onClick={() =>
                     setCurrentQuestionIndex(currentQuestionIndex + 1)
                   }
+                  disabled={!isCurrentQuestionAnswered}
+                  className={
+                    !isCurrentQuestionAnswered
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }
                 >
                   Next
                 </Button>
@@ -654,6 +778,16 @@ export function ComprehensiveAssessment({
               )}
             </div>
           </div>
+
+          {!isCurrentQuestionAnswered &&
+            currentQuestionIndex < questions.length - 1 && (
+              <Alert className="mt-3 border-blue-200 bg-blue-50">
+                <AlertDescription className="text-blue-700">
+                  Please select an answer before proceeding to the next
+                  question.
+                </AlertDescription>
+              </Alert>
+            )}
 
           {!allAnswered && currentQuestionIndex === questions.length - 1 && (
             <Alert className="mt-3 border-yellow-200 bg-yellow-50">

@@ -354,12 +354,7 @@ export const assessmentAttempts = pgTable("assessment_attempts", {
   answers: json("answers"), // User's answers
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
-}, (table) => ({
-  // Unique constraint to prevent duplicate attempts for same user/course/unit/assessment
-  userCourseUnitAssessmentUnique: uniqueIndex(
-    "assessment_attempts_user_course_unit_assessment_idx"
-  ).on(table.userId, table.courseId, table.unitId, table.assessmentId),
-}));
+});
 
 export const insertAssessmentAttemptSchema = createInsertSchema(
   assessmentAttempts

@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Trophy, AlertTriangle, Clock, Award } from "lucide-react";
+import { Trophy, AlertTriangle, Clock, Award, CheckCircle } from "lucide-react";
 import { AssessmentTimer } from "./AssessmentTimer";
 
 interface AssessmentFlowProps {
@@ -80,6 +80,15 @@ export function AssessmentFlow({
     },
     onSuccess: (result) => {
       setIsSubmitting(false);
+
+      // If the user failed the assessment, reset to start screen
+      if (!result.passed) {
+        setAssessmentStarted(false);
+        setCurrentQuestionIndex(0);
+        setSelectedAnswers({});
+        setTimeExpired(false);
+      }
+
       onComplete(result.passed, result.score, result.certificateGenerated);
 
       // Invalidate related queries
@@ -262,6 +271,17 @@ export function AssessmentFlow({
             </Alert>
           )}
 
+          {attempts &&
+            attempts.length > 0 &&
+            attempts[attempts.length - 1]?.passed === false && (
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <AlertDescription className="text-yellow-700">
+                  Your last attempt was unsuccessful. You can retake this
+                  assessment to improve your score.
+                </AlertDescription>
+              </Alert>
+            )}
+
           <div className="flex space-x-3">
             <Button
               onClick={handleStartAssessment}
@@ -296,7 +316,13 @@ export function AssessmentFlow({
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const currentQuestionId = currentQuestion.id.toString();
+  const isCurrentQuestionAnswered =
+    selectedAnswers[currentQuestionId] !== undefined;
+
+  // Calculate progress based on answered questions, not just position
+  const answeredQuestions = Object.keys(selectedAnswers).length;
+  const progress = (answeredQuestions / questions.length) * 100;
   const allAnswered = Object.keys(selectedAnswers).length === questions.length;
 
   return (
@@ -318,7 +344,8 @@ export function AssessmentFlow({
               Question {currentQuestionIndex + 1} of {questions.length}
             </span>
             <span className="text-sm text-gray-500">
-              {Math.round(progress)}% complete
+              {answeredQuestions} of {questions.length} answered (
+              {Math.round(progress)}% complete)
             </span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -328,9 +355,17 @@ export function AssessmentFlow({
       {/* Current Question */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">
-            {currentQuestion.questionText}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">
+              {currentQuestion.questionText}
+            </CardTitle>
+            {isCurrentQuestionAnswered && (
+              <div className="flex items-center text-green-600">
+                <CheckCircle className="h-5 w-5 mr-1" />
+                <span className="text-sm font-medium">Answered</span>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {currentQuestion.questionType === "mcq" &&
@@ -420,7 +455,17 @@ export function AssessmentFlow({
 
             <div className="flex space-x-2">
               {currentQuestionIndex < questions.length - 1 ? (
-                <Button onClick={handleNextQuestion}>Next</Button>
+                <Button
+                  onClick={handleNextQuestion}
+                  disabled={!isCurrentQuestionAnswered}
+                  className={
+                    !isCurrentQuestionAnswered
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }
+                >
+                  Next
+                </Button>
               ) : (
                 <Button
                   onClick={handleSubmitAssessment}
@@ -432,6 +477,16 @@ export function AssessmentFlow({
               )}
             </div>
           </div>
+
+          {!isCurrentQuestionAnswered &&
+            currentQuestionIndex < questions.length - 1 && (
+              <Alert className="mt-3 border-blue-200 bg-blue-50">
+                <AlertDescription className="text-blue-700">
+                  Please select an answer before proceeding to the next
+                  question.
+                </AlertDescription>
+              </Alert>
+            )}
 
           {!allAnswered && currentQuestionIndex === questions.length - 1 && (
             <Alert className="mt-3 border-yellow-200 bg-yellow-50">

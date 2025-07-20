@@ -89,7 +89,9 @@ export function CourseCard({
           <span>{course.level}</span>
         </div>
         <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
-
+        <div className="text-md text-gray-500 line-clamp-2 h-12">
+          {course.description}
+        </div>
         {/* Show progress if user has started the course */}
         {courseProgressData.totalItems > 0 ? (
           <>
@@ -103,8 +105,8 @@ export function CourseCard({
             <div className="flex items-center justify-between mt-3">
               {courseProgressData.percentComplete >= 100 ? (
                 <Link href={`/courses/${course.id}`}>
-                  <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors ml-auto">
-                    <span className="material-icons text-xs mr-1">
+                  <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors ml-auto align-middle">
+                    <span className="material-icons text-xs mr-1 align-middle">
                       check_circle
                     </span>
                     Completed
@@ -123,10 +125,6 @@ export function CourseCard({
           </>
         ) : (
           <>
-            <p className="text-sm text-neutrals-600 mb-3 line-clamp-2">
-              {course.description ||
-                "Learn essential skills and knowledge in this comprehensive course."}
-            </p>
             <button
               onClick={() => onEnroll && onEnroll(course.id)}
               className="block w-full bg-neutrals-100 hover:bg-neutrals-200 text-primary font-medium text-sm py-1.5 px-3 rounded text-center transition-colors"

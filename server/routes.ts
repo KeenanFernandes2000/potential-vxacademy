@@ -1047,6 +1047,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const { courseId, unitId, blockId } = req.body;
 
+      console.log("Block completion request:", { userId, courseId, unitId, blockId });
+
       if (!courseId || !unitId || !blockId) {
         return res.status(400).json({
           message: "Missing required fields: courseId, unitId, blockId",
@@ -1062,7 +1064,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(progress);
     } catch (error) {
       console.error("Error marking block complete:", error);
-      res.status(500).json({ message: "Error marking block complete" });
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
+      console.error("Request body:", req.body);
+      console.error("User:", req.user);
+      
+      res.status(500).json({ 
+        message: "Error marking block complete",
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: process.env.NODE_ENV === "development" ? error : undefined
+      });
     }
   });
 

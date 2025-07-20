@@ -32,6 +32,7 @@ import {
   BookOpen,
   ChevronDown,
   ChevronRight,
+  Camera,
 } from "lucide-react";
 import { ComprehensiveAssessment } from "@/components/assessment/ComprehensiveAssessment";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
@@ -951,6 +952,9 @@ export default function EnhancedCourseDetail() {
                                   {block.type === "video" && (
                                     <Play className="h-4 w-4 text-blue-600 flex-shrink-0" />
                                   )}
+                                  {block.type === "image" && (
+                                    <Camera className="h-4 w-4 text-cyan-500 flex-shrink-0" />
+                                  )}
                                   {block.type === "text" && (
                                     <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
                                   )}
@@ -1118,6 +1122,9 @@ export default function EnhancedCourseDetail() {
                         {selectedBlock.type === "video" && (
                           <Play className="mr-2 h-5 w-5 text-blue-600" />
                         )}
+                        {selectedBlock.type === "image" && (
+                          <Camera className="mr-2 h-5 w-5 text-cyan-500" />
+                        )}
                         {selectedBlock.type === "text" && (
                           <FileText className="mr-2 h-5 w-5 text-green-600" />
                         )}
@@ -1150,7 +1157,16 @@ export default function EnhancedCourseDetail() {
                               allowFullScreen
                             />
                           </div>
-                        )}
+                        )}{
+                          selectedBlock.type === "image" && (
+                            <div className="">
+                              <img
+                                src={selectedBlock.imageUrl}
+                                className="rounded-lg w-full shadow-md"
+                              />
+                            </div>
+                          )
+                        }
                       {selectedBlock.type === "scorm" && (
                         <div className="text-center p-8 bg-purple-50 rounded-lg">
                           <Monitor className="mx-auto h-12 w-12 text-purple-600 mb-4" />
