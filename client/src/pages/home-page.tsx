@@ -8,7 +8,19 @@ export default function HomePage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+    <div className="min-h-screen flex flex-col bg-[#0a2540] relative overflow-hidden">
+      {/* Supergraphic SVG Background in Experience Abu Dhabi Style */}
+      <svg
+        className="absolute inset-0 w-full h-full z-0 pointer-events-none"
+        viewBox="0 0 1920 2000"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none"
+        style={{ minHeight: "60%", minWidth: "100%" }}
+      >
+        {/* Large, flowing peach shape */}
+        <path d="M0,0 Q1200,400 1920,100 Q1600,600 0,600 Z" fill="#00d8cc" />
+      </svg>
       {/* Navigation Bar with Glassmorphism */}
       <nav className="bg-white/10 backdrop-blur-xl border-b border-white/20 z-50 sticky top-0">
         <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
@@ -150,20 +162,20 @@ export default function HomePage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight bg-gradient-to-r from-white via-cyan-100 to-teal-100 bg-clip-text text-transparent">
               Elevate Abu Dhabi's Visitor Experience
             </h1>
-            <p className="text-lg md:text-xl lg:text-2xl mb-10 text-white/80 leading-relaxed max-w-3xl">
+            <p className="text-lg md:text-xl lg:text-2xl mb-10 text-gray-400 leading-relaxed max-w-3xl">
               Empowering frontliners with exceptional skills to create memorable
               experiences for every visitor to Abu Dhabi.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <Link href="/auth">
-                <Button className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white text-lg py-4 px-8 rounded-2xl shadow-2xl backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105 font-semibold">
+                <Button className="bg-teal-500 hover:bg-teal-600 text-white text-lg py-4 px-8 rounded-2xl shadow-2xl backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105 font-semibold">
                   Start Your Learning Journey
                 </Button>
               </Link>
               <a href="#about">
                 <Button
                   variant="outline"
-                  className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 text-lg py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-105 font-semibold"
+                  className="bg-white/10 backdrop-blur-sm border-white text-sky-900 hover:bg-white/20 text-lg py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-105 font-semibold"
                 >
                   Learn More
                 </Button>
@@ -355,11 +367,11 @@ export default function HomePage() {
       {/* Training Areas Section */}
       <section
         id="training-areas"
-        className="py-16 md:py-24 relative overflow-hidden bg-slate-700/30"
+        className="py-16 md:py-24 relative overflow-hidden bg-slate-700"
       >
         {/* Background decoration */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        {/* <div className="absolute top-20 left-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div> */}
 
         <div className="container mx-auto px-4 lg:px-6 relative z-10">
           <div className="text-center mb-16 lg:mb-20">
@@ -484,12 +496,24 @@ export default function HomePage() {
       {/* Benefits Section */}
       <section
         id="benefits"
-        className="py-16 md:py-24 relative overflow-hidden bg-slate-800/60"
+        className="py-16 md:py-24 relative overflow-hidden bg-[#003451]"
       >
-        {/* Background decorations */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-cyan-500/20 rounded-full blur-2xl"></div>
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-white/3 rounded-full blur-3xl"></div>
+        {/* Supergraphic SVG Background for Benefits Section, flowing into Testimonials */}
+        <svg
+          className="absolute inset-0 w-full h-[200%] z-0"
+          viewBox="0 0 900 1400"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMinYMin slice"
+          style={{ top: 0, left: 0 }}
+        >
+          <path
+            d="M400,300 C400,100 200,100 200,300 C200,500 400,500 400,300 Z M320,200 C360,200 380,260 380,300 C380,340 360,400 320,400 C280,400 260,340 260,300 C260,260 280,200 320,200 Z"
+            fill="#009086"
+            transform="translate(-1300, -2100) scale(6)"
+          />
+        </svg>
+
+        {/* Removed old blurred and previous SVG backgrounds */}
 
         <div className="container mx-auto px-4 lg:px-6 relative z-10">
           <div className="text-center mb-16 lg:mb-20">
@@ -733,7 +757,7 @@ export default function HomePage() {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-16 md:py-24 relative overflow-hidden bg-slate-800/40">
+      <section className="py-16 md:py-24 relative overflow-hidden bg-[#003451]">
         {/* Background decoration */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
