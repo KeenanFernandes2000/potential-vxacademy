@@ -402,8 +402,7 @@ export default function AuthPage() {
                   </span>
                 </div>
                 <p className="text-base xl:text-lg leading-relaxed">
-                  Develop essential healthcare skills for exceptional patient
-                  service
+                  Develop essential skills for exceptional customer service
                 </p>
               </div>
               <div className="flex items-start group">
