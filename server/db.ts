@@ -24,10 +24,7 @@ async function createDatabaseConnection() {
     // Use traditional PostgreSQL driver for all connections
     pool = new Pool({
       connectionString: databaseUrl,
-      ssl:
-        process.env.NODE_ENV === "production"
-          ? { rejectUnauthorized: false }
-          : false,
+      ssl: false,
       connectionTimeoutMillis: 15000,
       max: 5,
     });
