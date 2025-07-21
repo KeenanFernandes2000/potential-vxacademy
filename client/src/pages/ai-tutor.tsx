@@ -45,9 +45,9 @@ export default function AiTutor() {
             {/* Container for the embedded chat */}
             <div className="h-[700px] w-full rounded-lg shadow-lg overflow-hidden">
               <iframe
-                src="https://ai.potential.com/chat/68049d13024d653c8feb0eec"
+                src="https://ai.potential.com/chat/687d2feed500b7283933ad2c"
                 style={{ width: "100%", height: "100%", border: "none" }}
-                title="VBB AI Coach"
+                title="VX Coach"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               ></iframe>
             </div>
