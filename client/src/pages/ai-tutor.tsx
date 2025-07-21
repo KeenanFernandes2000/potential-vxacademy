@@ -38,7 +38,7 @@ export default function AiTutor() {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-4">AI Tutor</h1>
             <p className="mb-8">
-              This AI tutor can help you learn about EHC values, healthcare
+              This AI tutor can help you learn about VX Academy, healthcare
               practices, and course content.
             </p>
 

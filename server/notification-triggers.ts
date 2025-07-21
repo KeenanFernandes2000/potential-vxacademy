@@ -126,7 +126,7 @@ export class NotificationTriggers {
     const notification: InsertNotification = {
       userId,
       type: "achievement",
-      title: "Welcome to EHC Academy!",
+      title: "Welcome to VX Academy!",
       message: `Welcome ${userName}! Start your learning journey by exploring our courses.`,
       read: false,
       metadata: {},
