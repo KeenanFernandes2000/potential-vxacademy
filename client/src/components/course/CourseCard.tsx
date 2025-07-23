@@ -88,7 +88,7 @@ export function CourseCard({
           <span className="material-icons text-xs mr-1">category</span>
           <span>{course.level}</span>
         </div>
-        <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
+        <h3 className="text-lg font-semibold mb-2 truncate">{course.name}</h3>
         <div className="text-md text-gray-500 line-clamp-2 h-12">
           {course.description}
         </div>
