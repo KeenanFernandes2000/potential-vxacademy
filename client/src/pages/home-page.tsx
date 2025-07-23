@@ -1,11 +1,25 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
   const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const potChatHost = document.getElementById("potChatHost");
+    if (potChatHost) {
+      potChatHost.remove();
+    }
+    // @ts-ignore
+    chatbotembed({
+      botId: "687d2feed500b7283933ad2c",
+      botIcon:
+        "https://ai.potential.com/static/mentors/AbuDhabiExperience-1753076809518-abudhabi.png",
+      botColor: "#d64444",
+    });
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a2540] relative overflow-hidden">
@@ -162,7 +176,7 @@ export default function HomePage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight bg-gradient-to-r from-white via-cyan-100 to-teal-100 bg-clip-text text-transparent">
               Elevate Abu Dhabi's Visitor Experience
             </h1>
-            <p className="text-lg md:text-xl lg:text-2xl mb-10 text-gray-400 leading-relaxed max-w-3xl">
+            <p className="text-lg md:text-xl lg:text-2xl mb-10 text-white leading-relaxed max-w-3xl">
               Empowering frontliners with exceptional skills to create memorable
               experiences for every visitor to Abu Dhabi.
             </p>
@@ -175,7 +189,7 @@ export default function HomePage() {
               <a href="#about">
                 <Button
                   variant="outline"
-                  className="bg-white/10 backdrop-blur-sm border-white text-sky-900 hover:bg-white/20 text-lg py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-105 font-semibold"
+                  className="bg-white/10 backdrop-blur-sm border-white text-teal-600 hover:bg-white/20 text-lg py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-105 font-semibold"
                 >
                   Learn More
                 </Button>
@@ -207,8 +221,8 @@ export default function HomePage() {
                 <div className="w-24 h-1 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full"></div>
               </div>
 
-              <div className="space-y-6 text-lg leading-relaxed text-white/80">
-                <p className="text-xl text-white/90">
+              <div className="space-y-6 text-lg leading-relaxed text-white">
+                <p className="text-xl text-white">
                   The Visitor Experience (VX) Academy is Abu Dhabi's premier
                   training platform designed specifically for frontline staff.
                   Our comprehensive curriculum combines cultural knowledge,
@@ -380,7 +394,7 @@ export default function HomePage() {
                 Training Areas
               </h2>
               <div className="w-24 h-1 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full mx-auto"></div>
-              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white/80 leading-relaxed">
+              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white leading-relaxed">
                 Our comprehensive training modules cover every aspect of
                 creating exceptional visitor experiences in Abu Dhabi.
               </p>
@@ -461,7 +475,7 @@ export default function HomePage() {
                     <h3 className="text-xl font-bold text-white group-hover:text-teal-400 transition-colors duration-300">
                       {area.title}
                     </h3>
-                    <p className="text-white/70 text-sm leading-relaxed">
+                    <p className="text-white text-sm leading-relaxed">
                       {area.description}
                     </p>
                     <div className="pt-4">
@@ -522,7 +536,7 @@ export default function HomePage() {
                 Why Join VX Academy?
               </h2>
               <div className="w-24 h-1 bg-gradient-to-r from-white to-cyan-400 rounded-full mx-auto"></div>
-              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white/80 leading-relaxed">
+              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white leading-relaxed">
                 Joining the VX Academy provides frontliners with numerous
                 benefits that enhance both professional development and personal
                 growth.
@@ -631,7 +645,7 @@ export default function HomePage() {
                   <h3 className="text-xl font-bold mb-4 text-white group-hover:text-cyan-400 transition-colors duration-300">
                     {benefit.title}
                   </h3>
-                  <p className="text-white/70 leading-relaxed">
+                  <p className="text-white leading-relaxed">
                     {benefit.description}
                   </p>
                 </div>
@@ -665,7 +679,7 @@ export default function HomePage() {
                 Real-Life Successes
               </h2>
               <div className="w-24 h-1 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full mx-auto"></div>
-              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white/80 leading-relaxed">
+              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white leading-relaxed">
                 Explore the stories of individuals who have elevated their
                 careers through the VX Academy experience.
               </p>
@@ -733,7 +747,7 @@ export default function HomePage() {
 
                   <div className="space-y-6">
                     <div className="text-3xl text-teal-400 leading-none">"</div>
-                    <p className="text-white/80 leading-relaxed -mt-4">
+                    <p className="text-white leading-relaxed -mt-4">
                       {testimonial.testimonial}
                     </p>
                     <div className="flex text-yellow-400 space-x-1">
@@ -775,7 +789,7 @@ export default function HomePage() {
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
                 Ready to Elevate Visitor Experiences in Abu Dhabi?
               </h2>
-              <p className="text-lg md:text-xl lg:text-2xl max-w-4xl mx-auto text-white/90 leading-relaxed">
+              <p className="text-lg md:text-xl lg:text-2xl max-w-4xl mx-auto text-white leading-relaxed">
                 Join VX Academy today and become part of Abu Dhabi's world-class
                 hospitality community. Start your journey toward becoming a
                 certified frontline professional.
@@ -804,7 +818,7 @@ export default function HomePage() {
             {/* VX Academy Section */}
             <div className="space-y-6">
               <h3 className="text-xl lg:text-2xl font-bold">VX Academy</h3>
-              <p className="text-white/70 leading-relaxed text-sm lg:text-base">
+              <p className="text-white leading-relaxed text-sm lg:text-base">
                 The premier training platform for Abu Dhabi's frontline
                 hospitality and tourism professionals.
               </p>
@@ -947,7 +961,7 @@ export default function HomePage() {
                           />
                         </svg>
                       </div>
-                      <span className="text-white/70 text-xs leading-relaxed text-center">
+                      <span className="text-white text-xs leading-relaxed text-center">
                         Abu Dhabi Tourism Building, Corniche Road, Abu Dhabi,
                         UAE
                       </span>
@@ -963,7 +977,7 @@ export default function HomePage() {
                           <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                         </svg>
                       </div>
-                      <span className="text-white/70 text-xs">
+                      <span className="text-white text-xs">
                         info@vxacademy.ae
                       </span>
                     </div>
@@ -977,7 +991,7 @@ export default function HomePage() {
                           <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                         </svg>
                       </div>
-                      <span className="text-white/70 text-xs">
+                      <span className="text-white text-xs">
                         +971 2 123 4567
                       </span>
                     </div>
@@ -1088,7 +1102,7 @@ export default function HomePage() {
                       />
                     </svg>
                   </div>
-                  <span className="text-white/70 text-sm leading-relaxed">
+                  <span className="text-white text-sm leading-relaxed">
                     Abu Dhabi Tourism Building, Corniche Road, Abu Dhabi, UAE
                   </span>
                 </div>
@@ -1103,9 +1117,7 @@ export default function HomePage() {
                       <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                     </svg>
                   </div>
-                  <span className="text-white/70 text-sm">
-                    info@vxacademy.ae
-                  </span>
+                  <span className="text-white text-sm">info@vxacademy.ae</span>
                 </div>
                 <div className="flex items-start space-x-3 group">
                   <div className="w-6 h-6 bg-gradient-to-br from-cyan-400/20 to-teal-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
@@ -1117,14 +1129,14 @@ export default function HomePage() {
                       <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                     </svg>
                   </div>
-                  <span className="text-white/70 text-sm">+971 2 123 4567</span>
+                  <span className="text-white text-sm">+971 2 123 4567</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="border-t border-white/20 pt-8 text-center">
-            <p className="text-white/70 text-sm">
+            <p className="text-white text-sm">
               © {new Date().getFullYear()} VX Academy. All rights reserved.
             </p>
           </div>
