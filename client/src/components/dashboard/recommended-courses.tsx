@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { CourseCard } from "@/components/course/CourseCard";
 
 export function RecommendedCourses() {
   const { user } = useAuth();
@@ -177,17 +178,16 @@ export function RecommendedCourses() {
     return { percentComplete };
   };
 
-  // Create progress mutation
+  // Create enrollment mutation
   const enrollMutation = useMutation({
     mutationFn: async (courseId: number) => {
-      const res = await apiRequest("POST", "/api/progress", {
-        courseId,
-        percentComplete: 0,
-        completed: false,
+      const res = await apiRequest("POST", `/api/courses/${courseId}/enroll`, {
+        enrollmentSource: "manual",
       });
       return res.json();
     },
     onSuccess: (data, courseId) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/enrollments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
       toast({
         title: "Enrolled Successfully",
@@ -282,6 +282,14 @@ export function RecommendedCourses() {
     enrollMutation.mutate(courseId);
   };
 
+  // Helper to format duration (minutes to h m)
+  const formatDuration = (minutes: number) => {
+    if (!minutes) return "0m";
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  };
+
   return (
     <section className="mt-8">
       <div className="flex items-center justify-between mb-4">
@@ -304,88 +312,25 @@ export function RecommendedCourses() {
           Array(5)
             .fill(0)
             .map((_, index) => (
-              <div
+              <CourseCard
                 key={index}
-                className="bg-white rounded-xl shadow-sm overflow-hidden"
-              >
-                <Skeleton className="h-32 w-full" />
-                <div className="p-4">
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-6 w-full mb-2" />
-                  <Skeleton className="h-16 w-full mb-3" />
-                  <Skeleton className="h-8 w-full" />
-                </div>
-              </div>
+                course={{} as any}
+                formatDuration={formatDuration}
+                isLoading
+              />
             ))
         ) : recommendedCourses.length > 0 ? (
           // Course cards
           recommendedCourses.map((course) => (
-            <div
+            <CourseCard
               key={course.id}
-              className="bg-white rounded-xl shadow-sm overflow-hidden"
-            >
-              <div className="h-32 bg-neutrals-300 relative">
-                {course.imageUrl ? (
-                  <img
-                    src={course.imageUrl}
-                    alt={course.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-primary-light text-white">
-                    <span className="material-icons text-4xl">school</span>
-                  </div>
-                )}
-                {course.id % 2 === 0 && (
-                  <div className="absolute top-2 right-2 bg-primary rounded-lg px-2 py-1 text-xs font-medium text-white">
-                    New
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <div className="flex items-center text-xs text-neutrals-600 mb-2">
-                  <span className="material-icons text-xs mr-1">category</span>
-                  <span>{course.level}</span>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
-                <p className="text-sm text-neutrals-600 mb-3 line-clamp-2">
-                  {course.description ||
-                    "Learn essential skills and knowledge in this comprehensive course designed for Abu Dhabi frontliners."}
-                </p>
-                {user ? (
-                  <div className="flex flex-col space-y-2">
-                    <Link href={`/courses/${course.id}`}>
-                      <Button
-                        variant="default"
-                        className="w-full bg-primary hover:bg-primary-dark text-white"
-                      >
-                        View Course
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="flex flex-col space-y-2">
-                    <Link href="/auth">
-                      <Button
-                        variant="outline"
-                        className="w-full bg-neutrals-100 hover:bg-neutrals-200 text-primary"
-                      >
-                        Login to Enroll
-                      </Button>
-                    </Link>
-
-                    <Link href={`/courses/${course.id}`}>
-                      <Button
-                        variant="link"
-                        className="w-full text-primary hover:text-primary/90"
-                      >
-                        Preview Course
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
+              course={course}
+              progress={undefined}
+              units={allUnitsAndBlocks?.[course.id]?.units || []}
+              onEnroll={handleEnroll}
+              formatDuration={formatDuration}
+              userId={user?.id}
+            />
           ))
         ) : (
           // Empty state

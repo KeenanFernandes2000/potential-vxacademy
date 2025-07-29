@@ -398,7 +398,7 @@ export function ComprehensiveAssessment({
             )}
           </div>
 
-          <Button onClick={onCancel}>Back to Course</Button>
+          {/* <Button onClick={onCancel}>Back to Course</Button> */}
         </CardContent>
       </Card>
     );
@@ -485,9 +485,9 @@ export function ComprehensiveAssessment({
             >
               {isSubmitting ? "Submitting..." : "Submit Assessment"}
             </Button>
-            <Button onClick={onCancel} variant="outline">
+            {/* <Button onClick={onCancel} variant="outline">
               Cancel
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>
@@ -576,9 +576,9 @@ export function ComprehensiveAssessment({
             >
               Start Assessment
             </Button>
-            <Button onClick={onCancel} variant="outline">
+            {/* <Button onClick={onCancel} variant="outline">
               Cancel
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>
@@ -594,9 +594,9 @@ export function ComprehensiveAssessment({
               No questions found for this assessment.
             </AlertDescription>
           </Alert>
-          <Button onClick={onCancel} className="mt-4">
+          {/* <Button onClick={onCancel} className="mt-4">
             Back to Course
-          </Button>
+          </Button> */}
         </CardContent>
       </Card>
     );

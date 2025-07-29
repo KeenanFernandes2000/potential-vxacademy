@@ -1726,6 +1726,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(courseEnrollments.enrolledAt));
   }
 
+  async getCourseEnrollments(courseId: number): Promise<CourseEnrollment[]> {
+    return await db
+      .select()
+      .from(courseEnrollments)
+      .where(eq(courseEnrollments.courseId, courseId))
+      .orderBy(desc(courseEnrollments.enrolledAt));
+  }
+
   async getEnrollmentsByDateRange(
     startDate: Date,
     endDate: Date

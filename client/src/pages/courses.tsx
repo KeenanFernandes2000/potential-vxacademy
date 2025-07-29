@@ -29,14 +29,13 @@ export default function Courses() {
   // Enrollment mutation
   const enrollMutation = useMutation({
     mutationFn: async (courseId: number) => {
-      const res = await apiRequest("POST", "/api/progress", {
-        courseId,
-        percentComplete: 0,
-        completed: false,
+      const res = await apiRequest("POST", `/api/courses/${courseId}/enroll`, {
+        enrollmentSource: "manual",
       });
       return res.json();
     },
     onSuccess: (data, courseId) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/enrollments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
       toast({
         title: "Enrolled Successfully",

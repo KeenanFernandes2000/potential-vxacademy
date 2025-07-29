@@ -38,6 +38,7 @@ import { ComprehensiveAssessment } from "@/components/assessment/ComprehensiveAs
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
 import { useBlockAssessmentProgress } from "@/hooks/use-block-assessment-progress";
 import { useCourseProgress } from "@/hooks/use-course-progress";
+import { useQuery as useReactQuery } from "@tanstack/react-query";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -93,6 +94,10 @@ export default function EnhancedCourseDetail() {
   const [completedBlocks, setCompletedBlocks] = useState<Set<number>>(
     new Set()
   );
+
+  // Add state for assessment summary
+  const [assessmentSummary, setAssessmentSummary] = useState<any | null>(null);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
 
   // Fetch current user
   const { data: user } = useQuery<User | null>({
@@ -290,6 +295,78 @@ export default function EnhancedCourseDetail() {
 
       // Use unified progress invalidation
       invalidateProgress();
+
+      // --- Auto-navigation logic ---
+      // Find all blocks in the current unit
+      const unitBlocks = blocks.filter((b) => b.unitId === selectedUnit?.id);
+      const currentIndex = unitBlocks.findIndex((b) => b.id === blockId);
+
+      // Try to go to the next block in the unit
+      if (currentIndex !== -1 && currentIndex < unitBlocks.length - 1) {
+        const nextBlock = unitBlocks[currentIndex + 1];
+        setActiveBlockId(nextBlock.id);
+        setSelectedBlock(nextBlock);
+        setSelectedContent({
+          type: "block",
+          id: nextBlock.id,
+          data: nextBlock,
+        });
+        return;
+      }
+
+      // If no more blocks, check for any uncompleted assessment for this unit (beginning or end)
+      const nextUnitAssessment = allCourseAssessments.find(
+        (a) => a.unitId === selectedUnit?.id && !completedAssessments.has(a.id)
+      );
+      if (nextUnitAssessment) {
+        setSelectedContent({
+          type: "assessment",
+          id: nextUnitAssessment.id,
+          data: nextUnitAssessment,
+        });
+        setSelectedBlock(null);
+        return;
+      }
+
+      // If all blocks and assessments in this unit are completed, move to the next unit (if any)
+      const currentUnitIndex = units.findIndex(
+        (u) => u.id === selectedUnit?.id
+      );
+      if (currentUnitIndex !== -1 && currentUnitIndex < units.length - 1) {
+        const nextUnit = units[currentUnitIndex + 1];
+        setActiveUnitId(nextUnit.id);
+        setSelectedUnit(nextUnit);
+        // Find beginning assessment for next unit
+        const nextUnitAssessments = allCourseAssessments.filter(
+          (a) => a.unitId === nextUnit.id
+        );
+        const nextUnitBeginningAssessment = nextUnitAssessments.find(
+          (a) => a.placement === "beginning" && !completedAssessments.has(a.id)
+        );
+        if (nextUnitBeginningAssessment) {
+          setSelectedContent({
+            type: "assessment",
+            id: nextUnitBeginningAssessment.id,
+            data: nextUnitBeginningAssessment,
+          });
+          setSelectedBlock(null);
+        } else {
+          // Otherwise, show first block in next unit
+          const nextUnitBlocks = blocks.filter((b) => b.unitId === nextUnit.id);
+          if (nextUnitBlocks.length > 0) {
+            setSelectedBlock(nextUnitBlocks[0]);
+            setSelectedContent({
+              type: "block",
+              id: nextUnitBlocks[0].id,
+              data: nextUnitBlocks[0],
+            });
+          } else {
+            setSelectedContent(null);
+            setSelectedBlock(null);
+          }
+        }
+        return;
+      }
     },
   });
 
@@ -522,6 +599,60 @@ export default function EnhancedCourseDetail() {
           }
         }
       }
+
+      // After all blocks and assessments, move to next unit if any
+      const allUnitBlocks = blocks.filter((b) => b.unitId === selectedUnit?.id);
+      const allUnitAssessments = allCourseAssessments.filter(
+        (a) => a.unitId === selectedUnit?.id
+      );
+      const allBlocksCompleted = allUnitBlocks.every((b) =>
+        isBlockCompleted(b.id)
+      );
+      const allAssessmentsCompleted = allUnitAssessments.every((a) =>
+        completedAssessments.has(a.id)
+      );
+      if (allBlocksCompleted && allAssessmentsCompleted) {
+        const currentUnitIndex = units.findIndex(
+          (u) => u.id === selectedUnit?.id
+        );
+        if (currentUnitIndex !== -1 && currentUnitIndex < units.length - 1) {
+          const nextUnit = units[currentUnitIndex + 1];
+          setActiveUnitId(nextUnit.id);
+          setSelectedUnit(nextUnit);
+          // Find beginning assessment for next unit
+          const nextUnitAssessments = allCourseAssessments.filter(
+            (a) => a.unitId === nextUnit.id
+          );
+          const nextUnitBeginningAssessment = nextUnitAssessments.find(
+            (a) =>
+              a.placement === "beginning" && !completedAssessments.has(a.id)
+          );
+          if (nextUnitBeginningAssessment) {
+            setSelectedContent({
+              type: "assessment",
+              id: nextUnitBeginningAssessment.id,
+              data: nextUnitBeginningAssessment,
+            });
+            setSelectedBlock(null);
+          } else {
+            // Otherwise, show first block in next unit
+            const nextUnitBlocks = blocks.filter(
+              (b) => b.unitId === nextUnit.id
+            );
+            if (nextUnitBlocks.length > 0) {
+              setSelectedBlock(nextUnitBlocks[0]);
+              setSelectedContent({
+                type: "block",
+                id: nextUnitBlocks[0].id,
+                data: nextUnitBlocks[0],
+              });
+            } else {
+              setSelectedContent(null);
+              setSelectedBlock(null);
+            }
+          }
+        }
+      }
     }
   };
 
@@ -641,6 +772,43 @@ export default function EnhancedCourseDetail() {
     completedAssessments,
   ]);
 
+  // Fetch assessment summary when completed assessment is selected
+  useEffect(() => {
+    const fetchSummary = async () => {
+      if (
+        selectedContent?.type === "assessment" &&
+        isAssessmentCompletedUnified(selectedContent.id) &&
+        user
+      ) {
+        setIsLoadingSummary(true);
+        try {
+          const res = await fetch(
+            `/api/assessments/${selectedContent.id}/summary/${user.id}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            setAssessmentSummary(data);
+          } else {
+            setAssessmentSummary(null);
+          }
+        } catch (e) {
+          setAssessmentSummary(null);
+        } finally {
+          setIsLoadingSummary(false);
+        }
+      } else {
+        setAssessmentSummary(null);
+      }
+    };
+    fetchSummary();
+    // Only refetch when assessment changes or user changes
+  }, [
+    selectedContent?.id,
+    selectedContent?.type,
+    user?.id,
+    isAssessmentCompletedUnified(selectedContent?.id),
+  ]);
+
   if (courseLoading || unitsLoading || blocksLoading) {
     return (
       <Layout>
@@ -709,6 +877,103 @@ export default function EnhancedCourseDetail() {
         </div>
       </Layout>
     );
+  }
+
+  // Type guard for LearningBlock
+  function isLearningBlock(obj: any): obj is LearningBlock {
+    return obj && typeof obj === "object" && "type" in obj && "content" in obj;
+  }
+
+  function getNextContentAfterBlock(currentBlock: LearningBlock) {
+    if (!selectedUnit) return null;
+    // 1. Next block in the unit
+    const unitBlocks = blocks.filter((b) => b.unitId === selectedUnit.id);
+    const currentIndex = unitBlocks.findIndex((b) => b.id === currentBlock.id);
+    if (currentIndex !== -1 && currentIndex < unitBlocks.length - 1) {
+      const nextBlock = unitBlocks[currentIndex + 1];
+      return { type: "block", data: nextBlock };
+    }
+    // 2. Next uncompleted assessment in the unit
+    const nextUnitAssessment = allCourseAssessments.find(
+      (a) => a.unitId === selectedUnit.id && !completedAssessments.has(a.id)
+    );
+    if (nextUnitAssessment) {
+      return { type: "assessment", data: nextUnitAssessment };
+    }
+    // 3. Next unit's beginning assessment or first block
+    const currentUnitIndex = units.findIndex((u) => u.id === selectedUnit.id);
+    if (currentUnitIndex !== -1 && currentUnitIndex < units.length - 1) {
+      const nextUnit = units[currentUnitIndex + 1];
+      const nextUnitAssessments = allCourseAssessments.filter(
+        (a) => a.unitId === nextUnit.id
+      );
+      const nextUnitBeginningAssessment = nextUnitAssessments.find(
+        (a) => a.placement === "beginning" && !completedAssessments.has(a.id)
+      );
+      if (nextUnitBeginningAssessment) {
+        return {
+          type: "assessment",
+          data: nextUnitBeginningAssessment,
+          unit: nextUnit,
+        };
+      }
+      const nextUnitBlocks = blocks.filter((b) => b.unitId === nextUnit.id);
+      if (nextUnitBlocks.length > 0) {
+        return { type: "block", data: nextUnitBlocks[0], unit: nextUnit };
+      }
+    }
+    // 4. No next item
+    return null;
+  }
+
+  let blockCompletedAction: React.ReactNode = null;
+  if (selectedContent?.type === "block" && selectedBlock) {
+    if (isBlockCompletedUnified(selectedBlock.id)) {
+      const nextContent = getNextContentAfterBlock(selectedBlock);
+      if (!nextContent) {
+        blockCompletedAction = (
+          <Button
+            disabled
+            className="bg-green-600 text-white cursor-not-allowed opacity-75"
+          >
+            <CheckCircle className="mr-2 h-4 w-4" />
+            Block Completed
+          </Button>
+        );
+      } else {
+        blockCompletedAction = (
+          <Button
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => {
+              if (nextContent.unit) {
+                setActiveUnitId(nextContent.unit.id);
+                setSelectedUnit(nextContent.unit);
+              }
+              if (
+                nextContent.type === "block" &&
+                isLearningBlock(nextContent.data)
+              ) {
+                setSelectedBlock(nextContent.data);
+                setSelectedContent({
+                  type: "block",
+                  id: nextContent.data.id,
+                  data: nextContent.data,
+                });
+              } else if (nextContent.type === "assessment") {
+                setSelectedBlock(null);
+                setSelectedContent({
+                  type: "assessment",
+                  id: nextContent.data.id,
+                  data: nextContent.data,
+                });
+              }
+            }}
+          >
+            Next
+          </Button>
+        );
+      }
+    }
   }
 
   return (
@@ -898,30 +1163,52 @@ export default function EnhancedCourseDetail() {
                                 (assessment) =>
                                   assessment.placement === "beginning"
                               )
-                              .map((assessment) => (
-                                <div
-                                  key={`unit-${unit.id}-beginning-assessment-${assessment.id}`}
-                                  className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
-                                    selectedContent?.type === "assessment" &&
-                                    selectedContent?.id === assessment.id
-                                      ? "bg-orange-50 text-orange-700"
-                                      : "hover:bg-gray-50"
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedContent({
-                                      type: "assessment",
-                                      id: assessment.id,
-                                      data: assessment,
-                                    });
-                                    setSelectedBlock(null);
-                                  }}
-                                >
-                                  <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                                  <span className="text-sm truncate">
-                                    {assessment.title}
-                                  </span>
-                                </div>
-                              ))}
+                              .map((assessment) => {
+                                const isCompleted = isAssessmentCompletedGlobal(
+                                  assessment.id
+                                );
+                                const isSelected =
+                                  selectedContent?.type === "assessment" &&
+                                  selectedContent?.id === assessment.id;
+                                const userAssessmentProgress =
+                                  allAssessmentProgress.find(
+                                    (p) =>
+                                      p.assessmentId === assessment.id &&
+                                      p.userId === user?.id
+                                  );
+                                return (
+                                  <div
+                                    key={`unit-${unit.id}-beginning-assessment-${assessment.id}`}
+                                    className={`flex items-center gap-3 p-2 ml-2 cursor-pointer transition-colors ${
+                                      isSelected
+                                        ? "bg-orange-50 text-orange-700"
+                                        : isCompleted
+                                        ? "bg-gray-50 text-gray-600"
+                                        : "hover:bg-gray-50"
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedContent({
+                                        type: "assessment",
+                                        id: assessment.id,
+                                        data: assessment,
+                                      });
+                                      setSelectedBlock(null);
+                                    }}
+                                  >
+                                    <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                                    <span
+                                      className={`text-sm truncate ${
+                                        isCompleted ? "line-through" : ""
+                                      }`}
+                                    >
+                                      {assessment.title}
+                                    </span>
+                                    {isCompleted && (
+                                      <CheckCircle className="h-4 w-4 text-green-600 ml-auto flex-shrink-0" />
+                                    )}
+                                  </div>
+                                );
+                              })}
 
                             {/* Learning blocks */}
                             {unitBlocks.map((block) => {
@@ -1002,14 +1289,12 @@ export default function EnhancedCourseDetail() {
                                         : "hover:bg-gray-50"
                                     }`}
                                     onClick={() => {
-                                      if (!isCompleted) {
-                                        setSelectedContent({
-                                          type: "assessment",
-                                          id: assessment.id,
-                                          data: assessment,
-                                        });
-                                        setSelectedBlock(null);
-                                      }
+                                      setSelectedContent({
+                                        type: "assessment",
+                                        id: assessment.id,
+                                        data: assessment,
+                                      });
+                                      setSelectedBlock(null);
                                     }}
                                   >
                                     <FileQuestion className="h-4 w-4 text-orange-600 flex-shrink-0" />
@@ -1056,17 +1341,18 @@ export default function EnhancedCourseDetail() {
                                 onClick={() =>
                                   handleStartAssessment(assessment)
                                 }
-                                disabled={isCompleted}
                                 className={`w-full ${
                                   isCompleted
-                                    ? "bg-green-600 cursor-not-allowed"
+                                    ? "bg-green-600 hover:bg-green-700"
                                     : "bg-yellow-600 hover:bg-yellow-700"
                                 }`}
                               >
                                 {isCompleted ? (
                                   <>
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Assessment Completed
+                                    <span className="flex-1 text-center">
+                                      View
+                                    </span>
+                                    <CheckCircle className="h-4 w-4" />
                                   </>
                                 ) : (
                                   <>
@@ -1093,10 +1379,6 @@ export default function EnhancedCourseDetail() {
                           Complete all course content to unlock the final
                           assessment
                         </p>
-                        <div className="text-xs text-gray-400">
-                          Progress: {courseProgressData.percentComplete}%
-                          Complete
-                        </div>
                       </div>
                     </div>
                   )}
@@ -1157,16 +1439,15 @@ export default function EnhancedCourseDetail() {
                               allowFullScreen
                             />
                           </div>
-                        )}{
-                          selectedBlock.type === "image" && (
-                            <div className="">
-                              <img
-                                src={selectedBlock.imageUrl}
-                                className="rounded-lg w-full shadow-md"
-                              />
-                            </div>
-                          )
-                        }
+                        )}
+                      {selectedBlock.type === "image" && (
+                        <div className="">
+                          <img
+                            src={selectedBlock.imageUrl || ""}
+                            className="rounded-lg w-full shadow-md"
+                          />
+                        </div>
+                      )}
                       {selectedBlock.type === "scorm" && (
                         <div className="text-center p-8 bg-purple-50 rounded-lg">
                           <Monitor className="mx-auto h-12 w-12 text-purple-600 mb-4" />
@@ -1184,13 +1465,7 @@ export default function EnhancedCourseDetail() {
                       )}
                       <div className="mt-6">
                         {isBlockCompletedUnified(selectedBlock.id) ? (
-                          <Button
-                            disabled
-                            className="bg-green-600 text-white cursor-not-allowed opacity-75"
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Block Completed
-                          </Button>
+                          blockCompletedAction
                         ) : (
                           <Button
                             onClick={() =>
@@ -1219,17 +1494,95 @@ export default function EnhancedCourseDetail() {
                 {selectedContent.type === "assessment" && user && (
                   <div>
                     {isAssessmentCompletedUnified(selectedContent.id) ? (
-                      <Card>
-                        <CardContent className="p-6 text-center">
-                          <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            Assessment Completed
-                          </h3>
-                          <p className="text-gray-600">
-                            You have successfully completed this assessment.
-                          </p>
-                        </CardContent>
-                      </Card>
+                      isLoadingSummary ? (
+                        <div className="flex justify-center items-center py-8">
+                          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                        </div>
+                      ) : assessmentSummary ? (
+                        (() => {
+                          const passedAttempt = assessmentSummary.passedAttempt;
+                          let totalAnswers = 0;
+                          let correctAnswers = 0;
+                          if (passedAttempt && passedAttempt.answers) {
+                            totalAnswers = Object.keys(
+                              passedAttempt.answers
+                            ).length;
+                            correctAnswers = totalAnswers
+                              ? Math.round(
+                                  (passedAttempt.score / 100) * totalAnswers
+                                )
+                              : 0;
+                          }
+                          return (
+                            <Card>
+                              <CardContent className="p-6 text-center">
+                                <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                  Assessment Completed
+                                </h3>
+                                <p className="text-gray-600 mb-4">
+                                  You have successfully completed this
+                                  assessment.
+                                </p>
+                                {passedAttempt && (
+                                  <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
+                                    <div className="flex flex-col items-center gap-3">
+                                      <div className="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-2">
+                                        <Trophy className="h-8 w-8 text-green-600" />
+                                      </div>
+                                      <div className="text-center space-y-2">
+                                        <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                                          <span className="text-sm text-gray-500 block">
+                                            Your Score
+                                          </span>
+                                          <span className="text-2xl font-bold text-green-700">
+                                            {passedAttempt.score}%
+                                          </span>
+                                        </div>
+                                        <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                                          <span className="text-sm text-gray-500 block">
+                                            Passing Score
+                                          </span>
+                                          <span className="text-lg font-semibold text-blue-700">
+                                            {assessmentSummary.assessment
+                                              .passingScore ??
+                                              assessmentSummary.assessment
+                                                .passing_score}
+                                            %
+                                          </span>
+                                        </div>
+                                        <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                                          <span className="text-sm text-gray-500 block">
+                                            Correct Answers
+                                          </span>
+                                          <span className="text-lg font-semibold text-gray-700">
+                                            {correctAnswers} of {totalAnswers}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        })()
+                      ) : (
+                        <Card>
+                          <CardContent className="p-6 text-center">
+                            <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                              Assessment Completed
+                            </h3>
+                            <p className="text-gray-600 mb-4">
+                              You have successfully completed this assessment.
+                            </p>
+                            <div className="mt-4 text-sm text-gray-500">
+                              No attempt data found.
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
                     ) : (
                       <ComprehensiveAssessment
                         assessment={selectedContent.data}

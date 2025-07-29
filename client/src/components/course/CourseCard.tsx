@@ -3,7 +3,9 @@ import { Course, UserProgress, Assessment } from "@shared/schema";
 import { CourseProgressBar } from "@/components/course/CourseProgressBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCourseProgress } from "@/hooks/use-course-progress";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface CourseCardProps {
   course: Course;
@@ -30,6 +32,18 @@ export function CourseCard({
     userId || null
   );
 
+  // Fetch user enrollments
+  const { data: userEnrollments = [], isLoading: isLoadingEnrollments } =
+    useQuery<{ courseId: number }[]>({
+      queryKey: ["/api/user/enrollments"],
+      enabled: !!userId,
+    });
+
+  // Check if user is enrolled in this course
+  const isEnrolled = userEnrollments.some(
+    (enrollment: any) => enrollment.courseId === course.id
+  );
+
   // Fetch course assessments to determine if there are end assessments
   const { data: courseAssessments = [] } = useQuery<Assessment[]>({
     queryKey: [`/api/courses/${course.id}/assessments`],
@@ -44,6 +58,38 @@ export function CourseCard({
   // Determine if end assessment is available (progress >= 80%)
   const endAssessmentAvailable =
     courseProgressData.percentComplete >= 80 && hasEndAssessment;
+
+  const { toast } = useToast();
+
+  // Course enrollment mutation
+  const enrollMutation = useMutation({
+    mutationFn: async (courseId: number) => {
+      const res = await apiRequest("POST", `/api/courses/${courseId}/enroll`, {
+        enrollmentSource: "manual",
+      });
+      return res.json();
+    },
+    onSuccess: (data, courseId) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/enrollments"] });
+      toast({
+        title: "Enrolled Successfully",
+        description: "You have been enrolled in this course!",
+      });
+      // Navigate to course after successful enrollment
+      window.location.href = `/courses/${courseId}`;
+    },
+    onError: (error) => {
+      toast({
+        title: "Enrollment Failed",
+        description: "Please try again or contact support",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEnroll = (courseId: number) => {
+    enrollMutation.mutate(courseId);
+  };
 
   if (isLoading) {
     return (
@@ -113,23 +159,40 @@ export function CourseCard({
                   </a>
                 </Link>
               ) : (
-                <Link href={`/courses/${course.id}`}>
-                  <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors ml-auto">
-                    {courseProgressData.percentComplete > 0
-                      ? "Continue"
-                      : "Start"}
-                  </a>
-                </Link>
+                <div className="flex items-center justify-between w-full">
+                  {isEnrolled ? (
+                    <Link href={`/courses/${course.id}`}>
+                      <a className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors">
+                        Continue
+                      </a>
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => handleEnroll(course.id)}
+                      disabled={
+                        enrollMutation.isPending || isLoadingEnrollments
+                      }
+                      className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 font-medium text-sm py-1 px-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {enrollMutation.isPending ? "Enrolling..." : "Start"}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </>
         ) : (
           <>
             <button
-              onClick={() => onEnroll && onEnroll(course.id)}
-              className="block w-full bg-neutrals-100 hover:bg-neutrals-200 text-primary font-medium text-sm py-1.5 px-3 rounded text-center transition-colors"
+              onClick={() => handleEnroll(course.id)}
+              disabled={enrollMutation.isPending || isLoadingEnrollments}
+              className="block w-full bg-neutrals-100 hover:bg-neutrals-200 text-primary font-medium text-sm py-1.5 px-3 rounded text-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Enroll Now
+              {enrollMutation.isPending
+                ? "Enrolling..."
+                : isEnrolled
+                ? "Continue"
+                : "Enroll Now"}
             </button>
           </>
         )}

@@ -419,6 +419,7 @@ export interface IStorage {
     courseId: number
   ): Promise<CourseEnrollment | undefined>;
   getUserEnrollments(userId: number): Promise<CourseEnrollment[]>;
+  getCourseEnrollments(courseId: number): Promise<CourseEnrollment[]>;
   getEnrollmentsByDateRange(
     startDate: Date,
     endDate: Date

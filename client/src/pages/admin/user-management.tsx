@@ -8,6 +8,7 @@ import {
   Eye,
   Edit,
   Trash2,
+  Award,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -262,6 +263,34 @@ export default function UserManagementPage() {
     },
   });
 
+  const checkBadgesMutation = useMutation({
+    mutationFn: (userId: number) =>
+      fetch(`/api/admin/users/${userId}/check-badges`, {
+        method: "POST",
+        credentials: "include",
+      }).then((res) => {
+        if (!res.ok) throw new Error("Failed to check badges");
+        return res.json();
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/users/enhanced"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/badges"] });
+      toast({
+        title: "Success",
+        description: "Badge check completed successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter users based on search and filters
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -308,6 +337,10 @@ export default function UserManagementPage() {
     if (confirm("Are you sure you want to delete this user?")) {
       deleteUserMutation.mutate(userId);
     }
+  };
+
+  const handleCheckBadges = (userId: number) => {
+    checkBadgesMutation.mutate(userId);
   };
 
   const handleUserFormSubmit = (data: any) => {
@@ -570,6 +603,15 @@ export default function UserManagementPage() {
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit User
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleCheckBadges(user.id)}
+                                  disabled={checkBadgesMutation.isPending}
+                                >
+                                  <Award className="h-4 w-4 mr-2" />
+                                  {checkBadgesMutation.isPending
+                                    ? "Checking..."
+                                    : "Check Badges"}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleDeleteUser(user.id)}

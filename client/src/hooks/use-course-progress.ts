@@ -110,10 +110,11 @@ export function useCourseProgress(
       };
     }
 
-    // Calculate total items (excluding final assessments)
+    // Calculate total items (INCLUDE ALL ASSESSMENTS)
     const totalBlocks = blocks.length;
+    // Only count assessments that are NOT final (i.e., not placement === "end" or have a unitId)
     const nonFinalAssessments = allAssessments.filter(
-      (assessment) => assessment.placement !== "end"
+      (assessment) => assessment.placement !== "end" || assessment.unitId
     );
     const totalAssessments = nonFinalAssessments.length;
     const totalItems = totalBlocks + totalAssessments;
@@ -148,7 +149,11 @@ export function useCourseProgress(
           (a) => a.id === progress.assessmentId
         );
         // Only count non-final assessments
-        return isCompleted && assessment && assessment.placement !== "end";
+        return (
+          isCompleted &&
+          assessment &&
+          (assessment.placement !== "end" || assessment.unitId)
+        );
       }
     ).length;
 
