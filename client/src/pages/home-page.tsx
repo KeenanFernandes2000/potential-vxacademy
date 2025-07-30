@@ -12,13 +12,13 @@ export default function HomePage() {
     if (potChatHost) {
       potChatHost.remove();
     }
-    // @ts-ignore
-    chatbotembed({
-      botId: "687d2feed500b7283933ad2c",
-      botIcon:
-        "https://ai.potential.com/static/mentors/AbuDhabiExperience-1753076809518-abudhabi.png",
-      botColor: "#d64444",
-    });
+    // // @ts-ignore
+    // chatbotembed({
+    //   botId: "687d2feed500b7283933ad2c",
+    //   botIcon:
+    //     "https://ai.potential.com/static/mentors/AbuDhabiExperience-1753076809518-abudhabi.png",
+    //   botColor: "#d64444",
+    // });
   }, []);
 
   return (
