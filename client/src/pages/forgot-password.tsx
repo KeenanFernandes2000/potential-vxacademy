@@ -230,8 +230,8 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Success Dialog */}
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog} >
+        <DialogContent className="bg-[#003451] border-[#00d8cc]/20 text-white !rounded-none">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center text-[#00d8cc]">
               Password Updated Successfully!
