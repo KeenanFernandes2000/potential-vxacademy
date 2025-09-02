@@ -131,6 +131,18 @@ export default function HomePage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null); // Add user state
 
+  // Smooth scrolling function
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+    }
+  };
+
   useEffect(() => {
     // Initialize AOS
     AOS.init({
@@ -174,30 +186,31 @@ export default function HomePage() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            <a
-              href="#about"
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
-            >
-              About
-            </a>
-            <a
-              href="#training-areas"
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
-            >
-              Training Areas
-            </a>
-            <a
-              href="#benefits"
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
+            <button
+              onClick={() => scrollToSection("benefits")}
+              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
             >
               Benefits
-            </a>
-            <a
-              href="#testimonials"
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
+            </button>
+            <button
+              onClick={() => scrollToSection("about")}
+              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
+            >
+              About
+            </button>
+            <button
+              onClick={() => scrollToSection("training-areas")}
+              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
+            >
+              Training Areas
+            </button>
+
+            <button
+              onClick={() => scrollToSection("testimonials")}
+              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
             >
               Testimonials
-            </a>
+            </button>
             {user ? (
               <Link href="/dashboard">
                 <Button className="bg-teal-500 hover:bg-teal-600 text-white rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105">
@@ -228,34 +241,42 @@ export default function HomePage() {
         {isMobileMenuOpen && (
           <div className="lg:hidden bg-white/10 backdrop-blur-xl border-t border-white/20">
             <div className="px-4 py-4 space-y-3">
-              <a
-                href="#about"
-                className="block py-3 text-white/90 hover:text-white transition-colors font-medium"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                About
-              </a>
-              <a
-                href="#training-areas"
-                className="block py-3 text-white/90 hover:text-white transition-colors font-medium"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Training Areas
-              </a>
-              <a
-                href="#benefits"
-                className="block py-3 text-white/90 hover:text-white transition-colors font-medium"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={() => {
+                  scrollToSection("benefits");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
               >
                 Benefits
-              </a>
-              <a
-                href="#testimonials"
-                className="block py-3 text-white/90 hover:text-white transition-colors font-medium"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection("about");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
+              >
+                About
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection("training-areas");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
+              >
+                Training Areas
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection("testimonials");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
               >
                 Testimonials
-              </a>
+              </button>
               {user ? (
                 <Link href="/dashboard">
                   <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-white/20 mt-4">
@@ -318,18 +339,19 @@ export default function HomePage() {
                 data-aos-delay="600"
               >
                 <Link href="/auth">
-                  <Button className="bg-teal-500 hover:bg-teal-600 text-white text-lg py-4 px-8 rounded-2xl shadow-2xl backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105 font-semibold">
+                  <Button className="bg-teal-500 hover:bg-teal-600 text-white text-lg py-4 px-8 shadow-2xl backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105 font-semibold">
                     Get Started
                   </Button>
                 </Link>
-                <a href="#about">
+             
                   <Button
+                    onClick={() => scrollToSection("about")}
                     variant="outline"
-                    className="bg-white/10 backdrop-blur-sm border-white text-white hover:bg-white/20 text-lg py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-105 font-semibold"
+                    className="bg-white/10 backdrop-blur-sm border-white text-white hover:bg-white/20 text-lg py-4 px-8 transition-all duration-300 hover:scale-105 font-semibold"
                   >
                     Learn More
                   </Button>
-                </a>
+                
               </div>
             </div>
           </div>
@@ -431,7 +453,7 @@ export default function HomePage() {
               },
             ].map((benefit, index) => (
               <div key={index} className="group">
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full relative overflow-hidden">
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full relative overflow-hidden">
                   {/* Background image with overlay */}
                   <div className="absolute inset-0">
                     <img
@@ -449,7 +471,7 @@ export default function HomePage() {
                   </div>
 
                   <div className="relative z-10">
-                    <div className="w-16 h-16 bg-gradient-to-br from-cyan-400/20 to-teal-400/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                    <div className="w-16 h-16 bg-gradient-to-br from-cyan-400/20 to-teal-400/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
                       <Icon Component={benefit.icon} color="#67e8f9" />
                     </div>
                     <h3 className="text-xl font-bold mb-4 text-white group-hover:text-cyan-400 transition-colors duration-300">
@@ -466,7 +488,7 @@ export default function HomePage() {
 
           <div className="text-center" data-aos="fade-up" data-aos-delay="400">
             <Link href="/auth">
-              <Button className="bg-white text-slate-900 hover:from-cyan-100 hover:to-white text-lg py-4 px-12 rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 font-semibold">
+              <Button className="bg-white text-slate-900  hover:from-cyan-100 hover:to-white text-lg py-4 px-12 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold">
                 Get Started
               </Button>
             </Link>
@@ -589,16 +611,16 @@ export default function HomePage() {
 
           {/* Key Results */}
           <div className="text-center" data-aos="fade-up" data-aos-delay="400">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="bg-white/5 rounded-2xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3  max-w-4xl mx-auto">
+              <div className="bg-white/5 p-6 md:border-r md:border-white/20">
                 <p className="text-4xl font-bold text-teal-400 mb-2">100%</p>
                 <p className="text-white/70">Top performer rating</p>
               </div>
-              <div className="bg-white/5 rounded-2xl p-6">
+              <div className="bg-white/5 p-6 md:border-r md:border-white/20">
                 <p className="text-4xl font-bold text-teal-400 mb-2">100%</p>
                 <p className="text-white/70">Retention year 1</p>
               </div>
-              <div className="bg-white/5 rounded-2xl p-6">
+              <div className="bg-white/5 p-6">
                 <p className="text-4xl font-bold text-teal-400 mb-2">100%</p>
                 <p className="text-white/70">Successfull Trained Students</p>
               </div>
@@ -631,8 +653,6 @@ export default function HomePage() {
 
           <div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-            data-aos="fade-up"
-            data-aos-delay="200"
           >
             {[
               {
@@ -681,10 +701,11 @@ export default function HomePage() {
                 imageAlt: "Code of conduct and regulations",
               },
             ].map((area, index) => (
-              <div key={index} className="group">
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full flex flex-col">
+              <div key={index} className="group" data-aos="fade-up"
+            data-aos-delay="200">
+                <div className="bg-white/10 backdrop-blur-sm   hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full flex flex-col">
                   {/* Image Placeholder */}
-                  <div className="aspect-[4/3] bg-white/5 rounded-lg mb-6 overflow-hidden relative group-hover:scale-105 transition-transform duration-300">
+                  <div className="aspect-[4/3] bg-white/5 mb-6  overflow-hidden relative group-hover:scale-105 transition-transform duration-300">
                     <img
                       src={area.imageSrc}
                       alt={area.imageAlt}
@@ -694,7 +715,7 @@ export default function HomePage() {
                   </div>
 
                   {/* Body - flex-1 for consistent height */}
-                  <div className="text-center space-y-4 flex-1 flex flex-col">
+                  <div className="text-center space-y-4 flex-1 flex flex-col border-l-2 border-cyan-300 p-8">
                     <h3 className="text-xl font-bold text-white group-hover:text-teal-400 transition-colors duration-300">
                       {area.title}
                     </h3>
@@ -808,7 +829,7 @@ export default function HomePage() {
 
         <div className="container mx-auto px-4 lg:px-6 relative z-10">
           <div
-            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-12 lg:p-16 text-white text-center relative overflow-hidden"
+            className="bg-white/10 backdrop-blur-md border border-white/20 p-12 lg:p-16 text-white text-center relative overflow-hidden"
             data-aos="fade-up"
             data-aos-delay="200"
           >
@@ -825,7 +846,7 @@ export default function HomePage() {
               </p>
               <div className="pt-4">
                 <a href="#">
-                  <Button className="bg-white hover:bg-gray-100 text-slate-900 text-lg py-4 px-12 rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 font-semibold">
+                  <Button className="bg-white hover:bg-gray-100 text-slate-900 text-lg py-4 px-12 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold">
                     Get Started
                   </Button>
                 </a>
