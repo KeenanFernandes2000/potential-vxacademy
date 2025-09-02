@@ -68,11 +68,16 @@ export default function AuthPage() {
         <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center">
             <div className="h-12 w-auto">
-              <img
-                src="/images/vx-academy-logo.svg"
-                alt="VX Academy Logo"
-                className="h-full"
-              />
+              <a
+                href="/"
+                className="cursor-pointer hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src="/images/vx-academy-logo.svg"
+                  alt="VX Academy Logo"
+                  className="h-full"
+                />
+              </a>
             </div>
           </div>
 
@@ -157,6 +162,17 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Forgot Password Link */}
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setLocation("/forgot-password")}
+                      className="text-[#00d8cc] hover:text-[#00b8b0] text-sm font-medium transition-colors duration-300 hover:underline"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
 
                   <div className="pt-4">
                     <Button

@@ -34,6 +34,7 @@ import MediaManagementPage from "@/pages/admin/media";
 
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import ForgotPasswordPage from "./pages/forgot-password";
 
 function Router() {
   return (
@@ -41,6 +42,7 @@ function Router() {
       {/* Public routes */}
       <Route path="/" component={HomePage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
 
       {/* Protected routes */}
       <ProtectedRoute path="/dashboard" component={Dashboard} />
