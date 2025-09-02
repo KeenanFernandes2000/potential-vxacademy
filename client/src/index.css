@@ -1,3 +1,5 @@
+@import './assets/fonts/fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,7 +11,7 @@
 
   body {
     @apply font-sans antialiased bg-abu-sand text-abu-charcoal;
-    font-family: 'Frutiger', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Abu Dhabi Basis', 'Frutiger', 'Helvetica Neue', Arial, sans-serif;
     letter-spacing: 0.2px;
   }
   
@@ -178,6 +180,27 @@
 
 /* Abu Dhabi Experience custom component styles */
 @layer components {
+  /* Font utility classes */
+  .font-abu-light {
+    font-family: 'Abu Dhabi Basis', sans-serif;
+    font-weight: 300;
+  }
+  
+  .font-abu-regular {
+    font-family: 'Abu Dhabi Basis', sans-serif;
+    font-weight: 400;
+  }
+  
+  .font-abu-medium {
+    font-family: 'Abu Dhabi Basis', sans-serif;
+    font-weight: 500;
+  }
+  
+  .font-abu-bold {
+    font-family: 'Abu Dhabi Basis', sans-serif;
+    font-weight: 700;
+  }
+  
   /* Button styles */
   .btn-abu-primary {
     @apply bg-abu-primary text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all;

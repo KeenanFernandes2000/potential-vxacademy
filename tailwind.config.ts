@@ -5,6 +5,13 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
   	extend: {
+  		fontFamily: {
+  			'abu-dhabi': ['Abu Dhabi Basis', 'sans-serif'],
+  			'abu-dhabi-light': ['Abu Dhabi Basis', 'sans-serif'],
+  			'abu-dhabi-regular': ['Abu Dhabi Basis', 'sans-serif'],
+  			'abu-dhabi-medium': ['Abu Dhabi Basis', 'sans-serif'],
+  			'abu-dhabi-bold': ['Abu Dhabi Basis', 'sans-serif'],
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

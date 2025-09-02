@@ -1,0 +1,41 @@
+/* Abu Dhabi Basis Font Family */
+
+@font-face {
+  font-family: 'Abu Dhabi Basis';
+  src: url('./AbuDhabiBasis-Light.woff2') format('woff2'),
+       url('./AbuDhabiBasis-Light.woff') format('woff'),
+       url('./AbuDhabiBasis-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Abu Dhabi Basis';
+  src: url('./AbuDhabiBasis-Regular.woff2') format('woff2'),
+       url('./AbuDhabiBasis-Regular.woff') format('woff'),
+       url('./AbuDhabiBasis-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Abu Dhabi Basis';
+  src: url('./AbuDhabiBasis-Medium.woff2') format('woff2'),
+       url('./AbuDhabiBasis-Medium.woff') format('woff'),
+       url('./AbuDhabiBasis-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Abu Dhabi Basis';
+  src: url('./AbuDhabiBasis-Bold.woff2') format('woff2'),
+       url('./AbuDhabiBasis-Bold.woff') format('woff'),
+       url('./AbuDhabiBasis-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

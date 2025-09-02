@@ -3,8 +3,9 @@ import { useState, useEffect, useRef } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
+import Autoplay from "embla-carousel-autoplay";
+
 import { Button } from "../components/ui/button";
-import { TestimonialCard } from "../components/ui/testimonialCard";
 import {
   Carousel,
   CarouselContent,
@@ -17,14 +18,9 @@ import Icon from "../components/ui/icon";
 // MUI Icons
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import PeopleIcon from "@mui/icons-material/People";
-import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
 import SchoolIcon from "@mui/icons-material/School";
 import MenuIcon from "@mui/icons-material/Menu";
-import PersonIcon from "@mui/icons-material/Person";
 import BuildIcon from "@mui/icons-material/Build";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -36,11 +32,6 @@ import PinterestIcon from "@mui/icons-material/Pinterest";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import InfoIcon from "@mui/icons-material/Info";
 import GroupsIcon from "@mui/icons-material/Groups";
-import BoltIcon from "@mui/icons-material/Bolt";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import StarIcon from "@mui/icons-material/Star";
 
 // Layout Primitives
 interface SectionProps {
@@ -115,7 +106,7 @@ const MediaBox = ({
   alt?: string;
 }) => (
   <div
-    className={`aspect-[16/10] rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 overflow-hidden ${className}`}
+    className={`aspect-[16/10] rounded-xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden ${className}`}
   >
     {imageSrc ? (
       <img src={imageSrc} alt={alt} className="w-full h-full object-cover" />
@@ -146,10 +137,10 @@ export default function HomePage() {
   useEffect(() => {
     // Initialize AOS
     AOS.init({
-      duration: 1000,
+      duration: 600,
       easing: "ease-in-out",
-      once: true,
-      mirror: false,
+      once: false,
+      mirror: true,
     });
 
     const potChatHost = (globalThis as any).document?.getElementById(
@@ -168,11 +159,11 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a2540] relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden">
       {/* Supergraphic SVG Background in Experience Abu Dhabi Style */}
 
       {/* Navigation Bar with Glassmorphism */}
-      <nav className="bg-white/10 backdrop-blur-xl border-b border-white/20 z-50 sticky top-0">
+      <nav className="backdrop-blur-xl border-b border-white/10 z-50 sticky top-0 shadow-2xl">
         <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center">
             <div className="h-12 w-auto">
@@ -187,16 +178,16 @@ export default function HomePage() {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             <button
-              onClick={() => scrollToSection("benefits")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              Benefits
-            </button>
-            <button
               onClick={() => scrollToSection("about")}
               className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
             >
               About
+            </button>
+            <button
+              onClick={() => scrollToSection("benefits")}
+              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
+            >
+              Why Join
             </button>
             <button
               onClick={() => scrollToSection("training-areas")}
@@ -206,21 +197,21 @@ export default function HomePage() {
             </button>
 
             <button
-              onClick={() => scrollToSection("testimonials")}
+              onClick={() => scrollToSection("for")}
               className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
             >
-              Testimonials
+              Who is it for
             </button>
             {user ? (
               <Link href="/dashboard">
-                <Button className="bg-teal-500 hover:bg-teal-600 text-white rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105">
+                <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105">
                   My Dashboard
                 </Button>
               </Link>
             ) : (
               <Link href="/auth">
-                <Button className="bg-teal-500 hover:bg-teal-600 text-white rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105">
-                  Get Started
+                <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 rounded-full">
+                  Login
                 </Button>
               </Link>
             )}
@@ -239,17 +230,8 @@ export default function HomePage() {
 
         {/* Mobile Menu with Glassmorphism */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden bg-white/10 backdrop-blur-xl border-t border-white/20">
+          <div className="lg:hidden backdrop-blur-xl border-[#00d8cc]/20">
             <div className="px-4 py-4 space-y-3">
-              <button
-                onClick={() => {
-                  scrollToSection("benefits");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                Benefits
-              </button>
               <button
                 onClick={() => {
                   scrollToSection("about");
@@ -258,6 +240,15 @@ export default function HomePage() {
                 className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
               >
                 About
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection("benefits");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
+              >
+                Why Join
               </button>
               <button
                 onClick={() => {
@@ -270,23 +261,23 @@ export default function HomePage() {
               </button>
               <button
                 onClick={() => {
-                  scrollToSection("testimonials");
+                  scrollToSection("for");
                   setIsMobileMenuOpen(false);
                 }}
                 className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
               >
-                Testimonials
+                Who is it for
               </button>
               {user ? (
                 <Link href="/dashboard">
-                  <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-white/20 mt-4">
+                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
                     My Dashboard
                   </Button>
                 </Link>
               ) : (
                 <Link href="/auth">
-                  <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-white/20 mt-4">
-                    Sign In / Register
+                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8cc] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
+                    Get Started
                   </Button>
                 </Link>
               )}
@@ -297,11 +288,11 @@ export default function HomePage() {
 
       {/* Hero Section with Full Background Image */}
       <section
-        className="relative min-h-[90vh] flex items-center overflow-hidden"
+        className="relative min-h-screen flex items-center overflow-hidden -mt-20 pt-20"
         // data-aos="fade-up"
       >
         {/* Full Background Image */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 -top-20">
           <img
             src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80"
             alt="VX Academy Hero Background"
@@ -310,16 +301,16 @@ export default function HomePage() {
           {/* Overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/60 to-slate-900/40"></div>
           {/* Subtle animated background elements */}
-          <div className="absolute top-20 left-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-[#00d8cc]/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#00d8cc]/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-[#00d8cc]/10 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
 
         <div className="container mx-auto px-4 lg:px-6 py-16 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="text-white space-y-8">
               <h1
-                className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-white"
+                className="text-5xl md:text-6xl lg:text-7xl font-abu-bold leading-tight text-white"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
@@ -330,28 +321,75 @@ export default function HomePage() {
                 data-aos="fade-up"
                 data-aos-delay="400"
               >
-                Empowering frontliners with exceptional skills to create
-                memorable experiences for every visitor to Abu Dhabi.
+                Welcome to VX Academy — your gateway to becoming part of Abu
+                Dhabi’s story.
               </p>
               <div
                 className="flex flex-col sm:flex-row gap-4 justify-center"
                 data-aos="fade-up"
                 data-aos-delay="600"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section
+        id="about"
+        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] border-b border-white/10 mb-8"
+      >
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Content Column */}
+            <div className="text-white">
+              <h2
+                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+                data-aos="fade-up"
               >
-                <Link href="/auth">
-                  <Button className="bg-teal-500 hover:bg-teal-600 text-white text-lg py-4 px-8 shadow-2xl backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105 font-semibold">
-                    Get Started
-                  </Button>
-                </Link>
-             
-                  <Button
-                    onClick={() => scrollToSection("about")}
-                    variant="outline"
-                    className="bg-white/10 backdrop-blur-sm border-white text-white hover:bg-white/20 text-lg py-4 px-8 transition-all duration-300 hover:scale-105 font-semibold"
-                  >
-                    Learn More
-                  </Button>
-                
+                About VX Academy
+              </h2>
+              <div className="w-24 h-1 bg-[#00d8cc] rounded-full mb-8"></div>
+              <div
+                className="space-y-4 text-lg leading-relaxed mb-8"
+                data-aos="fade-up"
+              >
+                <p>
+                  At VX Academy, we believe every frontliner is more than just a
+                  service provider. You are the warm welcome that sets the tone,
+                  the trusted guide who shares our culture, and the lasting
+                  memory every visitor takes home.
+                </p>
+                <p>
+                  Abu Dhabi is a place of discovery, tradition, and world-class
+                  hospitality. To every visitor, it should feel consistent,
+                  seamless, and extraordinary — and VX Academy was created to
+                  ensure that, by equipping you with the knowledge, skills, and
+                  confidence to deliver exceptional service across every
+                  touchpoint.
+                </p>
+                <p>
+                  This is more than training. It's an invitation to become an
+                  ambassador of Abu Dhabi, to share the spirit of our home with
+                  the world, and to make every interaction truly unforgettable.
+                </p>
+              </div>
+              <Button
+                className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 py-3 font-semibold transition-colors rounded-full shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 hover:scale-105"
+                data-aos="fade-up"
+              >
+                Login
+              </Button>
+            </div>
+
+            {/* Image Column */}
+            <div className="flex justify-center lg:justify-end">
+              <div className="w-full h-full overflow-hidden" data-aos="fade-up">
+                <img
+                  src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80"
+                  alt="Woman working on laptop"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -361,7 +399,7 @@ export default function HomePage() {
       {/* Benefits Section */}
       <section
         id="benefits"
-        className="py-16 md:py-24 relative overflow-hidden bg-[#003451]"
+        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] border-b border-white/10 mb-8 shadow-lg"
         // data-aos="fade-up"
       >
         {/* Removed old blurred and previous SVG backgrounds */}
@@ -369,10 +407,10 @@ export default function HomePage() {
         <div className="container mx-auto px-4 lg:px-6 relative z-10">
           <div className="text-center mb-16 lg:mb-20" data-aos="fade-up">
             <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
                 Why Join VX Academy?
               </h2>
-              <div className="w-24 h-1 bg-white rounded-full mx-auto"></div>
+              <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto"></div>
               <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white leading-relaxed">
                 Joining the VX Academy provides frontliners with numerous
                 benefits that enhance both professional development and personal
@@ -381,100 +419,48 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-16"
-            data-aos="fade-up"
-            data-aos-delay="200"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-16">
             {[
               {
                 title: "Recognized Certification",
                 description:
-                  "Earn a prestigious certification recognized by VX Academy and Abu Dhabi's frontline hospitality and tourism sector.",
+                  "Earn official certifications and digital badges that highlight your expertise and commitment to excellence. Showcase your achievements with credentials recognized across Abu Dhabi's tourism and hospitality ecosystem.",
                 icon: WorkspacePremiumIcon,
-                bgImage:
-                  "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
               },
               {
                 title: "Career Advancement",
                 description:
-                  "Enhance your resume and open doors to new career opportunities in the growing hospitality sector.",
+                  "Stand out in your field and open doors to new opportunities. With enhanced skills and proven knowledge, you'll be better equipped for promotions, leadership roles, and long-term career growth.",
                 icon: TrendingUpIcon,
-                bgImage:
-                  "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-              },
-              {
-                title: "Achievement Badges",
-                description:
-                  "Earn digital badges to recognize your skills and showcase your hospitality expertise to employers and colleagues.",
-                icon: EmojiEventsIcon,
-                bgImage:
-                  "https://images.unsplash.com/photo-1607082349566-187342175e2f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-              },
-              {
-                title: "Networking Opportunities",
-                description:
-                  "Connect with fellow professionals across Abu Dhabi's hospitality and tourism Cluster's network of facilities.",
-                icon: PeopleIcon,
-                bgImage:
-                  "https://images.unsplash.com/photo-1521737711867-e3b97375f902?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-              },
-              {
-                title: "Mobile Learning",
-                description:
-                  "Access courses anytime, anywhere through our mobile-friendly platform with online and offline capabilities.",
-                icon: PhoneAndroidIcon,
-                bgImage:
-                  "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
               },
               {
                 title: "AI-Powered Assistance",
                 description:
-                  "Get personalized help from our AI tutor to enhance your learning experience and address questions.",
+                  "Get access to smart, AI-driven tools that guide you through training and provide instant support when you need it most — helping you learn faster and apply knowledge on the job.",
                 icon: SmartToyIcon,
-                bgImage:
-                  "https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
               },
               {
-                title: "Progress Tracking",
+                title: "Self-Paced Training",
                 description:
-                  "Monitor your learning journey with detailed analytics and personalized progress reports.",
-                icon: AnalyticsIcon,
-                bgImage:
-                  "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-              },
-              {
-                title: "Interactive Learning",
-                description:
-                  "Engage with immersive content, simulations, and real-world scenarios for a dynamic learning experience.",
+                  "Learn anytime, anywhere, at your own pace. Whether you're at work, home, or on the go, VX Academy adapts to your schedule so you can grow without limits.",
                 icon: SchoolIcon,
-                bgImage:
-                  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
               },
             ].map((benefit, index) => (
               <div key={index} className="group">
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6 lg:p-8 hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full relative overflow-hidden">
-                  {/* Background image with overlay */}
-                  <div className="absolute inset-0">
-                    <img
-                      src={benefit.bgImage}
-                      alt={benefit.title}
-                      className="w-full h-full object-cover opacity-50 group-hover:opacity-60 transition-opacity duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#003451]/80 to-[#003451]/60"></div>
-                  </div>
-
-                  {/* Subtle background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-400 to-teal-400 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-teal-400 to-cyan-400 rounded-full blur-2xl"></div>
-                  </div>
-
+                <div
+                  className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 p-6 lg:p-8 hover:bg-[#00d8cc]/20 transition-all duration-500 hover:scale-105 h-full relative overflow-hidden"
+                  data-aos="fade-up"
+                  data-aos-delay="200"
+                >
                   <div className="relative z-10">
-                    <div className="w-16 h-16 bg-gradient-to-br from-cyan-400/20 to-teal-400/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                      <Icon Component={benefit.icon} color="#67e8f9" />
+                    <div className="w-20 h-20 flex items-center justify-center mb-6 transition-transform duration-300">
+                      <Icon
+                        Component={benefit.icon}
+                        color="#00d8cc"
+                        size={58}
+                      />
                     </div>
-                    <h3 className="text-xl font-bold mb-4 text-white group-hover:text-cyan-400 transition-colors duration-300">
+                    <h3 className="text-xl lg:text-2xl font-bold mb-4 text-white group-hover:text-[#00d8cc] transition-colors duration-300">
                       {benefit.title}
                     </h3>
                     <p className="text-white/90 leading-relaxed">
@@ -485,163 +471,33 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-
-          <div className="text-center" data-aos="fade-up" data-aos-delay="400">
-            <Link href="/auth">
-              <Button className="bg-white text-slate-900  hover:from-cyan-100 hover:to-white text-lg py-4 px-12 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold">
-                Get Started
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section with Glassmorphism Cards */}
-      <section
-        id="about"
-        className="py-16 sm:py-20 lg:py-24 relative overflow-hidden bg-slate-800/40"
-        // data-aos="fade-up"
-      >
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl"></div>
-        {/* Background image */}
-        <div className="absolute inset-0 opacity-10">
-          <img
-            src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-            alt="Abu Dhabi background"
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        <div className="container mx-auto px-4 lg:px-6 relative z-10">
-          {/* Header */}
-          <div
-            className="text-center max-w-4xl mx-auto mb-20"
-            data-aos="fade-up"
-          >
-            <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
-                <span className="text-teal-400">VX Academy</span> - Excellence
-                in Visitor Experiences
-              </h2>
-              <div className="w-24 h-1 bg-teal-400 rounded-full mx-auto"></div>
-              <p className="text-xl text-white/90 leading-relaxed max-w-3xl mx-auto">
-                Abu Dhabi's premier training platform designed specifically for
-                frontline staff, combining cultural knowledge, hospitality
-                excellence, and practical skills.
-              </p>
-            </div>
-          </div>
-
-          {/* Our Comprehensive System - Three Stage Process */}
-          <div className="mb-20">
-            <h3
-              className="text-2xl md:text-3xl font-bold text-white text-center mb-16"
-              data-aos="fade-up"
-            >
-              Our comprehensive system
-            </h3>
-
-            <div
-              className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
-              {/* Stage 1: Assess */}
-              <div className="text-center group">
-                <div className="relative mb-8">
-                  <div className="w-24 h-24 bg-teal-500/20 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                    <Icon Component={PersonIcon} size={48} color="#67e8f9" />
-                  </div>
-                  <div className="absolute -right-6 top-1/2 transform -translate-y-1/2 hidden lg:block">
-                    <Icon
-                      Component={ArrowForwardIcon}
-                      size={32}
-                      color="#67e8f9"
-                    />
-                  </div>
-                </div>
-                <h4 className="text-2xl font-bold text-white mb-4">Assess</h4>
-                <p className="text-white/80 leading-relaxed">
-                  Our AI-powered assessments identify hidden potential in
-                  frontline staff, looking beyond experience to uncover the
-                  markers of exceptional visitor service.
-                </p>
-              </div>
-
-              {/* Stage 2: Learn */}
-              <div className="text-center group">
-                <div className="relative mb-8">
-                  <div className="w-24 h-24 bg-teal-500/20 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                    <Icon Component={SchoolIcon} size={48} color="#67e8f9" />
-                  </div>
-                  <div className="absolute -right-6 top-1/2 transform -translate-y-1/2 hidden lg:block">
-                    <Icon
-                      Component={ArrowForwardIcon}
-                      size={32}
-                      color="#67e8f9"
-                    />
-                  </div>
-                </div>
-                <h4 className="text-2xl font-bold text-white mb-4">Learn</h4>
-                <p className="text-white/80 leading-relaxed">
-                  We design immersive, job-focused training programs tailored to
-                  Abu Dhabi's unique needs, rapidly upskilling talent in
-                  cultural knowledge and hospitality excellence.
-                </p>
-              </div>
-
-              {/* Stage 3: Apply */}
-              <div className="text-center group">
-                <div className="relative mb-8">
-                  <div className="w-24 h-24 bg-teal-500/20 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                    <Icon Component={BoltIcon} size={48} color="#67e8f9" />
-                  </div>
-                </div>
-                <h4 className="text-2xl font-bold text-white mb-4">Apply</h4>
-                <p className="text-white/80 leading-relaxed">
-                  Our comprehensive onboarding, coaching, and mentoring support
-                  ensures successful role transitions, accelerating
-                  time-to-competency and boosting retention.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Key Results */}
-          <div className="text-center" data-aos="fade-up" data-aos-delay="400">
-            <div className="grid grid-cols-1 md:grid-cols-3  max-w-4xl mx-auto">
-              <div className="bg-white/5 p-6 md:border-r md:border-white/20">
-                <p className="text-4xl font-bold text-teal-400 mb-2">100%</p>
-                <p className="text-white/70">Top performer rating</p>
-              </div>
-              <div className="bg-white/5 p-6 md:border-r md:border-white/20">
-                <p className="text-4xl font-bold text-teal-400 mb-2">100%</p>
-                <p className="text-white/70">Retention year 1</p>
-              </div>
-              <div className="bg-white/5 p-6">
-                <p className="text-4xl font-bold text-teal-400 mb-2">100%</p>
-                <p className="text-white/70">Successfull Trained Students</p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* Training Areas Section */}
       <section
         id="training-areas"
-        className="py-16 sm:py-20 lg:py-24 relative overflow-hidden bg-slate-700"
+        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] border-b border-white/10 mb-8"
         // data-aos="fade-up"
       >
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `linear-gradient(45deg, white 1px, transparent 1px), linear-gradient(-45deg, white 1px, transparent 1px)`,
+              backgroundSize: "30px 30px",
+            }}
+          ></div>
+        </div>
+
         <div className="container mx-auto px-4 lg:px-6 relative z-10">
           <div className="text-center mb-16 lg:mb-20" data-aos="fade-up">
             <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
                 Training Areas
               </h2>
-              <div className="w-24 h-1 bg-teal-400 rounded-full mx-auto"></div>
+              <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto"></div>
               <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white leading-relaxed">
                 Our comprehensive training system follows a structured approach
                 through five interconnected areas, building from foundational
@@ -651,9 +507,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {[
               {
                 title: "ABU DHABI INFORMATION",
@@ -701,11 +555,15 @@ export default function HomePage() {
                 imageAlt: "Code of conduct and regulations",
               },
             ].map((area, index) => (
-              <div key={index} className="group" data-aos="fade-up"
-            data-aos-delay="200">
-                <div className="bg-white/10 backdrop-blur-sm   hover:bg-white/20 transition-all duration-500 hover:scale-105 h-full flex flex-col">
+              <div
+                key={index}
+                className="group"
+                data-aos="fade-up"
+                data-aos-delay="200"
+              >
+                <div className="bg-[#00d8cc]/10 backdrop-blur-sm   hover:bg-[#00d8cc]/20 transition-all duration-500 hover:scale-105 h-full flex flex-col">
                   {/* Image Placeholder */}
-                  <div className="aspect-[4/3] bg-white/5 mb-6  overflow-hidden relative group-hover:scale-105 transition-transform duration-300">
+                  <div className="aspect-[4/3] bg-[#00d8cc]/5 mb-6  overflow-hidden relative group-hover:scale-105 transition-transform duration-300">
                     <img
                       src={area.imageSrc}
                       alt={area.imageAlt}
@@ -715,8 +573,8 @@ export default function HomePage() {
                   </div>
 
                   {/* Body - flex-1 for consistent height */}
-                  <div className="text-center space-y-4 flex-1 flex flex-col border-l-2 border-cyan-300 p-8">
-                    <h3 className="text-xl font-bold text-white group-hover:text-teal-400 transition-colors duration-300">
+                  <div className="text-center space-y-4 flex-1 flex flex-col border-l-2 border-[#00d8cc] p-8">
+                    <h3 className="text-xl lg:text-2xl font-bold text-white group-hover:text-[#00d8cc] transition-colors duration-300">
                       {area.title}
                     </h3>
                     <p className="text-white text-sm leading-relaxed flex-1">
@@ -730,137 +588,212 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Who is it for Section */}
       <section
-        id="testimonials"
-        className="py-16 sm:py-20 lg:py-24 relative overflow-hidden bg-slate-700/20"
-        // data-aos="fade-up"
+        id="for"
+        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] border-b border-white/10 mb-8 shadow-lg"
       >
-        {/* Background decoration */}
-        <div className="absolute top-10 right-10 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
-
-        <div className="container mx-auto px-4 lg:px-6 relative z-10">
-          <div className="text-center mb-16 lg:mb-20" data-aos="fade-up">
-            <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
-                Real-Life Successes
-              </h2>
-              <div className="w-24 h-1 bg-teal-400 rounded-full mx-auto"></div>
-              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white leading-relaxed">
-                Explore the stories of individuals who have elevated their
-                careers through the VX Academy experience.
-              </p>
-            </div>
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="text-center mb-16" data-aos="fade-up">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+              Who Is VX Academy For?
+            </h2>
+            <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-8"></div>
+            <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+              If you play a role in shaping Abu Dhabi's visitor journey, VX
+              Academy is for you.
+            </p>
           </div>
 
-          {/* Testimonials Carousel (Embla) */}
-          <Carousel
-            className="max-w-6xl mx-auto"
-            opts={{ loop: true }}
-            data-aos="fade-up"
-            data-aos-delay="200"
-          >
-            <CarouselContent>
-              {[
-                {
-                  name: "Ahmed K.",
-                  role: "Hotel Concierge",
-                  rating: 4.2,
-                  testimonial:
-                    "VX Academy transformed how I assist guests at our hotel. The cultural knowledge modules helped me provide authentic recommendations that guests truly appreciate.",
-                  avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-                },
-                {
-                  name: "Fatima S.",
-                  role: "Tour Guide",
-                  rating: 4.8,
-                  testimonial:
-                    "The destination knowledge courses were incredibly detailed. I now confidently share hidden gems and fascinating stories about Abu Dhabi that my tour groups love.",
-                  avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-                },
-                {
-                  name: "Rahim J.",
-                  role: "Retail Assistant",
-                  rating: 4.5,
-                  testimonial:
-                    "The communication skills modules helped me connect better with international customers. My sales have increased, and I've received recognition from management.",
-                  avatar: "https://randomuser.me/api/portraits/men/67.jpg",
-                },
-                {
-                  name: "Layla M.",
-                  role: "Restaurant Server",
-                  rating: 3.5,
-                  testimonial:
-                    "The cultural sensitivity training helped me better understand and serve guests from different backgrounds. My customer satisfaction scores have never been higher.",
-                  avatar: "https://randomuser.me/api/portraits/women/28.jpg",
-                },
-              ].map((testimonial, index) => (
-                <CarouselItem
-                  key={index}
-                  className="basis-full md:basis-1/2 lg:basis-1/3"
-                >
-                  <TestimonialCard data={testimonial} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden sm:flex" />
-            <CarouselNext className="hidden sm:flex" />
-          </Carousel>
+          <div className="w-full max-w-none">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              plugins={[
+                Autoplay({
+                  delay: 2000,
+                }),
+              ]}
+              className="w-full"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {[
+                  {
+                    title: "Museums & Cultural Sites",
+                    image:
+                      "https://images.unsplash.com/photo-1554907984-15263bfd63bd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  },
+                  {
+                    title: "Events & Entertainment Venues",
+                    image:
+                      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  },
+                  {
+                    title: "Mobility Operators & Airports",
+                    image:
+                      "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  },
+                  {
+                    title: "Cruise Terminals",
+                    image:
+                      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  },
+                  {
+                    title: "Hotels & Hospitality",
+                    image:
+                      "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  },
+                  {
+                    title: "Malls & Retail",
+                    image:
+                      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  },
+                  {
+                    title: "Tour Guides & Operators",
+                    image:
+                      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  },
+                  {
+                    title: "Visitor Information Centers",
+                    image:
+                      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  },
+                  {
+                    title: "Attractions & Theme Parks",
+                    image:
+                      "https://images.unsplash.com/photo-1613058502382-f2c4656638ff?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                  },
+                ].map((item, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                  >
+                    <div className="group cursor-pointer transition-all duration-300 hover:scale-105">
+                      <div className="relative aspect-[4/3] overflow-hidden shadow-2xl">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover transition-all duration-500 ease-in-out group-hover:scale-110"
+                        />
+                        {/* Gradient overlay for better text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                        {/* Text overlay positioned at bottom left */}
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <h3 className="text-xl lg:text-3xl font-bold text-white group-hover:text-[#00d8cc] transition-colors duration-300">
+                            {item.title}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 border-white/20 text-white hover:text-[#00d8cc]" />
+              <CarouselNext className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 border-white/20 text-white hover:text-[#00d8cc]" />
+            </Carousel>
+          </div>
         </div>
       </section>
 
-      {/* Call to Action Section */}
+      {/* Your Impact Section */}
       <section
-        id="cta"
-        className="py-16 sm:py-20 lg:py-24 relative overflow-hidden"
-        // data-aos="fade-up"
+        id="impact"
+        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] mb-8"
       >
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-            alt="VX Academy CTA Background"
-            className="w-full h-full object-cover"
-          />
-          {/* Overlay for better readability */}
-          <div className="absolute inset-0 bg-slate-900/70"></div>
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `radial-gradient(circle at 75% 75%, white 1px, transparent 1px)`,
+              backgroundSize: "40px 40px",
+            }}
+          ></div>
         </div>
 
-        <div className="container mx-auto px-4 lg:px-6 relative z-10">
-          <div
-            className="bg-white/10 backdrop-blur-md border border-white/20 p-12 lg:p-16 text-white text-center relative overflow-hidden"
-            data-aos="fade-up"
-            data-aos-delay="200"
-          >
-            {/* Background pattern */}
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Image Column */}
+            <div className="flex justify-center lg:justify-start order-2 lg:order-1">
+              <div className="w-full h-full overflow-hidden" data-aos="fade-up">
+                <img
+                  src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                  alt="Team collaboration and impact"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
 
-            <div className="relative z-10 text-center mx-auto max-w-2xl space-y-8">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                Ready to Elevate Visitor Experiences in Abu Dhabi?
+            {/* Content Column */}
+            <div className="text-white order-1 lg:order-2">
+              <h2
+                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+                data-aos="fade-up"
+              >
+                Your Impact
               </h2>
-              <p className="text-lg md:text-xl lg:text-2xl text-white leading-relaxed">
-                Join VX Academy today and become part of Abu Dhabi's world-class
-                hospitality community. Start your journey toward becoming a
-                certified frontline professional.
-              </p>
-              <div className="pt-4">
-                <a href="#">
-                  <Button className="bg-white hover:bg-gray-100 text-slate-900 text-lg py-4 px-12 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold">
-                    Get Started
-                  </Button>
-                </a>
+              <div className="w-24 h-1 bg-[#00d8cc] rounded-full mb-8"></div>
+              <div
+                className="space-y-4 text-lg leading-relaxed mb-8"
+                data-aos="fade-up"
+              >
+                <p>
+                  Every smile, every story, every act of service becomes part of
+                  the memory a visitor carries home. By joining VX Academy,
+                  you're not just learning — you're shaping the way the world
+                  experiences Abu Dhabi. Together, we'll make every visit
+                  unforgettable.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      <section
+        id="join"
+        className="py-24 md:py-32 lg:py-40 relative overflow-hidden bg-[#003451] min-h-[80vh] shadow-lg"
+      >
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+            alt="VX Academy Join Background"
+            className="w-full h-full object-cover"
+          />
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-900/90"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10 flex items-center justify-center min-h-[80vh]">
+          <div className="text-center max-w-5xl mx-auto" data-aos="fade-up">
+            <h2
+              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-12 leading-tight"
+              data-aos="fade-up"
+            >
+              VX Academy - Excellence in Visitor Experiences
+            </h2>
+            <div className="pt-8">
+              <Button
+                className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-xl py-6 px-16 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold rounded-full backdrop-blur-sm border border-[#00d8cc]/20"
+                data-aos="fade-up"
+              >
+                Login
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer with Horizontal Layout on Mobile */}
-      <footer className="bg-slate-900/80 backdrop-blur-xl border-t border-white/10 text-white py-16 sm:py-20 lg:py-24 relative overflow-hidden">
+      <footer className="bg-[#003451]/90 backdrop-blur-xl border-t border-[#00d8cc]/20 text-white py-16 sm:py-20 lg:py-24 relative overflow-hidden">
         {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#00d8cc]/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#00d8cc]/10 rounded-full blur-3xl"></div>
 
         <div className="container mx-auto px-4 lg:px-6 relative z-10">
           {/* Mobile: Single row layout, Desktop: Grid layout */}
@@ -872,27 +805,6 @@ export default function HomePage() {
                 The premier training platform for Abu Dhabi's frontline
                 hospitality and tourism professionals.
               </p>
-              <div className="flex space-x-4">
-                {[
-                  { icon: FacebookIcon },
-                  { icon: TwitterIcon },
-                  { icon: PinterestIcon },
-                  { icon: LinkedInIcon },
-                ].map((social, index) => (
-                  <a
-                    key={index}
-                    href="#"
-                    className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/10 hover:bg-teal-500 flex items-center justify-center transition-all duration-300 hover:scale-110 group backdrop-blur-sm border border-white/20"
-                  >
-                    <Icon
-                      Component={social.icon}
-                      size={20}
-                      color="currentColor"
-                      className="group-hover:scale-110 transition-transform"
-                    />
-                  </a>
-                ))}
-              </div>
             </div>
 
             {/* Mobile: Compact layout for Links and Contact */}
@@ -903,44 +815,44 @@ export default function HomePage() {
                   <h3 className="text-base font-bold">Quick Links</h3>
                   <ul className="space-y-2 text-sm">
                     <li>
-                      <a
-                        href="#"
-                        className="text-white/70 hover:text-white transition-all duration-300 hover:translate-x-1 transform inline-block"
+                      <button
+                        onClick={() => scrollToSection("about")}
+                        className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                       >
                         About Us
-                      </a>
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="#"
-                        className="text-white/70 hover:text-white transition-all duration-300 hover:translate-x-1 transform inline-block"
+                      <button
+                        onClick={() => scrollToSection("training-areas")}
+                        className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                       >
                         Training Areas
-                      </a>
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="#"
-                        className="text-white/70 hover:text-white transition-all duration-300 hover:translate-x-1 transform inline-block"
+                      <button
+                        onClick={() => scrollToSection("benefits")}
+                        className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                       >
                         Benefits
-                      </a>
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="#"
-                        className="text-white/70 hover:text-white transition-all duration-300 hover:translate-x-1 transform inline-block"
+                      <button
+                        onClick={() => scrollToSection("for")}
+                        className="text-white/70 hover:text-white transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                       >
-                        Testimonials
-                      </a>
+                        Who is it for
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="#"
-                        className="text-white/70 hover:text-white transition-all duration-300 hover:translate-x-1 transform inline-block"
+                      <button
+                        onClick={() => scrollToSection("about")}
+                        className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                       >
                         FAQ
-                      </a>
+                      </button>
                     </li>
                   </ul>
                 </div>
@@ -950,11 +862,11 @@ export default function HomePage() {
                   <h3 className="text-base font-bold">Contact Us</h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex flex-col items-center space-y-2 group">
-                      <div className="w-5 h-5 bg-cyan-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
+                      <div className="w-5 h-5 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
                         <Icon
                           Component={LocationOnIcon}
                           size={12}
-                          color="#67e8f9"
+                          color="#00d8cc"
                         />
                       </div>
                       <span className="text-white text-xs leading-relaxed text-center">
@@ -963,16 +875,16 @@ export default function HomePage() {
                       </span>
                     </div>
                     <div className="flex flex-col items-center space-y-2 group">
-                      <div className="w-5 h-5 bg-cyan-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
-                        <Icon Component={EmailIcon} size={12} color="#67e8f9" />
+                      <div className="w-5 h-5 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
+                        <Icon Component={EmailIcon} size={12} color="#00d8cc" />
                       </div>
                       <span className="text-white text-xs">
                         info@vxacademy.ae
                       </span>
                     </div>
                     <div className="flex flex-col items-center space-y-2 group">
-                      <div className="w-5 h-5 bg-cyan-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
-                        <Icon Component={PhoneIcon} size={12} color="#67e8f9" />
+                      <div className="w-5 h-5 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
+                        <Icon Component={PhoneIcon} size={12} color="#00d8cc" />
                       </div>
                       <span className="text-white text-xs">
                         +971 2 123 4567
@@ -988,44 +900,36 @@ export default function HomePage() {
               <h3 className="text-lg font-bold">Quick Links</h3>
               <ul className="space-y-3">
                 <li>
-                  <a
-                    href="#"
-                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                  <button
+                    onClick={() => scrollToSection("about")}
+                    className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                   >
-                    About Us
-                  </a>
+                    About
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#"
-                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                  <button
+                    onClick={() => scrollToSection("training-areas")}
+                    className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                   >
                     Training Areas
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#"
-                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                  <button
+                    onClick={() => scrollToSection("benefits")}
+                    className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                   >
                     Benefits
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#"
-                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
+                  <button
+                    onClick={() => scrollToSection("for")}
+                    className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                   >
-                    Testimonials
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-white/70 hover:text-cyan-400 transition-all duration-300 hover:translate-x-1 transform inline-block"
-                  >
-                    FAQ
-                  </a>
+                    Who is it for
+                  </button>
                 </li>
               </ul>
             </div>
@@ -1034,11 +938,11 @@ export default function HomePage() {
               <h3 className="text-lg font-bold">Contact Us</h3>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3 group">
-                  <div className="w-6 h-6 bg-cyan-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
+                  <div className="w-6 h-6 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
                     <Icon
                       Component={LocationOnIcon}
                       size={16}
-                      color="#67e8f9"
+                      color="#00d8cc"
                     />
                   </div>
                   <span className="text-white text-sm leading-relaxed">
@@ -1046,14 +950,14 @@ export default function HomePage() {
                   </span>
                 </div>
                 <div className="flex items-start space-x-3 group">
-                  <div className="w-6 h-6 bg-cyan-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
-                    <Icon Component={EmailIcon} size={16} color="#67e8f9" />
+                  <div className="w-6 h-6 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
+                    <Icon Component={EmailIcon} size={16} color="#00d8cc" />
                   </div>
                   <span className="text-white text-sm">info@vxacademy.ae</span>
                 </div>
                 <div className="flex items-start space-x-3 group">
-                  <div className="w-6 h-6 bg-cyan-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/40 transition-colors">
-                    <Icon Component={PhoneIcon} size={16} color="#67e8f9" />
+                  <div className="w-6 h-6 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
+                    <Icon Component={PhoneIcon} size={16} color="#00d8cc" />
                   </div>
                   <span className="text-white text-sm">+971 2 123 4567</span>
                 </div>
@@ -1064,6 +968,17 @@ export default function HomePage() {
           <div className="border-t border-white/20 pt-8 text-center">
             <p className="text-white text-sm">
               © {new Date().getFullYear()} VX Academy. All rights reserved.
+            </p>
+            <p className="text-white/60 text-xs mt-2">
+              Powered by{" "}
+              <a
+                href="https://potential.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#00d8cc] transition-colors"
+              >
+                Potential.com
+              </a>
             </p>
           </div>
         </div>
