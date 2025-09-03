@@ -14,13 +14,14 @@ import {
   CarouselPrevious,
 } from "../components/ui/carousel";
 import Icon from "../components/ui/icon";
+import { DashboardNav } from "../components/dashboard/dashboardNav";
+import { DashboardFooter } from "../components/dashboard/dashboardfooter";
 
 // MUI Icons
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 import SchoolIcon from "@mui/icons-material/School";
-import MenuIcon from "@mui/icons-material/Menu";
 import BuildIcon from "@mui/icons-material/Build";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -119,7 +120,6 @@ const MediaBox = ({
 );
 
 export default function HomePage() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null); // Add user state
 
   // Smooth scrolling function
@@ -163,128 +163,7 @@ export default function HomePage() {
       {/* Supergraphic SVG Background in Experience Abu Dhabi Style */}
 
       {/* Navigation Bar with Glassmorphism */}
-      <nav className="backdrop-blur-xl border-b border-white/10 z-50 sticky top-0 shadow-2xl">
-        <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="h-12 w-auto">
-              <img
-                src="/images/vx-academy-logo.svg"
-                alt="VX Academy Logo"
-                className="h-full"
-              />
-            </div>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
-            <button
-              onClick={() => scrollToSection("about")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              About
-            </button>
-            <button
-              onClick={() => scrollToSection("benefits")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              Why Join
-            </button>
-            <button
-              onClick={() => scrollToSection("training-areas")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              Training Areas
-            </button>
-
-            <button
-              onClick={() => scrollToSection("for")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              Who is it for
-            </button>
-            {user ? (
-              <Link href="/dashboard">
-                <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105">
-                  My Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/auth">
-                <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 rounded-full">
-                  Login
-                </Button>
-              </Link>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden">
-            <button
-              className="text-white/90 hover:text-white transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <Icon Component={MenuIcon} size={24} color="currentColor" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu with Glassmorphism */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden backdrop-blur-xl border-[#00d8cc]/20">
-            <div className="px-4 py-4 space-y-3">
-              <button
-                onClick={() => {
-                  scrollToSection("about");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                About
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection("benefits");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                Why Join
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection("training-areas");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                Training Areas
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection("for");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                Who is it for
-              </button>
-              {user ? (
-                <Link href="/dashboard">
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
-                    My Dashboard
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth">
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8cc] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
-                    Get Started
-                  </Button>
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
-      </nav>
+      <DashboardNav user={user} showItems={true} />
 
       {/* Hero Section with Full Background Image */}
       <section
@@ -616,6 +495,8 @@ export default function HomePage() {
               plugins={[
                 Autoplay({
                   delay: 2000,
+                  stopOnInteraction: false,
+                  stopOnMouseEnter: false,
                 }),
               ]}
               className="w-full"
@@ -794,199 +675,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer with Horizontal Layout on Mobile */}
-      <footer className="bg-[#003451]/90 backdrop-blur-xl border-t border-[#00d8cc]/20 text-white py-16 sm:py-20 lg:py-24 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#00d8cc]/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#00d8cc]/10 rounded-full blur-3xl"></div>
-
-        <div className="container mx-auto px-4 lg:px-6 relative z-10">
-          {/* Mobile: Single row layout, Desktop: Grid layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 mb-8 lg:mb-12">
-            {/* VX Academy Section */}
-            <div className="space-y-6">
-              <h3 className="text-xl lg:text-2xl font-bold">VX Academy</h3>
-              <p className="text-white leading-relaxed text-sm lg:text-base">
-                The premier training platform for Abu Dhabi's frontline
-                hospitality and tourism professionals.
-              </p>
-            </div>
-
-            {/* Mobile: Compact layout for Links and Contact */}
-            <div className="lg:hidden">
-              <div className="grid grid-cols-2 gap-6 text-center">
-                {/* Quick Links */}
-                <div className="space-y-4">
-                  <h3 className="text-base font-bold">Quick Links</h3>
-                  <ul className="space-y-2 text-sm">
-                    <li>
-                      <button
-                        onClick={() => scrollToSection("about")}
-                        className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                      >
-                        About Us
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => scrollToSection("training-areas")}
-                        className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                      >
-                        Training Areas
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => scrollToSection("benefits")}
-                        className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                      >
-                        Benefits
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => scrollToSection("for")}
-                        className="text-white/70 hover:text-white transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                      >
-                        Who is it for
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => scrollToSection("about")}
-                        className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                      >
-                        FAQ
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Contact Us */}
-                <div className="space-y-4">
-                  <h3 className="text-base font-bold">Contact Us</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex flex-col items-center space-y-2 group">
-                      <div className="w-5 h-5 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
-                        <Icon
-                          Component={LocationOnIcon}
-                          size={12}
-                          color="#00d8cc"
-                        />
-                      </div>
-                      <span className="text-white text-xs leading-relaxed text-center">
-                        Abu Dhabi Tourism Building, Corniche Road, Abu Dhabi,
-                        UAE
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center space-y-2 group">
-                      <div className="w-5 h-5 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
-                        <Icon Component={EmailIcon} size={12} color="#00d8cc" />
-                      </div>
-                      <span className="text-white text-xs">
-                        info@vxacademy.ae
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center space-y-2 group">
-                      <div className="w-5 h-5 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
-                        <Icon Component={PhoneIcon} size={12} color="#00d8cc" />
-                      </div>
-                      <span className="text-white text-xs">
-                        +971 2 123 4567
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop: 3-column layout (About / Links / Contact) */}
-            <div className="hidden lg:block space-y-6">
-              <h3 className="text-lg font-bold">Quick Links</h3>
-              <ul className="space-y-3">
-                <li>
-                  <button
-                    onClick={() => scrollToSection("about")}
-                    className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                  >
-                    About
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => scrollToSection("training-areas")}
-                    className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                  >
-                    Training Areas
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => scrollToSection("benefits")}
-                    className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                  >
-                    Benefits
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => scrollToSection("for")}
-                    className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                  >
-                    Who is it for
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            <div className="hidden lg:block space-y-6">
-              <h3 className="text-lg font-bold">Contact Us</h3>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3 group">
-                  <div className="w-6 h-6 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
-                    <Icon
-                      Component={LocationOnIcon}
-                      size={16}
-                      color="#00d8cc"
-                    />
-                  </div>
-                  <span className="text-white text-sm leading-relaxed">
-                    Abu Dhabi Tourism Building, Corniche Road, Abu Dhabi, UAE
-                  </span>
-                </div>
-                <div className="flex items-start space-x-3 group">
-                  <div className="w-6 h-6 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
-                    <Icon Component={EmailIcon} size={16} color="#00d8cc" />
-                  </div>
-                  <span className="text-white text-sm">info@vxacademy.ae</span>
-                </div>
-                <div className="flex items-start space-x-3 group">
-                  <div className="w-6 h-6 bg-[#00d8cc]/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#00d8cc]/40 transition-colors">
-                    <Icon Component={PhoneIcon} size={16} color="#00d8cc" />
-                  </div>
-                  <span className="text-white text-sm">+971 2 123 4567</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/20 pt-8 text-center">
-            <p className="text-white text-sm">
-              © {new Date().getFullYear()} VX Academy. All rights reserved.
-            </p>
-            <p className="text-white/60 text-xs mt-2">
-              Powered by{" "}
-              <a
-                href="https://potential.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#00d8cc] transition-colors"
-              >
-                Potential.com
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <DashboardFooter scrollToSection={scrollToSection} />
     </div>
   );
 }

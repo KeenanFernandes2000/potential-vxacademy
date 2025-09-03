@@ -29,8 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, CheckCircle } from "lucide-react";
 import Icon from "@/components/ui/icon";
-import MenuIcon from "@mui/icons-material/Menu";
 import { Input } from "@/components/ui/input";
+import { DashboardNav } from "@/components/dashboard/dashboardNav";
 
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -39,7 +39,6 @@ const emailSchema = z.object({
 type EmailFormValues = z.infer<typeof emailSchema>;
 
 export default function ForgotPasswordPage() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState<"email" | "password">("email");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -73,43 +72,7 @@ export default function ForgotPasswordPage() {
       style={{ backgroundColor: "#003451" }}
     >
       {/* Navigation Bar with Glassmorphism */}
-      <nav className="backdrop-blur-xl border-b border-white/10 z-50 sticky top-0 shadow-2xl">
-        <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="h-12 w-auto">
-              <a
-                href="/"
-                className="cursor-pointer hover:opacity-80 transition-opacity"
-              >
-                <img
-                  src="/images/vx-academy-logo.svg"
-                  alt="VX Academy Logo"
-                  className="h-full"
-                />
-              </a>
-            </div>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden">
-            <button
-              className="text-white/90 hover:text-white transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <Icon Component={MenuIcon} size={24} color="currentColor" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu with Glassmorphism */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden backdrop-blur-xl border-[#00d8cc]/20">
-            <div className="px-4 py-4 space-y-3">
-              {/* Mobile menu is empty as requested */}
-            </div>
-          </div>
-        )}
-      </nav>
+      <DashboardNav showItems={false} />
 
       {/* Forgot Password Form */}
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
@@ -230,7 +193,7 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Success Dialog */}
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog} >
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent className="bg-[#003451] border-[#00d8cc]/20 text-white !rounded-none">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center text-[#00d8cc]">
