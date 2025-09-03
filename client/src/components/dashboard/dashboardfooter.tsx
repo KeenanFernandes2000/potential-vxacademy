@@ -49,7 +49,15 @@ export const DashboardFooter: React.FC<DashboardFooterProps> = ({
                       onClick={() => scrollToSection("about")}
                       className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                     >
-                      About Us
+                      About
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => scrollToSection("benefits")}
+                      className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
+                    >
+                      Why Join
                     </button>
                   </li>
                   <li>
@@ -58,14 +66,6 @@ export const DashboardFooter: React.FC<DashboardFooterProps> = ({
                       className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                     >
                       Training Areas
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => scrollToSection("benefits")}
-                      className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
-                    >
-                      Benefits
                     </button>
                   </li>
                   <li>
@@ -147,7 +147,7 @@ export const DashboardFooter: React.FC<DashboardFooterProps> = ({
                   onClick={() => scrollToSection("benefits")}
                   className="text-white/70 hover:text-[#00d8cc] transition-all duration-300 hover:translate-x-1 transform inline-block text-left w-full"
                 >
-                  Benefits
+                  Why Join
                 </button>
               </li>
               <li>
